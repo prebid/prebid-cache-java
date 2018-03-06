@@ -1,0 +1,5 @@
+
+---
+cache.profiles.active: redis
+cache.redis.classname.canonical: org.prebid.cache.repository.redis.RedisRepositoryImpl
+cache.redis.property.configuration.classname: RedisPropertyConfiguration

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Don't forget to set system property
+-DLog4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector
+     to make all loggers asynchronous. -->
+
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <Property name="fileName">${sys:log.dir}/spring-boot-service.log</Property>
+        <Property name="fileNamePattern">
+            ${sys:log.dir}/spring-boot-service-%d{yyyy-MM-dd}-%i.log
+        </Property>
+        <Property name="logPattern">
+            %d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${hostName} --- [%15.15t] %-40.40c{1.} : %m%n%ex
+        </Property>
+    </Properties>
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="${logPattern}"/>
+        </Console>
+        <!-- Rolling File Appender -->
+        <RollingFile name="FileAppender" fileName="${fileName}" filePattern="$fileNamePattern">
+            <PatternLayout>
+                <Pattern>${logPattern}</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="100MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <AsyncLogger name="org.prebid.cache" level="debug" additivity="false">
+            <AppenderRef ref="FileAppender"/>
+        </AsyncLogger>
+
+        <Root level="debug">
+            <AppenderRef ref="ConsoleAppender" />
+        </Root>
+    </Loggers>
+</Configuration>

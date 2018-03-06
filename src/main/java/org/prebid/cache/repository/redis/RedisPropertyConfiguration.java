@@ -1,0 +1,26 @@
+package org.prebid.cache.repository.redis;
+
+import io.lettuce.core.RedisURI;
+import lombok.*;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Configuration
+@ConfigurationProperties(prefix="spring.redis")
+public class RedisPropertyConfiguration
+{
+    private String host;
+    private Integer port;
+    private String password;
+
+    RedisURI createRedisURI() {
+        if (password == null) {
+            return RedisURI.Builder.redis(host, port).build();
+        } else {
+            return RedisURI.Builder.redis(host, port).withPassword(password).build();
+        }
+    }
+}

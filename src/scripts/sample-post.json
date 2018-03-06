@@ -1,0 +1,6 @@
+{
+  "puts":[
+    {"type" : "json", "value":"{\r\n  \"creativeCode\" : \"<html><\/html>\"\r\n}"},
+    {"type" : "xml", "value":"<xml>\r\n  <creativeCode>\r\n    <![CDATA[\r\n      <html><\/html>\r\n      ]]>\r\n  <\/creativeCode>\r\n<\/xml>"}
+  ]
+}
