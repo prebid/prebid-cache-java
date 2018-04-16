@@ -291,60 +291,6 @@
 		</plugins>
 	</build>
 
-    <profiles>
-        <profile>
-            <id>rpm</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>rpm-maven-plugin</artifactId>
-                        <version>2.1.5</version>
-                        <executions>
-                            <execution>
-                                <id>generate-rpm</id>
-                                <goals>
-                                    <goal>rpm</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <name>${project.name}</name>
-                            <version>${project.version}</version>
-                            <release>${build.number}</release>
-                            <license>Rubicon Project</license>
-                            <distribution>${project.name}</distribution>
-                            <group>System/RP</group>
-                            <packager>Rubicon Project</packager>
-                            <vendor>Rubicon Project</vendor>
-                            <description>Rubicon Project Prebid Cache</description>
-                            <summary>Rubicon Project Prebid Cache</summary>
-                            <needarch>false</needarch>
-                            <url>http://www.rubiconproject.com</url>
-                            <defineStatements>
-                                <defineStatement>name ${project.name}</defineStatement>
-                                <defineStatement>_tmppath %{_topdir}/tmp</defineStatement>
-                            </defineStatements>
-                            <mappings>
-                                <mapping>
-                                    <directory>/app/${project.name}</directory>
-                                    <filemode>755</filemode>
-                                    <username>prodicon</username>
-                                    <groupname>prodicon</groupname>
-                                    <sources>
-                                        <source>
-                                            <location>${project.build.directory}/${project.name}.jar</location>
-                                        </source>
-                                    </sources>
-                                </mapping>
-                            </mappings>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
 	<repositories>
 		<repository>
 			<id>spring-snapshots</id>
