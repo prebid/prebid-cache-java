@@ -35,7 +35,7 @@ metrics:
     prefix: prebid
 
 # endpoint actuators
-management.health.defaults.enabled: false
+management.health.defaults.enabled: true
 management.endpoints.enabled-by-default: false
 management.endpoints.web.base-path: /
 management.health.diskspace.enabled: true
