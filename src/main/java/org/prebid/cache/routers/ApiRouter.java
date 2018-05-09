@@ -1,15 +1,16 @@
 package org.prebid.cache.routers;
 
+import lombok.extern.slf4j.Slf4j;
+import org.prebid.cache.handlers.ErrorHandler;
 import org.prebid.cache.handlers.GetCacheHandler;
 import org.prebid.cache.handlers.PostCacheHandler;
-import org.prebid.cache.handlers.ErrorHandler;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.reactive.config.EnableWebFlux;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.ServerResponse;
 
 import static org.springframework.http.MediaType.*;
 import static org.springframework.web.reactive.function.server.RequestPredicates.*;
@@ -32,6 +33,8 @@ public class ApiRouter
                     .and(accept(APPLICATION_JSON, APPLICATION_JSON_UTF8)), getCacheHandler::fetch)
                 .andRoute(GET(apiConfig.getPath())
                     .and(accept(APPLICATION_XML)), getCacheHandler::fetch)
+                .andRoute(GET("/health")
+                        .and(accept(APPLICATION_JSON, APPLICATION_JSON_UTF8)), serverRequest -> ServerResponse.ok().build())
                 .andOther(route(RequestPredicates.all(), errorHandler::invalidRequest));
     }
 }
