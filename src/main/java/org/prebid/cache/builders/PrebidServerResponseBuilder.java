@@ -57,6 +57,7 @@ public class PrebidServerResponseBuilder
                 ServerResponse.ok()
                               .contentType(mediaType)
                               .header(HttpHeaders.DATE, ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+                              .header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*")
                               .varyBy(HttpHeaders.ACCEPT_ENCODING)
                               .cacheControl(CacheControl.noCache());
         builder = applyHeaders(builder, request);
@@ -89,6 +90,7 @@ public class PrebidServerResponseBuilder
                        .cacheControl(CacheControl.noCache());
 
         headers = applyHeaders(headers, request);
+        builder.header(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "*");
         return headers;
     }
 
