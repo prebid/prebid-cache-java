@@ -41,6 +41,7 @@ public class PrebidServerResponseBuilder
                                                    final MediaType mediaType,
                                                    final PayloadWrapper wrapper)
     {
+        log.warn("PrebidServerResponseBuilder-{}",wrapper.getPayload().getValue());
         return ok(request, mediaType).body(fromObject(wrapper.getPayload().getValue()));
     }
 
