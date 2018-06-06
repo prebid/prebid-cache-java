@@ -3,8 +3,8 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
 
-    <bean id="repository" class="org.prebid.cache.repository.redis.RedisRepositoryImpl">
-        <constructor-arg ref="redisPropertyConfiguration"/>
+    <bean id="repository" class="org.prebid.cache.repository.aerospike.AerospikeRepositoryImpl">
+        <constructor-arg ref="aerospikePropertyConfiguration"/>
     </bean>
 
 </beans>

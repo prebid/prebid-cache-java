@@ -8,7 +8,7 @@ import org.prebid.cache.metrics.GraphiteTestConfig;
 import org.prebid.cache.model.PayloadTransfer;
 import org.prebid.cache.model.RequestObject;
 import org.prebid.cache.repository.CacheConfig;
-import org.prebid.cache.repository.ReactiveTestRepositoryContext;
+import org.prebid.cache.repository.ReactiveTestAerospikeRepositoryContext;
 import org.prebid.cache.routers.ApiConfig;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -34,7 +34,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 @ContextConfiguration(classes = {
         PostCacheHandler.class,
         PrebidServerResponseBuilder.class,
-        ReactiveTestRepositoryContext.class,
+        ReactiveTestAerospikeRepositoryContext.class,
         CacheConfig.class,
         GraphiteTestConfig.class,
         GraphiteMetricsRecorder.class,

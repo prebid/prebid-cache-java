@@ -7,7 +7,7 @@ import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
-import org.prebid.cache.repository.ReactiveTestRepositoryContext;
+import org.prebid.cache.repository.ReactiveTestAerospikeRepositoryContext;
 import org.prebid.cache.routers.ApiConfig;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -31,10 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes={
+@ContextConfiguration(classes = {
         GetCacheHandler.class,
         PrebidServerResponseBuilder.class,
-        ReactiveTestRepositoryContext.class,
+        ReactiveTestAerospikeRepositoryContext.class,
         CacheConfig.class,
         GraphiteTestConfig.class,
         GraphiteMetricsRecorder.class,
@@ -57,7 +57,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
     }
 
     @Test
-    void tesVerifyFetch(){
+    void tesVerifyFetch() {
         val payload = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
         val payloadWrapper = new PayloadWrapper("12", "prebid_", payload, 1800L, new Date());
         given(repository.findById("prebid_a8db2208-d085-444c-9721-c1161d7f09ce")).willReturn(Mono.just(payloadWrapper));

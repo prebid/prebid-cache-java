@@ -42,7 +42,7 @@ public class PostCacheHandler extends CacheHandler {
     private final CacheConfig config;
     private final Supplier<Date> currentDateProvider;
     private final Function<PayloadWrapper, Map<String, String>> payloadWrapperToMapTransformer = payload ->
-        ImmutableMap.of(UUID_KEY, payload.getId());
+            ImmutableMap.of(UUID_KEY, payload.getId());
 
     @Autowired
     public PostCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
@@ -61,20 +61,20 @@ public class PostCacheHandler extends CacheHandler {
     public Mono<ServerResponse> save(final ServerRequest request) {
         metricsRecorder.markMeterForClass(this.getClass(), MetricsRecorder.MeasurementTag.REQUEST_RATE);
         val timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(type)
-            .orElse(null);
+                .orElse(null);
         val bodyMono = request.bodyToMono(RequestObject.class);
         val monoList = bodyMono.map(RequestObject::getPuts);
         val flux = monoList.flatMapMany(Flux::fromIterable);
         val payloadFlux = flux.map(payload -> payload.toBuilder()
-                    .prefix(config.getPrefix())
-                    .expiry(payload.getExpiry() == null ? config.getExpirySec() : payload.getExpiry())
-                    .build())
-            .map(payloadWrapperTransformer(currentDateProvider))
-            .handle(this::validateUUID)
-            .handle(this::validateExpiry)
-            .flatMap(repository::save)
-            .timeout(Duration.ofMillis(config.getTimeoutMs()))
-            .subscribeOn(Schedulers.parallel());
+                .prefix(config.getPrefix())
+                .expiry(payload.getExpiry() == null ? config.getExpirySec() : payload.getExpiry())
+                .build())
+                .map(payloadWrapperTransformer(currentDateProvider))
+                .handle(this::validateUUID)
+                .handle(this::validateExpiry)
+                .concatMap(repository::save)
+                .timeout(Duration.ofMillis(config.getTimeoutMs()))
+                .subscribeOn(Schedulers.parallel());
 
         final Mono<ServerResponse> responseMono = payloadFlux
                 .map(payloadWrapperToMapTransformer)
@@ -94,13 +94,13 @@ public class PostCacheHandler extends CacheHandler {
 
     private Function<PayloadTransfer, PayloadWrapper> payloadWrapperTransformer(Supplier<Date> currentDateProvider) {
         return transfer ->
-            new PayloadWrapper(
-                RandomUUID.extractUUID(transfer),
-                transfer.getPrefix(),
-                new Payload(transfer.getType(), transfer.getKey(), transfer.getValue()),
-                transfer.getExpiry(),
-                currentDateProvider.get()
-            );
+                new PayloadWrapper(
+                        RandomUUID.extractUUID(transfer),
+                        transfer.getPrefix(),
+                        new Payload(transfer.getType(), transfer.getKey(), transfer.getValue()),
+                        transfer.getExpiry(),
+                        currentDateProvider.get()
+                );
     }
 
     private void validateUUID(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {

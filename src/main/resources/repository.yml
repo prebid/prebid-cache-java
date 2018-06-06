@@ -1,5 +1,5 @@
 
 ---
-cache.profiles.active: redis
-cache.redis.classname.canonical: org.prebid.cache.repository.redis.RedisRepositoryImpl
-cache.redis.property.configuration.classname: RedisPropertyConfiguration
+cache.profiles.active: aerospike
+cache.aerospike.classname.canonical: org.prebid.cache.repository.aerospike.AerospikeRepositoryImpl
+cache.aerospike.property.configuration.classname: AerospikePropertyConfiguration
