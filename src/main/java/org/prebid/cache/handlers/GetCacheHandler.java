@@ -49,7 +49,7 @@ public class GetCacheHandler extends CacheHandler {
             val normalizedId = String.format("%s%s", config.getPrefix(), id);
             val responseMono = repository.findById(normalizedId)
                 .timeout(Duration.ofMillis(config.getTimeoutMs()))
-                .subscribeOn(Schedulers.parallel())
+                //.subscribeOn(Schedulers.parallel())
                 .transform(this::validateErrorResult)
                 .flatMap(wrapper -> {
                     if (wrapper.getPayload().getType().equals(PayloadType.JSON.toString())) {
