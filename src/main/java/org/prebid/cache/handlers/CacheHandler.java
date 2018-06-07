@@ -36,7 +36,7 @@ abstract class CacheHandler extends MetricsHandler
     }
 
     <T>Mono<T> validateErrorResult(final Mono<T> mono) {
-        return mono.doOnSuccess(v -> log.warn("validateErrorResult {}: {}", type, v))
+        return mono.doOnSuccess(v -> log.debug("validateErrorResult {}: {}", type, v))
                    .onErrorResume(t -> {
                        log.error(t.getMessage(), t);
                         // skip overwrite, report first prebid error
@@ -82,7 +82,6 @@ abstract class CacheHandler extends MetricsHandler
         // transform to error, if needed and send metrics
         return mono.onErrorResume(throwable -> handleErrorMetrics(throwable, request))
                    .doAfterSuccessOrError((v, t) -> {
-                    log.warn("finalizeResult {}",v);
                        if (timerContext != null)
                            timerContext.stop();
                    });

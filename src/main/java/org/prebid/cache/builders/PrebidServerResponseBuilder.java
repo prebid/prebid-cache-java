@@ -2,27 +2,27 @@ package org.prebid.cache.builders;
 
 
 import com.google.common.net.HttpHeaders;
+import lombok.extern.slf4j.Slf4j;
 import org.prebid.cache.model.ErrorResponse;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.model.ResponseObject;
 import org.prebid.cache.routers.ApiConfig;
 import org.prebid.cache.translators.ThrowableTranslator;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
-import static org.springframework.web.reactive.function.server.ServerResponse.status;
 import reactor.core.publisher.Mono;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.function.Predicate;
+
+import static org.springframework.web.reactive.function.BodyInserters.fromObject;
+import static org.springframework.web.reactive.function.server.ServerResponse.status;
 
 @Component
 @Slf4j
@@ -41,7 +41,6 @@ public class PrebidServerResponseBuilder
                                                    final MediaType mediaType,
                                                    final PayloadWrapper wrapper)
     {
-        log.warn("PrebidServerResponseBuilder-{}",wrapper.getPayload().getValue());
         return ok(request, mediaType).body(fromObject(wrapper.getPayload().getValue()));
     }
 

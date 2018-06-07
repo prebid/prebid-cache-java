@@ -30,7 +30,7 @@
         </RollingFile>
     </Appenders>
     <Loggers>
-        <AsyncLogger name="org.prebid.cache" level="debug" additivity="false">
+        <AsyncLogger name="org.prebid.cache" level="warn" additivity="false">
             <AppenderRef ref="FileAppender"/>
         </AsyncLogger>
 
