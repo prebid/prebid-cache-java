@@ -70,7 +70,7 @@ metrics:
 
 ---
 spring.profiles: local
-cache.expiry_sec: 28800
+cache.expiry_sec: 300
 metrics.graphite.enabled: false
 spring:
   aerospike:
@@ -81,6 +81,8 @@ spring:
     first_backoff: 300
     max_backoff: 1000
     max_retry: 3
+    namespace: "prebid_cache"
+    bin_name: "cache"
 #spring.redis.sentinel.master: mymaster
 #spring.redis.sentinel.nodes: localhost:26379
 

@@ -28,8 +28,6 @@ import java.util.Objects;
 @Slf4j
 @RequiredArgsConstructor
 public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrapper, String> {
-    private final static String NAMESPACE = "test";
-    private final static String NAME = "test";
     @NotNull
     private final AerospikePropertyConfiguration configuration;
     @NotNull
@@ -57,8 +55,8 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
 
         return Mono.<String>create(sink -> client.put(eventLoops.next(),
                 new AerospikeWriteListener(sink, normalizedId), policy,
-                new Key(NAMESPACE, "", normalizedId),
-                new Bin(NAME, Json.toJson(wrapper)))).map(payload -> wrapper)
+                new Key(configuration.getNamespace(), "", normalizedId),
+                new Bin(configuration.getBinName(), Json.toJson(wrapper)))).map(payload -> wrapper)
                 .retryWhen(getRetryPolicy());
     }
 
@@ -66,7 +64,7 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
     public Mono<PayloadWrapper> findById(String id) {
         return Mono.<String>create(sink -> client.get(eventLoops.next(),
                 new AerospikeReadListener(sink, id),
-                policy, new Key(NAMESPACE, "", id)))
+                policy, new Key(configuration.getNamespace(), "", id)))
                 .map(json -> Json.createPayloadFromJson(json, PayloadWrapper.class))
                 .retryWhen(getRetryPolicy());
     }
