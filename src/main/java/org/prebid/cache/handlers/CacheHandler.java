@@ -1,7 +1,7 @@
 package org.prebid.cache.handlers;
 
+import com.aerospike.client.AerospikeException;
 import com.codahale.metrics.Timer;
-import org.prebid.cache.exceptions.*;
 import lombok.extern.slf4j.Slf4j;
 import org.prebid.cache.exceptions.PrebidException;
 import org.prebid.cache.exceptions.RepositoryException;
@@ -48,6 +48,8 @@ abstract class CacheHandler extends MetricsHandler
                             return Mono.error(new RequestParsingException(t.toString()));
                         } else if (t instanceof org.springframework.web.server.UnsupportedMediaTypeStatusException) {
                             return Mono.error(new UnsupportedMediaTypeException(t.toString()));
+                        } else if (t instanceof AerospikeException) {
+                            return Mono.error(new AerospikeException(t.toString()));
                         } else {
                             return Mono.error(t);
                         }
