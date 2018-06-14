@@ -38,6 +38,8 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
     private final Policy policy;
     private WritePolicy writePolicy;
 
+    private final static String BIN_NAME="cache";
+
     @Override
     public Mono save(final PayloadWrapper wrapper) {
         long expiry;
@@ -56,7 +58,7 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
         return Mono.<String>create(sink -> client.put(eventLoops.next(),
                 new AerospikeWriteListener(sink, normalizedId), policy,
                 new Key(configuration.getNamespace(), "", normalizedId),
-                new Bin(configuration.getBinName(), Json.toJson(wrapper)))).map(payload -> wrapper)
+                new Bin(BIN_NAME, Json.toJson(wrapper)))).map(payload -> wrapper)
                 .retryWhen(getRetryPolicy());
     }
 

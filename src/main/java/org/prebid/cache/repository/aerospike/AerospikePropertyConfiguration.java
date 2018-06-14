@@ -37,7 +37,6 @@ public class AerospikePropertyConfiguration {
     private Long maxBackoff;
     private int maxRetry;
     private String namespace;
-    private String binName;
 
     private static final int DEFAULT_PORT = 3000;
 
