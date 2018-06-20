@@ -1,7 +1,7 @@
 (work in progress)
 
 # _Prebid Cache Java_
-Prebid Cache provides the caching service component for the Prebid Server project.  Currently, the API supports both the GET and POST endpoints.  Prebid Cache Java, as default, provides a Redis and Aerospike implementation for the cache.  However, Prebid Cache is designed to support any cache implementation.  
+Prebid Cache provides the caching service component for the Prebid Server project.  Currently, the API supports both the GET and POST endpoints.  Prebid Cache Java provides a Redis and Aerospike implementation for the cache. By default it uses Aerospike. How to switch between Redis And Aerospike described at Cache Cinfiguration section.  However, Prebid Cache is designed to support any cache implementation.  
 
 ## Integration Guide
 Project configuration is managed through the use of YAML configuration (see resources folder).
@@ -27,10 +27,12 @@ This section describes how to download, install and run the application.
 $ git clone https://github.com/prebid/prebid-cache-java.git
 ```
 
-(2). Start Redis:
+(2). Start Redis or Aerospike:
 
 ```bash
 $ nohup redis-server &
+
+$ sudo service aerospike start
 ```
 
 (3). Start the Maven build
@@ -74,6 +76,23 @@ $ java -jar prebid-cache.jar -Dspring.profiles.active=prod -Dlog.dir=/app/prebid
 ```
 
 ### _Cache Configuration_
+Prebid cache uses Aerospike as a default cache implementation but also supports Redis. For switching from Aerospike to Redis change next:
+
+_repository.yml:_
+```yaml
+cache.profiles.active: aerospike
+cache.aerospike.classname.canonical: org.prebid.cache.repository.aerospike.AerospikeRepositoryImpl
+cache.aerospike.property.configuration.classname: AerospikePropertyConfiguration
+```  
+
+to 
+
+```yaml
+cache.profiles.active: redis
+cache.aerospike.classname.canonical: org.prebid.cache.repository.redis.RedisRepositoryImpl
+cache.aerospike.property.configuration.classname: RedisPropertyConfiguration
+```  
+
 It is possible to override the default YAML configuration by supplying a custom configuration.  See example scenario(s) below.
 
 ###### Fault Tolerant Redis Sentinel (1 master and 2 slaves)
