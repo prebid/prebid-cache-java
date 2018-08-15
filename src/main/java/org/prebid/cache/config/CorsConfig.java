@@ -16,4 +16,5 @@ public class CorsConfig {
     private String mapping;
     private String[] allowedOrigins;
     private String[] allowedMethods;
+    private boolean allowCredentials;
 }
