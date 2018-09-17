@@ -15,5 +15,7 @@ public class CacheConfig {
     private String prefix;
     private long expirySec;
     private int timeoutMs;
+    private long minExpiry;
+    private long maxExpiry;
 }
 

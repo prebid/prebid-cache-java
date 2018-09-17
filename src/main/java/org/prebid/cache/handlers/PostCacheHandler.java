@@ -13,6 +13,7 @@ import lombok.val;
 import org.prebid.cache.helpers.RandomUUID;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import org.springframework.stereotype.Component;
@@ -35,8 +36,8 @@ import static org.springframework.http.MediaType.*;
 public class PostCacheHandler extends CacheHandler {
 
     private static final String UUID_KEY = "uuid";
-    private static final long MIN_EXPIRY = 60;
-    private static final long MAX_EXPIRY = 28800;
+    private final long MIN_EXPIRY;
+    private final long MAX_EXPIRY;
 
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
@@ -56,6 +57,8 @@ public class PostCacheHandler extends CacheHandler {
         this.config = config;
         this.builder = builder;
         this.currentDateProvider = currentDateProvider;
+        MIN_EXPIRY = config.getMinExpiry();
+        MAX_EXPIRY = config.getMaxExpiry();
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
@@ -67,7 +70,7 @@ public class PostCacheHandler extends CacheHandler {
         val flux = monoList.flatMapMany(Flux::fromIterable);
         val payloadFlux = flux.map(payload -> payload.toBuilder()
                 .prefix(config.getPrefix())
-                .expiry(payload.getExpiry() == null ? config.getExpirySec() : payload.getExpiry())
+                .expiry(getExpiry(payload.getExpiry()))
                 .build())
                 .map(payloadWrapperTransformer(currentDateProvider))
                 .handle(this::validateUUID)
@@ -114,13 +117,19 @@ public class PostCacheHandler extends CacheHandler {
     private void validateExpiry(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
         if (payload.getExpiry() == null) {
             sink.error(new ExpiryOutOfRangeException("Invalid Expiry [NULL]."));
-        } else {
-            if (payload.getExpiry() > MAX_EXPIRY || payload.getExpiry() < MIN_EXPIRY) {
-                sink.error(new ExpiryOutOfRangeException("Invalid Expiry [" + payload.getExpiry() + "]."));
-            } else {
-                sink.next(payload);
-            }
         }
+    }
+
+    private long getExpiry(Long expiry) {
+        if(expiry > MAX_EXPIRY) {
+            return MAX_EXPIRY;
+        }
+
+        if(expiry < MIN_EXPIRY) {
+            return MIN_EXPIRY;
+        }
+
+        return config.getExpirySec();
     }
 }
 
