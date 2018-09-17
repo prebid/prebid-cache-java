@@ -11,6 +11,7 @@ import com.aerospike.client.policy.WritePolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.prebid.cache.exceptions.PayloadWrapperPropertyException;
+import org.prebid.cache.exceptions.RepositoryException;
 import org.prebid.cache.helpers.Json;
 import org.prebid.cache.listners.AerospikeReadListener;
 import org.prebid.cache.listners.AerospikeWriteListener;
@@ -59,7 +60,8 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
                 new AerospikeWriteListener(sink, normalizedId), policy,
                 new Key(configuration.getNamespace(), "", normalizedId),
                 new Bin(BIN_NAME, Json.toJson(wrapper)))).map(payload -> wrapper)
-                .retryWhen(getRetryPolicy());
+                .retryWhen(getRetryPolicy())
+                .onErrorResume(this::handleAerospikeError);
     }
 
     @Override
@@ -68,7 +70,8 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
                 new AerospikeReadListener(sink, id),
                 policy, new Key(configuration.getNamespace(), "", id)))
                 .map(json -> Json.createPayloadFromJson(json, PayloadWrapper.class))
-                .retryWhen(getRetryPolicy());
+                .retryWhen(getRetryPolicy())
+                .onErrorResume(this::handleAerospikeError);
     }
 
     private WritePolicy writePolicy() {
@@ -91,5 +94,13 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
         ).doOnRetry(context -> log.warn("Retrying context {}", context))
                 .retryMax(configuration.getMaxRetry())
                 .exponentialBackoffWithJitter(firstBackoff, maxBackoff);
+    }
+
+    private <T>Mono<T> handleAerospikeError(Throwable throwable) {
+        if (throwable instanceof AerospikeException) {
+            return Mono.error(new RepositoryException(throwable.toString()));
+        }
+
+        return Mono.error(throwable);
     }
 }

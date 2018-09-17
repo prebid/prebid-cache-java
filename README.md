@@ -89,8 +89,8 @@ to
 
 ```yaml
 cache.profiles.active: redis
-cache.aerospike.classname.canonical: org.prebid.cache.repository.redis.RedisRepositoryImpl
-cache.aerospike.property.configuration.classname: RedisPropertyConfiguration
+cache.redis.classname.canonical: org.prebid.cache.repository.redis.RedisRepositoryImpl
+cache.redis.property.configuration.classname: RedisPropertyConfiguration
 ```  
 
 It is possible to override the default YAML configuration by supplying a custom configuration.  See example scenario(s) below.
