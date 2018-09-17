@@ -67,9 +67,9 @@ abstract class CacheHandler extends MetricsHandler
                                 if (v.statusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
                                     metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.ERROR_RATE);
                                 } else if (v.statusCode() == HttpStatus.BAD_REQUEST) {
-                                    metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.ERROR_BAD_REQUEST);
+                                    metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.ERROR_BAD_REQUEST_RATE);
                                 } else if (v.statusCode() == HttpStatus.NOT_FOUND) {
-                                    metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.ERROR_MISSINGID);
+                                    metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.ERROR_MISSINGID_RATE);
                                 }
                             }
                       });

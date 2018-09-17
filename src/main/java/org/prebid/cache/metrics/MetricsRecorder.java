@@ -7,14 +7,14 @@ public abstract class MetricsRecorder
 {
     public enum MeasurementTag {
         REQUEST_DURATION("pbc.prefix.request.duration"),
-        REQUEST_RATE("pbc.prefix.request.rate"),
-        ERROR_RATE("pbc.prefix.err.rate"),
-        ERROR_MISSINGID("pbc.prefix.err.missingId"),
-        ERROR_BAD_REQUEST("pbc.prefix.err.badRequest"),
-        REQUEST_INVALID_RATE("request.invalid.rate"),
-        JSON_RATE("pbc.prefix.json.rate"),
-        XML_RATE("pbc.prefix.xml.rate"),
-        SYSTEM_ERR_RATE("pbc.prefix.err.systemErr");
+        REQUEST_RATE("pbc.prefix.request"),
+        ERROR_RATE("pbc.prefix.err.unknown"),
+        ERROR_MISSINGID_RATE("pbc.prefix.err.missingId"),
+        ERROR_BAD_REQUEST_RATE("pbc.prefix.err.badRequest"),
+        REQUEST_INVALID_RATE("request.invalid"),
+        JSON_RATE("pbc.prefix.json"),
+        XML_RATE("pbc.prefix.xml"),
+        SYSTEM_ERR_RATE("pbc.prefix.err.db");
 
         @Getter @Setter private String tag;
 
