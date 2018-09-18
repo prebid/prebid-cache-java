@@ -13,7 +13,6 @@ import lombok.val;
 import org.prebid.cache.helpers.RandomUUID;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import org.springframework.stereotype.Component;
@@ -36,9 +35,9 @@ import static org.springframework.http.MediaType.*;
 public class PostCacheHandler extends CacheHandler {
 
     private static final String UUID_KEY = "uuid";
-    private final long MIN_EXPIRY;
-    private final long MAX_EXPIRY;
 
+    private final long minExpiry;
+    private final long maxExpiry;
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
     private final Supplier<Date> currentDateProvider;
@@ -57,8 +56,8 @@ public class PostCacheHandler extends CacheHandler {
         this.config = config;
         this.builder = builder;
         this.currentDateProvider = currentDateProvider;
-        MIN_EXPIRY = config.getMinExpiry();
-        MAX_EXPIRY = config.getMaxExpiry();
+        this.minExpiry = config.getMinExpiry();
+        this.maxExpiry = config.getMaxExpiry();
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
@@ -70,7 +69,7 @@ public class PostCacheHandler extends CacheHandler {
         val flux = monoList.flatMapMany(Flux::fromIterable);
         val payloadFlux = flux.map(payload -> payload.toBuilder()
                 .prefix(config.getPrefix())
-                .expiry(getExpiry(payload.getExpiry()))
+                .expiry(adjustExpiry(payload.getExpiry()))
                 .build())
                 .map(payloadWrapperTransformer(currentDateProvider))
                 .handle(this::validateUUID)
@@ -120,16 +119,21 @@ public class PostCacheHandler extends CacheHandler {
         }
     }
 
-    private long getExpiry(Long expiry) {
-        if(expiry > MAX_EXPIRY) {
-            return MAX_EXPIRY;
+    private long adjustExpiry(Long expiry) {
+        if(expiry == null) {
+            return config.getExpirySec();
         }
 
-        if(expiry < MIN_EXPIRY) {
-            return MIN_EXPIRY;
+        if(expiry > maxExpiry) {
+            return maxExpiry;
         }
 
-        return config.getExpirySec();
+        if(expiry < minExpiry) {
+            return minExpiry;
+        }
+
+
+        return expiry;
     }
 }
 
