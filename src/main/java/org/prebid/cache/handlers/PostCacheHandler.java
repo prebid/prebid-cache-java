@@ -117,6 +117,8 @@ public class PostCacheHandler extends CacheHandler {
         if (payload.getExpiry() == null) {
             sink.error(new ExpiryOutOfRangeException("Invalid Expiry [NULL]."));
         }
+
+        sink.next(payload);
     }
 
     private long adjustExpiry(Long expiry) {
