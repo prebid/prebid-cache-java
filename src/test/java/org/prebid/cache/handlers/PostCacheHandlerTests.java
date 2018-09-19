@@ -9,6 +9,7 @@ import org.prebid.cache.model.PayloadTransfer;
 import org.prebid.cache.model.RequestObject;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveTestAerospikeRepositoryContext;
+import org.prebid.cache.repository.aerospike.AerospikePropertyConfiguration;
 import org.prebid.cache.routers.ApiConfig;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -19,13 +20,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.reactive.function.server.MockServerRequest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
@@ -64,15 +68,13 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 .body(request);
 
         val responseMono = handler.save(requestMono);
-        BiConsumer<ServerResponse, Throwable> consumer = (v, t) -> {
-            assertEquals(200, v.statusCode().value());
+
+        Consumer<ServerResponse> consumer1 = serverResponse -> {
+            assertEquals(200, serverResponse.statusCode().value());
         };
 
-        responseMono.doAfterSuccessOrError(consumer)
-                .subscribe();
         StepVerifier.create(responseMono)
-                .expectSubscription()
-                .expectNextMatches(t -> true)
+                .consumeNextWith(consumer1)
                 .expectComplete()
                 .verify();
     }
