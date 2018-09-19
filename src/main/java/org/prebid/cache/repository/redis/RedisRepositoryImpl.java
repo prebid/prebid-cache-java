@@ -1,6 +1,9 @@
 package org.prebid.cache.repository.redis;
 
+import com.aerospike.client.AerospikeException;
+import io.lettuce.core.RedisException;
 import org.prebid.cache.exceptions.PayloadWrapperPropertyException;
+import org.prebid.cache.exceptions.RepositoryException;
 import org.prebid.cache.helpers.Json;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.ReactiveRepository;
@@ -46,14 +49,22 @@ public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, S
             return Mono.empty();
         }
 
-        return createReactive().setex(normalizedId, expiry, Json.toJson(wrapper))
-                               .map(payload -> wrapper);
+        try {
+            return createReactive().setex(normalizedId, expiry, Json.toJson(wrapper))
+                    .map(payload -> wrapper);
+        } catch (RedisException e) {
+            return Mono.error(new RepositoryException(e.toString(), e));
+        }
     }
 
     @Override
     public Mono<PayloadWrapper> findById(final String id) {
-        return createReactive().get(id)
-                .map(json -> Json.createPayloadFromJson(json, PayloadWrapper.class));
+        try {
+            return createReactive().get(id)
+                    .map(json -> Json.createPayloadFromJson(json, PayloadWrapper.class));
+        } catch (RedisException e) {
+            return Mono.error(new RepositoryException(e.toString(), e));
+        }
     }
 
     private StatefulRedisConnection<String, String> getConnection() {

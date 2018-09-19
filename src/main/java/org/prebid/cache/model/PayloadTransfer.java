@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.prebid.cache.helpers.Json;
 
-
 @Value
 @Builder(toBuilder = true)
 @RequiredArgsConstructor
@@ -16,7 +15,7 @@ public class PayloadTransfer {
     Long expiry;
     transient String prefix;
 
-    public String getValue() {
+    public String valueAsString() {
         if (value == null)
             return null;
 

@@ -1,6 +1,5 @@
 package org.prebid.cache.handlers;
 
-import com.aerospike.client.AerospikeException;
 import com.codahale.metrics.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.prebid.cache.exceptions.PrebidException;
@@ -19,6 +18,8 @@ abstract class CacheHandler extends MetricsHandler
 {
     ServiceType type;
     static String ID_KEY = "uuid";
+
+    protected String metricTagPrefix;
 
     protected enum PayloadType implements StringTypeConvertible {
         JSON("json"),
@@ -41,21 +42,20 @@ abstract class CacheHandler extends MetricsHandler
                        log.error(t.getMessage(), t);
                         // skip overwrite, report first prebid error
                         if (t instanceof PrebidException) {
+                            // TODO: 19.09.18 move to handleErrorMetrics
+                            applyMetrics(t);
                             return Mono.error(t);
-                        } else if (t instanceof io.lettuce.core.RedisConnectionException) {
-                            return Mono.error(new RepositoryException(t.toString()));
                         } else if (t instanceof org.springframework.core.codec.DecodingException) {
                             return Mono.error(new RequestParsingException(t.toString()));
                         } else if (t instanceof org.springframework.web.server.UnsupportedMediaTypeStatusException) {
                             return Mono.error(new UnsupportedMediaTypeException(t.toString()));
-                        } else if (t instanceof AerospikeException) {
-                            return Mono.error(new AerospikeException(t.toString()));
                         } else {
                             return Mono.error(t);
                         }
                 });
     }
 
+    // TODO: 19.09.18 refactor this to normal interaction with mono instead of "casting" exceptions to status codes
     private Mono<ServerResponse> handleErrorMetrics(final Throwable error,
                                                     final ServerRequest request)
     {
@@ -64,14 +64,14 @@ abstract class CacheHandler extends MetricsHandler
                       .doAfterSuccessOrError((v, t) -> {
                             HttpMethod method = request.method();
                             if (method == null || t != null || v == null) {
-                                metricsRecorder.markMeterForClass(this.getClass(), MetricsRecorder.MeasurementTag.ERROR_RATE);
+                                metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
                             } else {
                                 if (v.statusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-                                    metricsRecorder.markMeterForClass(this.getClass(), MetricsRecorder.MeasurementTag.ERROR_RATE);
+                                    metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
                                 } else if (v.statusCode() == HttpStatus.BAD_REQUEST) {
-                                    metricsRecorder.markMeterForClass(this.getClass(), MetricsRecorder.MeasurementTag.BAD_REQUEST_RATE);
+                                    metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_BAD_REQUEST);
                                 } else if (v.statusCode() == HttpStatus.NOT_FOUND) {
-                                    metricsRecorder.markMeterForClass(this.getClass(), MetricsRecorder.MeasurementTag.RESOURCE_NOT_FOUND_RATE);
+                                    metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_MISSINGID);
                                 }
                             }
                       });
@@ -87,5 +87,11 @@ abstract class CacheHandler extends MetricsHandler
                        if (timerContext != null)
                            timerContext.stop();
                    });
+    }
+
+    void applyMetrics(Throwable t) {
+        if(t instanceof RepositoryException) {
+            metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_DB);
+        }
     }
 }

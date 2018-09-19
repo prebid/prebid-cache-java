@@ -6,10 +6,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
-import org.prebid.cache.handlers.GetCacheHandler;
-import org.prebid.cache.handlers.PostCacheHandler;
 import org.prebid.cache.handlers.ServiceType;
-import org.prebid.cache.routers.ApiRouter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -18,23 +15,26 @@ import java.net.InetSocketAddress;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static com.codahale.metrics.MetricRegistry.name;
 
 @Slf4j
 @Component
 public class GraphiteMetricsRecorder extends MetricsRecorder
 {
+    protected static final String PREFIX_PLACEHOLDER = "\\$\\{prefix\\}";
+
     final private static MetricRegistry registry = new MetricRegistry();
     final private GraphiteConfig config;
 
     // GET endpoint metrics
-    private static final Timer requestGetDuration = registry.timer(name(GetCacheHandler.class, MeasurementTag.REQUEST_DURATION.getTag()));
+    private static final Timer requestGetDuration = registry.timer(MeasurementTag.REQUEST_DURATION.getTag()
+            .replaceAll(PREFIX_PLACEHOLDER, "read"));
 
     // POST endpoint metrics
-    private static final Timer requestPostDuration = registry.timer(name(PostCacheHandler.class, MeasurementTag.REQUEST_DURATION.getTag()));
+    private static final Timer requestPostDuration = registry.timer(MeasurementTag.REQUEST_DURATION.getTag()
+            .replaceAll(PREFIX_PLACEHOLDER, "write"));
 
     // Other 404
-    private static final Meter invalidRequestMeter = registry.meter(name(ApiRouter.class, MeasurementTag.INVALID_REQUEST_RATE.getTag()));
+    private static final Meter invalidRequestMeter = registry.meter(MeasurementTag.REQUEST_INVALID.getTag());
 
     @Autowired
     public GraphiteMetricsRecorder(final GraphiteConfig config) {
@@ -61,12 +61,12 @@ public class GraphiteMetricsRecorder extends MetricsRecorder
         return invalidRequestMeter;
     }
 
-    private Meter meterForClass(final Class cls, final MeasurementTag measurementTag) {
-        return registry.meter(name(cls, measurementTag.getTag()));
+    private Meter meterForTag(final String prefix, final MeasurementTag measurementTag) {
+        return registry.meter(measurementTag.getTag().replaceAll(PREFIX_PLACEHOLDER, prefix));
     }
 
-    public void markMeterForClass(final Class cls, final MeasurementTag measurementTag) {
-        meterForClass(cls, measurementTag).mark();
+    public void markMeterForTag(final String prefix, final MeasurementTag measurementTag) {
+        meterForTag(prefix, measurementTag).mark();
     }
 
     public Optional<Timer.Context> createRequestContextTimerOptionalForServiceType(final ServiceType serviceType) {

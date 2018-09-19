@@ -26,8 +26,8 @@ class ContractModelTest {
                 )
                         .setUrls(forPackage("org.prebid.cache", staticClassLoader()))
                         .filterInputsBy(new FilterBuilder()
-                                .include("com\\.rubiconproject\\.prebid\\.model\\..*\\.class")
-                                .exclude("com\\.rubiconproject\\.prebid\\.model\\..*(Builder|Test)\\.class")
+                                .include("org\\.prebid\\.cache\\.model\\..*\\.class")
+                                .exclude("org\\.prebid\\.cache\\.model\\..*(Builder|Test)\\.class")
                         )
         );
 
