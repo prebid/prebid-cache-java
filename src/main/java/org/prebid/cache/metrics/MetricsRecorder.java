@@ -6,17 +6,17 @@ import lombok.Setter;
 public abstract class MetricsRecorder
 {
     public enum MeasurementTag {
-        REQUEST_DURATION("pbc.prefix.request.duration"),
-        REQUEST_RATE("pbc.prefix.request"),
-        ERROR_RATE("pbc.prefix.err.unknown"),
-        ERROR_MISSINGID_RATE("pbc.prefix.err.missingId"),
-        ERROR_BAD_REQUEST_RATE("pbc.prefix.err.badRequest"),
-        REQUEST_INVALID_RATE("request.invalid"),
-        JSON_RATE("pbc.prefix.json"),
-        XML_RATE("pbc.prefix.xml"),
-        SYSTEM_ERR_RATE("pbc.prefix.err.db");
+        REQUEST_DURATION("pbc.${prefix}.request.duration"),
+        REQUEST("pbc.${prefix}.request"),
+        ERROR_UNKNOWN("pbc.${prefix}.err.unknown"),
+        ERROR_MISSINGID("pbc.${prefix}.err.missingId"),
+        ERROR_BAD_REQUEST("pbc.${prefix}.err.badRequest"),
+        REQUEST_INVALID("pbc.request.invalid"),
+        JSON("pbc.${prefix}.json"),
+        XML("pbc.${prefix}.xml"),
+        ERROR_DB("pbc.${prefix}.err.db");
 
-        @Getter @Setter private String tag;
+        @Getter private String tag;
 
         MeasurementTag(final String tag) {
             this.tag = tag;

@@ -56,11 +56,11 @@ public class PostCacheHandler extends CacheHandler {
         this.config = config;
         this.builder = builder;
         this.currentDateProvider = currentDateProvider;
-        this.METRIC_TAG_PREFIX = "write";
+        this.metricTagPrefix = "write";
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
-        metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.REQUEST_RATE);
+        metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
         val timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(type)
                 .orElse(null);
         val bodyMono = request.bodyToMono(RequestObject.class);
@@ -98,7 +98,7 @@ public class PostCacheHandler extends CacheHandler {
                 new PayloadWrapper(
                         RandomUUID.extractUUID(transfer),
                         transfer.getPrefix(),
-                        new Payload(transfer.getType(), transfer.getKey(), transfer.getValue()),
+                        new Payload(transfer.getType(), transfer.getKey(), transfer.valueAsString()),
                         transfer.getExpiry(),
                         currentDateProvider.get()
                 );

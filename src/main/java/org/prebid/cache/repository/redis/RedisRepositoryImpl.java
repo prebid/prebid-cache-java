@@ -53,7 +53,7 @@ public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, S
             return createReactive().setex(normalizedId, expiry, Json.toJson(wrapper))
                     .map(payload -> wrapper);
         } catch (RedisException e) {
-            return Mono.error(new RepositoryException(e.toString()));
+            return Mono.error(new RepositoryException(e.toString(), e));
         }
     }
 
@@ -63,7 +63,7 @@ public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, S
             return createReactive().get(id)
                     .map(json -> Json.createPayloadFromJson(json, PayloadWrapper.class));
         } catch (RedisException e) {
-            return Mono.error(new RepositoryException(e.toString()));
+            return Mono.error(new RepositoryException(e.toString(), e));
         }
     }
 

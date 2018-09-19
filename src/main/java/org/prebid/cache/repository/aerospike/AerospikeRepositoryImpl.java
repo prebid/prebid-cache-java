@@ -98,7 +98,7 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
 
     private <T>Mono<T> handleAerospikeError(Throwable throwable) {
         if (throwable instanceof AerospikeException) {
-            return Mono.error(new RepositoryException(throwable.toString()));
+            return Mono.error(new RepositoryException(throwable.toString(), throwable));
         }
 
         return Mono.error(throwable);

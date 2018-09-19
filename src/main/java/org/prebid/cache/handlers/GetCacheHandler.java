@@ -37,12 +37,12 @@ public class GetCacheHandler extends CacheHandler {
         this.repository = repository;
         this.config = config;
         this.builder = builder;
-        this.METRIC_TAG_PREFIX = "read";
+        this.metricTagPrefix = "read";
     }
 
     public Mono<ServerResponse> fetch(ServerRequest request) {
         // metrics
-        metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.REQUEST_RATE);
+        metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
         val timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(this.type)
             .orElse(null);
 
@@ -54,10 +54,10 @@ public class GetCacheHandler extends CacheHandler {
                 .transform(this::validateErrorResult)
                 .flatMap(wrapper -> {
                     if (wrapper.getPayload().getType().equals(PayloadType.JSON.toString())) {
-                        metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.JSON_RATE);
+                        metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.JSON);
                         return builder.createResponseMono(request, APPLICATION_JSON_UTF8, wrapper);
                     } else if (wrapper.getPayload().getType().equals(PayloadType.XML.toString())) {
-                        metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.XML_RATE);
+                        metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.XML);
                         return builder.createResponseMono(request, APPLICATION_XML, wrapper);
                     } else {
                         // unhandled media type

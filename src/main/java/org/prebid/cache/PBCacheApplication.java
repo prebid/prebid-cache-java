@@ -1,7 +1,6 @@
 package org.prebid.cache;
 
 import org.prebid.cache.config.CorsConfig;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,7 +10,6 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
 
 @SpringBootApplication
 @ImportResource("classpath:spring-repository-bean.xml")
-@Slf4j
 public class PBCacheApplication implements WebFluxConfigurer
 {
     private final CorsConfig corsConfig;

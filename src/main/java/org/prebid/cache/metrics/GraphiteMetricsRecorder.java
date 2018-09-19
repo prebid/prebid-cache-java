@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class GraphiteMetricsRecorder extends MetricsRecorder
 {
-    protected static final String PREFIX_PLACEHOLDER = "prefix";
+    protected static final String PREFIX_PLACEHOLDER = "\\$\\{prefix\\}";
 
     final private static MetricRegistry registry = new MetricRegistry();
     final private GraphiteConfig config;
@@ -34,7 +34,7 @@ public class GraphiteMetricsRecorder extends MetricsRecorder
             .replaceAll(PREFIX_PLACEHOLDER, "write"));
 
     // Other 404
-    private static final Meter invalidRequestMeter = registry.meter(MeasurementTag.REQUEST_INVALID_RATE.getTag());
+    private static final Meter invalidRequestMeter = registry.meter(MeasurementTag.REQUEST_INVALID.getTag());
 
     @Autowired
     public GraphiteMetricsRecorder(final GraphiteConfig config) {

@@ -19,7 +19,7 @@ abstract class CacheHandler extends MetricsHandler
     ServiceType type;
     static String ID_KEY = "uuid";
 
-    protected String METRIC_TAG_PREFIX;
+    protected String metricTagPrefix;
 
     protected enum PayloadType implements StringTypeConvertible {
         JSON("json"),
@@ -42,6 +42,7 @@ abstract class CacheHandler extends MetricsHandler
                        log.error(t.getMessage(), t);
                         // skip overwrite, report first prebid error
                         if (t instanceof PrebidException) {
+                            // TODO: 19.09.18 move to handleErrorMetrics
                             applyMetrics(t);
                             return Mono.error(t);
                         } else if (t instanceof org.springframework.core.codec.DecodingException) {
@@ -54,6 +55,7 @@ abstract class CacheHandler extends MetricsHandler
                 });
     }
 
+    // TODO: 19.09.18 refactor this to normal interaction with mono instead of "casting" exceptions to status codes
     private Mono<ServerResponse> handleErrorMetrics(final Throwable error,
                                                     final ServerRequest request)
     {
@@ -62,14 +64,14 @@ abstract class CacheHandler extends MetricsHandler
                       .doAfterSuccessOrError((v, t) -> {
                             HttpMethod method = request.method();
                             if (method == null || t != null || v == null) {
-                                metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.ERROR_RATE);
+                                metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
                             } else {
                                 if (v.statusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-                                    metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.ERROR_RATE);
+                                    metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
                                 } else if (v.statusCode() == HttpStatus.BAD_REQUEST) {
-                                    metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.ERROR_BAD_REQUEST_RATE);
+                                    metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_BAD_REQUEST);
                                 } else if (v.statusCode() == HttpStatus.NOT_FOUND) {
-                                    metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.ERROR_MISSINGID_RATE);
+                                    metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_MISSINGID);
                                 }
                             }
                       });
@@ -89,7 +91,7 @@ abstract class CacheHandler extends MetricsHandler
 
     void applyMetrics(Throwable t) {
         if(t instanceof RepositoryException) {
-            metricsRecorder.markMeterForTag(this.METRIC_TAG_PREFIX, MetricsRecorder.MeasurementTag.SYSTEM_ERR_RATE);
+            metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_DB);
         }
     }
 }
