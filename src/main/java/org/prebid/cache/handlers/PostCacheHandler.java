@@ -36,8 +36,6 @@ public class PostCacheHandler extends CacheHandler {
 
     private static final String UUID_KEY = "uuid";
 
-    private final long minExpiry;
-    private final long maxExpiry;
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
     private final Supplier<Date> currentDateProvider;
@@ -56,8 +54,6 @@ public class PostCacheHandler extends CacheHandler {
         this.config = config;
         this.builder = builder;
         this.currentDateProvider = currentDateProvider;
-        this.minExpiry = config.getMinExpiry();
-        this.maxExpiry = config.getMaxExpiry();
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
@@ -124,18 +120,13 @@ public class PostCacheHandler extends CacheHandler {
     private long adjustExpiry(Long expiry) {
         if(expiry == null) {
             return config.getExpirySec();
+        } else if(expiry > config.getMaxExpiry()) {
+            return config.getMaxExpiry();
+        } else if(expiry < config.getMinExpiry()) {
+            return config.getMinExpiry();
+        } else {
+            return expiry;
         }
-
-        if(expiry > maxExpiry) {
-            return maxExpiry;
-        }
-
-        if(expiry < minExpiry) {
-            return minExpiry;
-        }
-
-
-        return expiry;
     }
 }
 
