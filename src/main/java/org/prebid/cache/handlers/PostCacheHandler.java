@@ -35,8 +35,6 @@ import static org.springframework.http.MediaType.*;
 public class PostCacheHandler extends CacheHandler {
 
     private static final String UUID_KEY = "uuid";
-    private static final long MIN_EXPIRY = 60;
-    private static final long MAX_EXPIRY = 28800;
 
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
@@ -68,7 +66,7 @@ public class PostCacheHandler extends CacheHandler {
         val flux = monoList.flatMapMany(Flux::fromIterable);
         val payloadFlux = flux.map(payload -> payload.toBuilder()
                 .prefix(config.getPrefix())
-                .expiry(payload.getExpiry() == null ? config.getExpirySec() : payload.getExpiry())
+                .expiry(adjustExpiry(payload.getExpiry()))
                 .build())
                 .map(payloadWrapperTransformer(currentDateProvider))
                 .handle(this::validateUUID)
@@ -115,12 +113,20 @@ public class PostCacheHandler extends CacheHandler {
     private void validateExpiry(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
         if (payload.getExpiry() == null) {
             sink.error(new ExpiryOutOfRangeException("Invalid Expiry [NULL]."));
+        }
+
+        sink.next(payload);
+    }
+
+    private long adjustExpiry(Long expiry) {
+        if(expiry == null) {
+            return config.getExpirySec();
+        } else if(expiry > config.getMaxExpiry()) {
+            return config.getMaxExpiry();
+        } else if(expiry < config.getMinExpiry()) {
+            return config.getMinExpiry();
         } else {
-            if (payload.getExpiry() > MAX_EXPIRY || payload.getExpiry() < MIN_EXPIRY) {
-                sink.error(new ExpiryOutOfRangeException("Invalid Expiry [" + payload.getExpiry() + "]."));
-            } else {
-                sink.next(payload);
-            }
+            return expiry;
         }
     }
 }

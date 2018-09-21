@@ -72,6 +72,9 @@ metrics:
 ---
 spring.profiles: local
 cache.expiry_sec: 300
+cache:
+  min_expiry: 60
+  max_expiry: 28800
 metrics.graphite.enabled: false
 spring:
   aerospike:

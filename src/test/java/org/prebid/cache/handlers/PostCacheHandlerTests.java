@@ -25,7 +25,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
@@ -64,15 +64,13 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 .body(request);
 
         val responseMono = handler.save(requestMono);
-        BiConsumer<ServerResponse, Throwable> consumer = (v, t) -> {
-            assertEquals(200, v.statusCode().value());
+
+        Consumer<ServerResponse> consumer1 = serverResponse -> {
+            assertEquals(200, serverResponse.statusCode().value());
         };
 
-        responseMono.doAfterSuccessOrError(consumer)
-                .subscribe();
         StepVerifier.create(responseMono)
-                .expectSubscription()
-                .expectNextMatches(t -> true)
+                .consumeNextWith(consumer1)
                 .expectComplete()
                 .verify();
     }

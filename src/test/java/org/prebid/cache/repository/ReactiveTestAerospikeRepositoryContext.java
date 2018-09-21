@@ -21,7 +21,12 @@ public class ReactiveTestAerospikeRepositoryContext {
     @Bean
     @Primary
     public ReactiveRepository createRepository() {
-        return new AerospikeRepositoryImpl(new AerospikePropertyConfiguration(), client(), eventLoops(), readPolicy());
+        return new AerospikeRepositoryImpl(aerospikePropertyConfiguration(), client(), eventLoops(), readPolicy());
+    }
+
+    @Bean
+    AerospikePropertyConfiguration aerospikePropertyConfiguration() {
+        return new AerospikePropertyConfiguration();
     }
 
     @Bean
