@@ -1,6 +1,8 @@
 package org.prebid.cache.handlers;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.logging.log4j.util.Strings;
+import org.luaj.vm2.ast.Str;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
@@ -13,6 +15,10 @@ import lombok.val;
 import org.prebid.cache.helpers.RandomUUID;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import org.springframework.stereotype.Component;
@@ -21,9 +27,12 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
 
+import javax.ws.rs.core.UriBuilder;
 import java.time.Duration;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -35,6 +44,8 @@ import static org.springframework.http.MediaType.*;
 public class PostCacheHandler extends CacheHandler {
 
     private static final String UUID_KEY = "uuid";
+    private final String CACHE_PATH = "cache";
+    private final String SECONDARY_CACHE_KEY = "secondaryCache";
 
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
@@ -61,7 +72,11 @@ public class PostCacheHandler extends CacheHandler {
         metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
         val timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(type)
                 .orElse(null);
-        val bodyMono = request.bodyToMono(RequestObject.class);
+
+        val bodyMono = request.bodyToMono(RequestObject.class)
+                .doOnSuccess(requestObject ->
+                        sendRequestToSecondaryPrebidCacheHosts(requestObject, request.queryParam(SECONDARY_CACHE_KEY)
+                                                                                     .orElse(Strings.EMPTY)));
         val monoList = bodyMono.map(RequestObject::getPuts);
         val flux = monoList.flatMapMany(Flux::fromIterable);
         val payloadFlux = flux.map(payload -> payload.toBuilder()
@@ -127,6 +142,29 @@ public class PostCacheHandler extends CacheHandler {
             return config.getMinExpiry();
         } else {
             return expiry;
+        }
+    }
+
+    private void sendRequestToSecondaryPrebidCacheHosts(RequestObject requestObject, String secondaryCache) {
+        if(!secondaryCache.equals("yes")) {
+            config.getSecondaryIps().forEach(ip -> {
+                WebClient.create().post().uri(uriBuilder -> uriBuilder.scheme(config.getSecondaryCacheScheme())
+                        .host(ip).port(config.getSecondaryCachePort()).path(CACHE_PATH)
+                        .queryParam("secondaryCache", "yes").build())
+                        .syncBody(requestObject)
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .exchange()
+                        .doOnError(throwable -> {
+                            metricsRecorder.getSecondaryCacheWriteError().mark();
+                            log.info("Failed to send request : ", throwable);
+                        })
+                        .subscribe((clientResponse) -> {
+                            if(clientResponse.statusCode() != HttpStatus.OK) {
+                                metricsRecorder.getSecondaryCacheWriteError().mark();
+                                log.info("Failed to write to {}", ip);
+                            }
+                        });
+            });
         }
     }
 }

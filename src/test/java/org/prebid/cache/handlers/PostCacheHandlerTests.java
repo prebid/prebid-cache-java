@@ -1,5 +1,10 @@
 package org.prebid.cache.handlers;
 
+import com.github.jenspiegsa.wiremockextension.ConfigureWireMock;
+import com.github.jenspiegsa.wiremockextension.InjectServer;
+import com.github.jenspiegsa.wiremockextension.WireMockExtension;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.Options;
 import com.google.common.collect.ImmutableList;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.helpers.CurrentDateProvider;
@@ -27,8 +32,12 @@ import reactor.test.StepVerifier;
 
 import java.util.function.Consumer;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
@@ -43,6 +52,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 })
 @EnableConfigurationProperties
 @SpringBootTest
+@ExtendWith(WireMockExtension.class)
 class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Autowired
@@ -53,6 +63,9 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         verifyJacksonError(handler);
         verifyRepositoryError(handler);
     }
+
+    @InjectServer
+    WireMockServer serverMock;
 
     @Test
     void testVerifySave() {
@@ -65,13 +78,42 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         val responseMono = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumer1 = serverResponse -> {
+        Consumer<ServerResponse> consumer = serverResponse -> {
             assertEquals(200, serverResponse.statusCode().value());
         };
 
         StepVerifier.create(responseMono)
-                .consumeNextWith(consumer1)
+                .consumeNextWith(consumer)
                 .expectComplete()
                 .verify();
+    }
+
+    @Test
+    void testSecondaryCacheSuccess() throws InterruptedException {
+        serverMock.stubFor(post(urlPathEqualTo("/cache"))
+                .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}]}")));
+
+        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, "prebid_");
+        val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
+        val requestMono = MockServerRequest.builder()
+                .method(HttpMethod.POST)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .body(request);
+
+        val responseMono = handler.save(requestMono);
+
+        Consumer<ServerResponse> consumer = serverResponse -> {
+            assertEquals(200, serverResponse.statusCode().value());
+        };
+
+        StepVerifier.create(responseMono)
+                .consumeNextWith(consumer)
+                .expectComplete()
+                .verify();
+
+        //do not touch this
+        Thread.sleep(10);
+
+        verify(postRequestedFor(urlEqualTo("/cache?secondaryCache=yes")));
     }
 }
