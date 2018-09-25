@@ -4,7 +4,7 @@ info.app.description: @project.description@
 info.app.version: @project.version@
 spring.main.banner-mode: "off"
 api.path: /cache
-server.port: 8081
+server.port: 8080
 server.compression.enabled: true
 #server.compression.min-response-size: 1
 #server.compression.mime-types: application/json,application/xml
