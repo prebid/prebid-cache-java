@@ -98,11 +98,16 @@ public class PostCacheHandler extends CacheHandler {
                         transfer.getPrefix(),
                         new Payload(transfer.getType(), transfer.getKey(), transfer.valueAsString()),
                         transfer.getExpiry(),
-                        currentDateProvider.get()
+                        currentDateProvider.get(),
+                        RandomUUID.isExternalUUID(transfer)
                 );
     }
 
     private void validateUUID(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
+        if(payload.isExternalId() && !config.isAllowExternalUUID()) {
+            sink.error(new InvalidUUIDException("You cant specify UUID manually."));
+            return;
+        }
         if (RandomUUID.isValidUUID(payload.getId())) {
             sink.next(payload);
         } else {

@@ -18,6 +18,8 @@ public class PayloadWrapper {
     Long expiry;
     Date lastModified;
 
+    transient boolean isExternalId;
+
     public String getNormalizedId() throws PayloadWrapperPropertyException {
         if (prefix != null || id != null) {
             return String.format("%s%s", prefix, id);

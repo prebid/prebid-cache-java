@@ -13,6 +13,10 @@ public class RandomUUID {
                 payload.getKey() : String.valueOf(UUID.randomUUID());
     }
 
+    public static boolean isExternalUUID(final PayloadTransfer payload) {
+        return payload.getKey() != null;
+    }
+
     public static boolean isValidUUID(String uuid) {
         if (uuid == null || uuid.length() == 0) {
             log.error("UUID cannot be NULL or zero length !!");

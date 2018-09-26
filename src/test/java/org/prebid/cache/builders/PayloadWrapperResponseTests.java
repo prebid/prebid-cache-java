@@ -72,6 +72,6 @@ public abstract class PayloadWrapperResponseTests
         }
 
         val payload = new Payload("json", "1234567890", payloadValue);
-        return new PayloadWrapper("","prefix", payload, 200L, new Date());
+        return new PayloadWrapper("","prefix", payload, 200L, new Date(), false);
     }
 }

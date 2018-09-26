@@ -75,6 +75,7 @@ cache.expiry_sec: 300
 cache:
   min_expiry: 60
   max_expiry: 28800
+  allow_external_UUID: true
 metrics.graphite.enabled: false
 spring:
   aerospike:
