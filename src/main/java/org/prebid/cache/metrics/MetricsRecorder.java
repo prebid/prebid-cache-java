@@ -14,7 +14,8 @@ public abstract class MetricsRecorder
         REQUEST_INVALID("pbc.request.invalid"),
         JSON("pbc.${prefix}.json"),
         XML("pbc.${prefix}.xml"),
-        ERROR_DB("pbc.${prefix}.err.db");
+        ERROR_DB("pbc.${prefix}.err.db"),
+        ERROR_SECONDARY_WRITE("pbc.err.secondaryWrite");
 
         @Getter private String tag;
 

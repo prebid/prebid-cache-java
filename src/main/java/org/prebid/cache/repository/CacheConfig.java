@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,5 +19,7 @@ public class CacheConfig {
     private int timeoutMs;
     private long minExpiry;
     private long maxExpiry;
+    private List<String> secondaryUris;
+    private String secondaryCachePath;
 }
 

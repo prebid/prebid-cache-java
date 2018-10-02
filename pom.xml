@@ -24,7 +24,7 @@
     <properties>
         <project.build.resources.directory>src/main/resources</project.build.resources.directory>
         <main.class>org.prebid.cache.PBCacheApplication</main.class>
-        <junit-jupiter.version>5.0.3</junit-jupiter.version>
+        <junit-jupiter.version>5.3.1</junit-jupiter.version>
 
         <!-- used for rpm packaging -->
         <build.number>0</build.number>
@@ -55,6 +55,8 @@
         <equals-verifier.version>2.4.3</equals-verifier.version>
         <aerospike-client.version>4.1.6</aerospike-client.version>
         <reactor-extra.version>3.1.6.RELEASE</reactor-extra.version>
+        <wiremock.version>2.11.0</wiremock.version>
+        <wiremock-extension.version>0.3.1</wiremock-extension.version>
     </properties>
 
     <dependencies>
@@ -151,6 +153,18 @@
         <dependency>
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock</artifactId>
+            <version>${wiremock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.JensPiegsa</groupId>
+            <artifactId>wiremock-extension</artifactId>
+            <version>${wiremock-extension.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -311,6 +325,10 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 

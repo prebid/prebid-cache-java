@@ -1,5 +1,6 @@
 package org.prebid.cache.handlers;
 
+import org.junit.jupiter.api.Disabled;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
 import org.prebid.cache.metrics.GraphiteTestConfig;
@@ -42,6 +43,7 @@ import static org.mockito.BDDMockito.given;
 })
 @EnableConfigurationProperties
 @SpringBootTest
+@Disabled
 class GetCacheHandlerTests extends CacheHandlerTests {
 
     @Autowired
