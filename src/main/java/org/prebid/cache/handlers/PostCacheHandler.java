@@ -92,14 +92,11 @@ public class PostCacheHandler extends CacheHandler {
                 .timeout(Duration.ofMillis(config.getTimeoutMs()))
                 .subscribeOn(Schedulers.parallel())
                 .collectList()
-                .flatMap(payloadWrappers -> Mono.just(payloadWrappers).subscribeOn(Schedulers.parallel())
-                        .doOnNext(payloadWrappersInner -> sendRequestToSecondaryPrebidCacheHosts(payloadWrappersInner, secondaryCache)))
-//                .doOnNext(payloadWrappers -> sendRequestToSecondaryPrebidCacheHosts(payloadWrappers, secondaryCache))
-                .flatMapMany(Flux::fromIterable);
-//                .subscribeOn(Schedulers.parallel());
+                .doOnNext(payloadWrappers -> sendRequestToSecondaryPrebidCacheHosts(payloadWrappers, secondaryCache))
+                .flatMapMany(Flux::fromIterable)
+                .subscribeOn(Schedulers.parallel());
 
         final Mono<ServerResponse> responseMono = payloadFlux
-                .log()
                 .map(payloadWrapperToMapTransformer)
                 .collectList()
                 .transform(this::validateErrorResult)
@@ -156,7 +153,6 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private void sendRequestToSecondaryPrebidCacheHosts(List<PayloadWrapper> payloadWrappers, String secondaryCache) {
-        log.debug("s {}", System.nanoTime());
         if (!secondaryCache.equals("yes")) {
             final List<PayloadTransfer> payloadTransfers = new ArrayList<>();
             for (PayloadWrapper payloadWrapper : payloadWrappers) {
@@ -182,7 +178,6 @@ public class PostCacheHandler extends CacheHandler {
                         });
             });
         }
-        log.debug("f {}", System.nanoTime());
     }
 
     private PayloadTransfer wrapperToTransfer(final PayloadWrapper wrapper) {

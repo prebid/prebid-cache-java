@@ -161,12 +161,12 @@
             <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>com.github.JensPiegsa</groupId>-->
-            <!--<artifactId>wiremock-extension</artifactId>-->
-            <!--<version>${wiremock-extension.version}</version>-->
-            <!--<scope>test</scope>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>com.github.JensPiegsa</groupId>
+            <artifactId>wiremock-extension</artifactId>
+            <version>${wiremock-extension.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.github.cjnygard</groupId>
             <artifactId>rest-maven-plugin</artifactId>

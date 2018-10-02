@@ -1,12 +1,9 @@
 package org.prebid.cache.handlers;
 
-//import com.github.jenspiegsa.wiremockextension.ConfigureWireMock;
-//import com.github.jenspiegsa.wiremockextension.InjectServer;
-//import com.github.jenspiegsa.wiremockextension.WireMockExtension;
+import com.github.jenspiegsa.wiremockextension.InjectServer;
+import com.github.jenspiegsa.wiremockextension.WireMockExtension;
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.core.Options;
 import com.google.common.collect.ImmutableList;
-import org.junit.jupiter.api.Disabled;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.helpers.CurrentDateProvider;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
@@ -34,7 +31,6 @@ import reactor.test.StepVerifier;
 import java.util.function.Consumer;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
@@ -53,7 +49,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 })
 @EnableConfigurationProperties
 @SpringBootTest
-//@ExtendWith(WireMockExtension.class)
+@ExtendWith(WireMockExtension.class)
 class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Autowired
@@ -65,8 +61,8 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         verifyRepositoryError(handler);
     }
 
-//    @InjectServer
-//    WireMockServer serverMock;
+    @InjectServer
+    WireMockServer serverMock;
 
     @Test
     void testVerifySave() {
@@ -91,10 +87,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testSecondaryCacheSuccess() throws InterruptedException {
-        WireMockServer wireMockServer = new WireMockServer(wireMockConfig().port(8080)); //No-args constructor will start on port 8080, no HTTPS
-        wireMockServer.start();
-
-        wireMockServer.stubFor(post(urlPathEqualTo("/cache"))
+        serverMock.stubFor(post(urlPathEqualTo("/cache"))
                 .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"f31f96db-8c36-4d44-94dc-ad2d1a1d84d9\"}]}")));
 
         val payload = new PayloadTransfer("json", "f31f96db-8c36-4d44-94dc-ad2d1a1d84d9", "", 1800L, "prebid_");
@@ -119,6 +112,5 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         Thread.sleep(10);
 
         verify(postRequestedFor(urlEqualTo("/cache?secondaryCache=yes")));
-        wireMockServer.stop();
     }
 }

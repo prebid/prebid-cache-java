@@ -1,10 +1,12 @@
 package org.prebid.cache.repository;
 
+import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.async.AsyncClient;
 import com.aerospike.client.async.AsyncClientPolicy;
 import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.async.EventPolicy;
 import com.aerospike.client.async.NettyEventLoops;
+import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.policy.Policy;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -50,14 +52,14 @@ public class ReactiveTestAerospikeRepositoryContext {
     }
 
     @Bean
-    AsyncClientPolicy clientPolicy() {
-        AsyncClientPolicy clientPolicy = new AsyncClientPolicy();
+    ClientPolicy clientPolicy() {
+        ClientPolicy clientPolicy = new ClientPolicy();
         clientPolicy.eventLoops = eventLoops();
         return clientPolicy;
     }
 
     @Bean
-    AsyncClient client() {
-        return new AsyncClient(clientPolicy(), "localhost", 3000);
+    AerospikeClient client() {
+        return new AerospikeClient(clientPolicy(), "localhost", 3000);
     }
 }
