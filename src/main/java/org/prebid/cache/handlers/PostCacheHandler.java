@@ -122,11 +122,16 @@ public class PostCacheHandler extends CacheHandler {
                         // TODO: 26.09.18 is this correct behaviour to put no key in case of generated key
                         new Payload(transfer.getType(), transfer.getKey(), transfer.valueAsString()),
                         transfer.getExpiry(),
-                        currentDateProvider.get()
+                        currentDateProvider.get(),
+                        RandomUUID.isExternalUUID(transfer)
                 );
     }
 
     private void validateUUID(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
+        if(payload.isExternalId() && !config.isAllowExternalUUID()) {
+            sink.error(new InvalidUUIDException("Prebid cache host forbids specifying UUID in request."));
+            return;
+        }
         if (RandomUUID.isValidUUID(payload.getId())) {
             sink.next(payload);
         } else {

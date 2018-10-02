@@ -19,6 +19,7 @@ public class CacheConfig {
     private int timeoutMs;
     private long minExpiry;
     private long maxExpiry;
+    private boolean allowExternalUUID;
     private List<String> secondaryUris;
     private String secondaryCachePath;
 }
