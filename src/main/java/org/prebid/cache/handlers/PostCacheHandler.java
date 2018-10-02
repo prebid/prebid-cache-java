@@ -62,9 +62,11 @@ public class PostCacheHandler extends CacheHandler {
         this.type = ServiceType.SAVE;
         this.repository = repository;
         this.config = config;
-        config.getSecondaryUris().forEach(ip -> {
-            webClients.put(ip, WebClient.create(ip));
-        });
+        if(config.getSecondaryUris() != null) {
+            config.getSecondaryUris().forEach(ip -> {
+                webClients.put(ip, WebClient.create(ip));
+            });
+        }
         this.builder = builder;
         this.currentDateProvider = currentDateProvider;
         this.metricTagPrefix = "write";
@@ -153,7 +155,7 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private void sendRequestToSecondaryPrebidCacheHosts(List<PayloadWrapper> payloadWrappers, String secondaryCache) {
-        if (!secondaryCache.equals("yes")) {
+        if (!secondaryCache.equals("yes") && webClients.size() != 0) {
             final List<PayloadTransfer> payloadTransfers = new ArrayList<>();
             for (PayloadWrapper payloadWrapper : payloadWrappers) {
                 payloadTransfers.add(wrapperToTransfer(payloadWrapper));

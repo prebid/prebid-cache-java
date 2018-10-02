@@ -4,6 +4,7 @@ import com.github.jenspiegsa.wiremockextension.InjectServer;
 import com.github.jenspiegsa.wiremockextension.WireMockExtension;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.common.collect.ImmutableList;
+import org.junit.jupiter.api.Disabled;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.helpers.CurrentDateProvider;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
@@ -50,6 +51,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 @EnableConfigurationProperties
 @SpringBootTest
 @ExtendWith(WireMockExtension.class)
+@Disabled
 class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Autowired
