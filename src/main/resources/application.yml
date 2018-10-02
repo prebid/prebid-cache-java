@@ -76,6 +76,10 @@ cache:
   min_expiry: 60
   max_expiry: 28800
   allow_external_UUID: true
+  secondary_uris:
+    - "http://localhost:8080"
+  secondary_cache_path : "cache"
+
 metrics.graphite.enabled: false
 spring:
   aerospike:

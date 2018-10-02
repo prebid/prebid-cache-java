@@ -6,6 +6,7 @@ import com.aerospike.client.async.AsyncClientPolicy;
 import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.async.EventPolicy;
 import com.aerospike.client.async.NettyEventLoops;
+import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.policy.Policy;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -82,8 +83,8 @@ public class AerospikePropertyConfiguration {
     }
 
     @Bean
-    AsyncClientPolicy clientPolicy() {
-        AsyncClientPolicy clientPolicy = new AsyncClientPolicy();
+    ClientPolicy clientPolicy() {
+        ClientPolicy clientPolicy = new ClientPolicy();
         clientPolicy.eventLoops = eventLoops();
         return clientPolicy;
     }
