@@ -75,10 +75,9 @@ cache.expiry_sec: 300
 cache:
   min_expiry: 60
   max_expiry: 28800
-  secondary_ips:
-    - "localhost"
-  secondary_cache_scheme : "http"
-  secondary_cache_port : 8080
+  secondary_uris:
+    - "http://localhost:8080"
+  secondary_cache_path : "cache"
 metrics.graphite.enabled: false
 spring:
   aerospike:

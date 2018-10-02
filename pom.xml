@@ -56,6 +56,7 @@
         <aerospike-client.version>4.1.6</aerospike-client.version>
         <reactor-extra.version>3.1.6.RELEASE</reactor-extra.version>
         <wiremock.version>2.11.0</wiremock.version>
+        <wiremock-extension.version>0.3.1</wiremock-extension.version>
     </properties>
 
     <dependencies>
@@ -160,12 +161,12 @@
             <version>${wiremock.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.github.JensPiegsa</groupId>
-            <artifactId>wiremock-extension</artifactId>
-            <version>0.3.1</version>
-            <scope>test</scope>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>com.github.JensPiegsa</groupId>-->
+            <!--<artifactId>wiremock-extension</artifactId>-->
+            <!--<version>${wiremock-extension.version}</version>-->
+            <!--<scope>test</scope>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>com.github.cjnygard</groupId>
             <artifactId>rest-maven-plugin</artifactId>

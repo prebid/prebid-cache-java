@@ -15,7 +15,7 @@ public abstract class MetricsRecorder
         JSON("pbc.${prefix}.json"),
         XML("pbc.${prefix}.xml"),
         ERROR_DB("pbc.${prefix}.err.db"),
-        SECONDARY_CACHE_WRITE_ERROR("error.secondary.cache.write");
+        ERROR_SECONDARY_WRITE("pbc.err.secondaryWrite");
 
         @Getter private String tag;
 

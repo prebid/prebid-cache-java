@@ -19,8 +19,7 @@ public class CacheConfig {
     private int timeoutMs;
     private long minExpiry;
     private long maxExpiry;
-    private List<String> secondaryIps;
-    private String secondaryCacheScheme;
-    private int secondaryCachePort;
+    private List<String> secondaryUris;
+    private String secondaryCachePath;
 }
 
