@@ -105,7 +105,7 @@ public class PostCacheHandler extends CacheHandler {
 
     private void validateUUID(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
         if(payload.isExternalId() && !config.isAllowExternalUUID()) {
-            sink.error(new InvalidUUIDException("You cant specify UUID manually."));
+            sink.error(new InvalidUUIDException("Prebid cache host forbids specifying UUID in request."));
             return;
         }
         if (RandomUUID.isValidUUID(payload.getId())) {

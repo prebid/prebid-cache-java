@@ -1,7 +1,6 @@
 package org.prebid.cache.handlers;
 
 import com.google.common.collect.ImmutableList;
-import org.junit.jupiter.api.Nested;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.helpers.CurrentDateProvider;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
@@ -23,7 +22,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.reactive.function.server.MockServerRequest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -100,8 +98,9 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     @Test
     void testExternalUUIDInvalid() {
         //given
-        cacheConfig.setAllowExternalUUID(false);
-        PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider);
+        CacheConfig cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
+                cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(), false);
+        PostCacheHandler handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
