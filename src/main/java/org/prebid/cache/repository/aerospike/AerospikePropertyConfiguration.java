@@ -38,6 +38,7 @@ public class AerospikePropertyConfiguration {
     private Long maxBackoff;
     private int maxRetry;
     private String namespace;
+    private boolean preventUUIDDuplication;
 
     private static final int DEFAULT_PORT = 3000;
 

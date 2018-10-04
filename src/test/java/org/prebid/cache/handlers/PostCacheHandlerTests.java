@@ -31,6 +31,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -112,6 +113,8 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         serverMock.stubFor(post(urlPathEqualTo("/cache"))
                 .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"f31f96db-8c36-4d44-94dc-ad2d1a1d84d9\"}]}")));
 
+        PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider);
+
         val payload = new PayloadTransfer("json", "f31f96db-8c36-4d44-94dc-ad2d1a1d84d9", "", 1800L, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
         val requestMono = MockServerRequest.builder()
@@ -140,7 +143,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     void testExternalUUIDInvalid() {
         //given
         CacheConfig cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
-                cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(), false);
+                cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(), false, Collections.emptyList(), cacheConfig.getSecondaryCachePath());
         PostCacheHandler handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, "prebid_");
@@ -160,5 +163,42 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 .consumeNextWith(consumer)
                 .expectComplete()
                 .verify();
+    }
+
+    @Test
+    void testUUIDDuplication() {
+        CacheConfig cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
+                5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(), Collections.emptyList(), cacheConfig.getSecondaryCachePath());
+        PostCacheHandler handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider);
+
+        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-a573a84312f1", "", 5L, "prebid_");
+        val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
+        val requestMono = MockServerRequest.builder()
+                .method(HttpMethod.POST)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .body(request);
+
+        val responseMono = handler.save(requestMono);
+
+        Consumer<ServerResponse> consumer = serverResponse -> {
+            assertEquals(200, serverResponse.statusCode().value());
+        };
+
+        StepVerifier.create(responseMono)
+                .consumeNextWith(consumer)
+                .expectComplete()
+                .verify();
+
+        val responseMonoSecond = handler.save(requestMono);
+
+        Consumer<ServerResponse> consumerSecond = serverResponse -> {
+            assertEquals(400, serverResponse.statusCode().value());
+        };
+
+        StepVerifier.create(responseMonoSecond)
+                .consumeNextWith(consumerSecond)
+                .expectComplete()
+                .verify();
+
     }
 }
