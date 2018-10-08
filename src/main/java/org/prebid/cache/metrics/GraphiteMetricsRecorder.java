@@ -38,6 +38,8 @@ public class GraphiteMetricsRecorder extends MetricsRecorder
 
     private static final Meter secondaryCacheWriteError = registry.meter(MeasurementTag.ERROR_SECONDARY_WRITE.getTag());
 
+    private static final Meter existingKeyError = registry.meter(MeasurementTag.ERROR_EXISTINGID.getTag());
+
     @Autowired
     public GraphiteMetricsRecorder(final GraphiteConfig config) {
         this.config = config;
@@ -65,6 +67,10 @@ public class GraphiteMetricsRecorder extends MetricsRecorder
 
     public Meter getSecondaryCacheWriteError() {
         return secondaryCacheWriteError;
+    }
+
+    public Meter getExistingKeyError() {
+        return existingKeyError;
     }
 
     private Meter meterForTag(final String prefix, final MeasurementTag measurementTag) {

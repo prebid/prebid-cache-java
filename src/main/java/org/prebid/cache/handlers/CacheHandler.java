@@ -2,6 +2,8 @@ package org.prebid.cache.handlers;
 
 import com.codahale.metrics.Timer;
 import lombok.extern.slf4j.Slf4j;
+import org.prebid.cache.exceptions.BadRequestException;
+import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.exceptions.PrebidException;
 import org.prebid.cache.exceptions.RepositoryException;
 import org.prebid.cache.exceptions.RequestParsingException;
@@ -18,6 +20,7 @@ abstract class CacheHandler extends MetricsHandler
 {
     ServiceType type;
     static String ID_KEY = "uuid";
+    private final String UUID_DUPLICATION = "UUID duplication.";
 
     protected String metricTagPrefix;
 
@@ -44,6 +47,10 @@ abstract class CacheHandler extends MetricsHandler
                         if (t instanceof PrebidException) {
                             // TODO: 19.09.18 move to handleErrorMetrics
                             applyMetrics(t);
+
+                            if(t instanceof DuplicateKeyException) {
+                                return Mono.error(new BadRequestException(UUID_DUPLICATION));
+                            }
                             return Mono.error(t);
                         } else if (t instanceof org.springframework.core.codec.DecodingException) {
                             return Mono.error(new RequestParsingException(t.toString()));
@@ -92,6 +99,10 @@ abstract class CacheHandler extends MetricsHandler
     void applyMetrics(Throwable t) {
         if(t instanceof RepositoryException) {
             metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_DB);
+        }
+
+        if(t instanceof DuplicateKeyException) {
+            metricsRecorder.getExistingKeyError().mark();
         }
     }
 }

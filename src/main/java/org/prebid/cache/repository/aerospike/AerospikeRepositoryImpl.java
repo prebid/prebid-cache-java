@@ -7,9 +7,11 @@ import com.aerospike.client.Key;
 import com.aerospike.client.ResultCode;
 import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.policy.Policy;
+import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.exceptions.PayloadWrapperPropertyException;
 import org.prebid.cache.exceptions.RepositoryException;
 import org.prebid.cache.helpers.Json;
@@ -77,12 +79,15 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
     private WritePolicy writePolicy() {
         if (Objects.isNull(writePolicy)) {
             writePolicy = new WritePolicy();
+            if(configuration.isPreventUUIDDuplication()) {
+                writePolicy.recordExistsAction = RecordExistsAction.CREATE_ONLY;
+            }
         }
         return writePolicy;
     }
 
     private List<Integer> getRetryCodes() {
-        return Arrays.asList(ResultCode.GENERATION_ERROR, ResultCode.KEY_EXISTS_ERROR, ResultCode.KEY_NOT_FOUND_ERROR);
+        return Arrays.asList(ResultCode.GENERATION_ERROR, ResultCode.KEY_NOT_FOUND_ERROR);
     }
 
     private Retry<Object> getRetryPolicy() {
@@ -98,6 +103,11 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
 
     private <T>Mono<T> handleAerospikeError(Throwable throwable) {
         if (throwable instanceof AerospikeException) {
+            AerospikeException aerospikeException = (AerospikeException) throwable;
+            if(aerospikeException.getResultCode() == ResultCode.KEY_EXISTS_ERROR) {
+                return Mono.error(new DuplicateKeyException(throwable.toString(), throwable));
+            }
+
             return Mono.error(new RepositoryException(throwable.toString(), throwable));
         }
 
