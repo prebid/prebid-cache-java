@@ -1,7 +1,7 @@
 package org.prebid.cache.model;
 
-import org.prebid.cache.PBCacheApplication;
 import lombok.Value;
+import org.prebid.cache.PBCacheApplication;
 
 @Value
 public class PackageInfo {

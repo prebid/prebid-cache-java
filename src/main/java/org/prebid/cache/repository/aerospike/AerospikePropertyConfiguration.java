@@ -2,7 +2,6 @@ package org.prebid.cache.repository.aerospike;
 
 import com.aerospike.client.AerospikeClient;
 import com.aerospike.client.Host;
-import com.aerospike.client.async.AsyncClientPolicy;
 import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.async.EventPolicy;
 import com.aerospike.client.async.NettyEventLoops;

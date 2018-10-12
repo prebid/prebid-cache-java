@@ -1,12 +1,12 @@
 package org.prebid.cache.translators;
 
+import lombok.extern.slf4j.Slf4j;
 import org.prebid.cache.exceptions.BadRequestException;
+import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
+import org.prebid.cache.exceptions.InvalidUUIDException;
 import org.prebid.cache.exceptions.RequestParsingException;
 import org.prebid.cache.exceptions.ResourceNotFoundException;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
-import org.prebid.cache.exceptions.InvalidUUIDException;
-import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import reactor.core.publisher.Mono;
 
@@ -15,17 +15,16 @@ public class ThrowableTranslator {
     private final HttpStatus httpStatus;
     private final String message;
 
-
     private ThrowableTranslator(final Throwable throwable) {
         this.httpStatus = getStatus(throwable);
         this.message = throwable.getMessage();
     }
 
     private HttpStatus getStatus(final Throwable error) {
-        if (error instanceof BadRequestException ||
-                error instanceof RequestParsingException ||
-                error instanceof InvalidUUIDException ||
-                error instanceof ExpiryOutOfRangeException) {
+        if (error instanceof BadRequestException
+                || error instanceof RequestParsingException
+                || error instanceof InvalidUUIDException
+                || error instanceof ExpiryOutOfRangeException) {
             return HttpStatus.BAD_REQUEST;
         } else if (error instanceof ResourceNotFoundException) {
             return HttpStatus.NOT_FOUND;

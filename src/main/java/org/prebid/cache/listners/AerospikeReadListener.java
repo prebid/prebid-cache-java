@@ -11,7 +11,7 @@ import java.util.Objects;
 
 @Slf4j
 public class AerospikeReadListener implements RecordListener {
-    private final static String NAME = "cache";
+    private static final String NAME = "cache";
     private final MonoSink<String> sink;
     private final String recordKeyId;
 

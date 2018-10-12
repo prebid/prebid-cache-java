@@ -16,11 +16,10 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-abstract class CacheHandler extends MetricsHandler
-{
+abstract class CacheHandler extends MetricsHandler {
     ServiceType type;
-    static String ID_KEY = "uuid";
-    private final String UUID_DUPLICATION = "UUID duplication.";
+    static final String ID_KEY = "uuid";
+    private static final String UUID_DUPLICATION = "UUID duplication.";
 
     protected String metricTagPrefix;
 
@@ -29,6 +28,7 @@ abstract class CacheHandler extends MetricsHandler
         XML("xml");
 
         private final String text;
+
         PayloadType(final String text) {
             this.text = text;
         }
@@ -39,69 +39,71 @@ abstract class CacheHandler extends MetricsHandler
         }
     }
 
-    <T>Mono<T> validateErrorResult(final Mono<T> mono) {
+    <T> Mono<T> validateErrorResult(final Mono<T> mono) {
         return mono.doOnSuccess(v -> log.debug("{}: {}", type, v))
-                   .onErrorResume(t -> {
-                       log.error(t.getMessage(), t);
-                        // skip overwrite, report first prebid error
-                        if (t instanceof PrebidException) {
-                            // TODO: 19.09.18 move to handleErrorMetrics
-                            applyMetrics(t);
+                .onErrorResume(t -> {
+                    log.error(t.getMessage(), t);
+                    // skip overwrite, report first prebid error
+                    if (t instanceof PrebidException) {
+                        // TODO: 19.09.18 move to handleErrorMetrics
+                        applyMetrics(t);
 
-                            if(t instanceof DuplicateKeyException) {
-                                return Mono.error(new BadRequestException(UUID_DUPLICATION));
-                            }
-                            return Mono.error(t);
-                        } else if (t instanceof org.springframework.core.codec.DecodingException) {
-                            return Mono.error(new RequestParsingException(t.toString()));
-                        } else if (t instanceof org.springframework.web.server.UnsupportedMediaTypeStatusException) {
-                            return Mono.error(new UnsupportedMediaTypeException(t.toString()));
-                        } else {
-                            return Mono.error(t);
+                        if (t instanceof DuplicateKeyException) {
+                            return Mono.error(new BadRequestException(UUID_DUPLICATION));
                         }
+                        return Mono.error(t);
+                    } else if (t instanceof org.springframework.core.codec.DecodingException) {
+                        return Mono.error(new RequestParsingException(t.toString()));
+                    } else if (t instanceof org.springframework.web.server.UnsupportedMediaTypeStatusException) {
+                        return Mono.error(new UnsupportedMediaTypeException(t.toString()));
+                    } else {
+                        return Mono.error(t);
+                    }
                 });
     }
 
     // TODO: 19.09.18 refactor this to normal interaction with mono instead of "casting" exceptions to status codes
     private Mono<ServerResponse> handleErrorMetrics(final Throwable error,
-                                                    final ServerRequest request)
-    {
+                                                    final ServerRequest request) {
         log.error(error.getMessage(), error);
         return builder.error(Mono.just(error), request)
-                      .doAfterSuccessOrError((v, t) -> {
-                            HttpMethod method = request.method();
-                            if (method == null || t != null || v == null) {
-                                metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
-                            } else {
-                                if (v.statusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-                                    metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
-                                } else if (v.statusCode() == HttpStatus.BAD_REQUEST) {
-                                    metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_BAD_REQUEST);
-                                } else if (v.statusCode() == HttpStatus.NOT_FOUND) {
-                                    metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_MISSINGID);
-                                }
-                            }
-                      });
+                .doAfterSuccessOrError((v, t) -> {
+                    HttpMethod method = request.method();
+                    if (method == null || t != null || v == null) {
+                        metricsRecorder.markMeterForTag(this.metricTagPrefix,
+                                MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
+                    } else {
+                        if (v.statusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+                            metricsRecorder.markMeterForTag(this.metricTagPrefix,
+                                    MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
+                        } else if (v.statusCode() == HttpStatus.BAD_REQUEST) {
+                            metricsRecorder.markMeterForTag(this.metricTagPrefix,
+                                    MetricsRecorder.MeasurementTag.ERROR_BAD_REQUEST);
+                        } else if (v.statusCode() == HttpStatus.NOT_FOUND) {
+                            metricsRecorder.markMeterForTag(this.metricTagPrefix,
+                                    MetricsRecorder.MeasurementTag.ERROR_MISSINGID);
+                        }
+                    }
+                });
     }
 
     Mono<ServerResponse> finalizeResult(final Mono<ServerResponse> mono,
                                         final ServerRequest request,
-                                        final Timer.Context timerContext)
-    {
+                                        final Timer.Context timerContext) {
         // transform to error, if needed and send metrics
         return mono.onErrorResume(throwable -> handleErrorMetrics(throwable, request))
-                   .doAfterSuccessOrError((v, t) -> {
-                       if (timerContext != null)
-                           timerContext.stop();
-                   });
+                .doAfterSuccessOrError((v, t) -> {
+                    if (timerContext != null)
+                        timerContext.stop();
+                });
     }
 
     void applyMetrics(Throwable t) {
-        if(t instanceof RepositoryException) {
+        if (t instanceof RepositoryException) {
             metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_DB);
         }
 
-        if(t instanceof DuplicateKeyException) {
+        if (t instanceof DuplicateKeyException) {
             metricsRecorder.getExistingKeyError().mark();
         }
     }

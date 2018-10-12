@@ -41,7 +41,7 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
     private final Policy policy;
     private WritePolicy writePolicy;
 
-    private final static String BIN_NAME="cache";
+    private static final String BIN_NAME = "cache";
 
     @Override
     public Mono save(final PayloadWrapper wrapper) {
@@ -79,7 +79,7 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
     private WritePolicy writePolicy() {
         if (Objects.isNull(writePolicy)) {
             writePolicy = new WritePolicy();
-            if(configuration.isPreventUUIDDuplication()) {
+            if (configuration.isPreventUUIDDuplication()) {
                 writePolicy.recordExistsAction = RecordExistsAction.CREATE_ONLY;
             }
         }
@@ -101,10 +101,10 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
                 .exponentialBackoffWithJitter(firstBackoff, maxBackoff);
     }
 
-    private <T>Mono<T> handleAerospikeError(Throwable throwable) {
+    private <T> Mono<T> handleAerospikeError(Throwable throwable) {
         if (throwable instanceof AerospikeException) {
             AerospikeException aerospikeException = (AerospikeException) throwable;
-            if(aerospikeException.getResultCode() == ResultCode.KEY_EXISTS_ERROR) {
+            if (aerospikeException.getResultCode() == ResultCode.KEY_EXISTS_ERROR) {
                 return Mono.error(new DuplicateKeyException(throwable.toString(), throwable));
             }
 

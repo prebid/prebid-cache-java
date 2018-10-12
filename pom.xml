@@ -57,6 +57,8 @@
         <reactor-extra.version>3.1.6.RELEASE</reactor-extra.version>
         <wiremock.version>2.11.0</wiremock.version>
         <wiremock-extension.version>0.3.1</wiremock-extension.version>
+        <checkstyle-plugin.version>2.17</checkstyle-plugin.version>
+        <checkstyle.version>7.6</checkstyle.version>
     </properties>
 
     <dependencies>
@@ -204,6 +206,31 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
+                    <version>${checkstyle-plugin.version}</version>
+                    <configuration>
+                        <!-- Project rooted path to CheckStyle configuration file. -->
+                        <configLocation>checkstyle.xml</configLocation>
+                        <encoding>UTF-8</encoding>
+                        <consoleOutput>true</consoleOutput>
+                        <!-- true if project build should fails on any style violation. -->
+                        <failsOnError>true</failsOnError>
+                        <linkXRef>false</linkXRef>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.puppycrawl.tools</groupId>
+                            <artifactId>checkstyle</artifactId>
+                            <version>${checkstyle.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+            </plugins>
+        </pluginManagement>
         <plugins>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
@@ -303,6 +330,18 @@
                             </fileset>
                             <outputDir>${project.basedir}/logs</outputDir>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>checkstyle</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

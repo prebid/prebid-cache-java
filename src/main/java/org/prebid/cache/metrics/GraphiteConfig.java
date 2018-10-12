@@ -1,6 +1,8 @@
 package org.prebid.cache.metrics;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -8,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @NoArgsConstructor
 @AllArgsConstructor
 @Configuration
-@ConfigurationProperties(prefix="metrics.graphite")
+@ConfigurationProperties(prefix = "metrics.graphite")
 public class GraphiteConfig {
     private String host;
     private int port;
