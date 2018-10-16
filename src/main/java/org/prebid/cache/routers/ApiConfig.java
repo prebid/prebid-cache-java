@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 @NoArgsConstructor
 @AllArgsConstructor
 @Configuration
-@ConfigurationProperties(prefix="api")
+@ConfigurationProperties(prefix = "api")
 public class ApiConfig {
     private String path;
 }

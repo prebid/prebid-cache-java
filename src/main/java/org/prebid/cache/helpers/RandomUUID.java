@@ -1,16 +1,15 @@
 package org.prebid.cache.helpers;
 
-import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
 import org.prebid.cache.model.PayloadTransfer;
+
 import java.util.UUID;
 
 @Slf4j
-@UtilityClass
 public class RandomUUID {
     public static String extractUUID(final PayloadTransfer payload) {
-        return (payload.getKey() != null) ?
-                payload.getKey() : String.valueOf(UUID.randomUUID());
+        return (payload.getKey() != null)
+                ? payload.getKey() : String.valueOf(UUID.randomUUID());
     }
 
     public static boolean isExternalUUID(final PayloadTransfer payload) {
@@ -29,5 +28,8 @@ public class RandomUUID {
             log.debug("Invalid UUID: {}", uuid);
 
         return isValid;
+    }
+
+    private RandomUUID() {
     }
 }

@@ -13,18 +13,17 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Configuration
-@ConfigurationProperties(prefix="spring.redis.sentinel")
+@ConfigurationProperties(prefix = "spring.redis.sentinel")
 public class RedisSentinelPropertyConfiguration {
     private String master;
     private List<String> nodes;
 
-    RedisURI createRedisURI(RedisPropertyConfiguration redisConfig)
-    {
+    RedisURI createRedisURI(RedisPropertyConfiguration redisConfig) {
         if (redisConfig.getPassword() == null) {
             return RedisURI.Builder.sentinel(redisConfig.getHost(), redisConfig.getPort(), master).build();
         } else {
             RedisURI.Builder builder = RedisURI.Builder.sentinel(redisConfig.getHost(), redisConfig.getPort(), master)
-                                        .withPassword(redisConfig.getPassword());
+                    .withPassword(redisConfig.getPassword());
             for (String node : nodes) {
                 String[] host = node.split(":");
                 if (host.length == 1) {

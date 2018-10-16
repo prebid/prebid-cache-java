@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 public class Json {
     private final Gson gson = new Gson();
 
-    public String toJson(Object object ) {
+    public String toJson(Object object) {
         log.debug("{}", gson.toJson(object));
         return gson.toJson(object);
     }

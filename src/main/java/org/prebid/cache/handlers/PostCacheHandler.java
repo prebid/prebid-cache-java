@@ -1,28 +1,32 @@
 package org.prebid.cache.handlers;
 
 import com.google.common.collect.ImmutableMap;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
+import org.prebid.cache.helpers.RandomUUID;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
-import org.prebid.cache.model.*;
+import org.prebid.cache.metrics.MetricsRecorder;
+import org.prebid.cache.model.Payload;
+import org.prebid.cache.model.PayloadTransfer;
+import org.prebid.cache.model.PayloadWrapper;
+import org.prebid.cache.model.RequestObject;
+import org.prebid.cache.model.ResponseObject;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
-import lombok.extern.slf4j.Slf4j;
-import lombok.val;
-import org.prebid.cache.helpers.RandomUUID;
-import org.prebid.cache.metrics.MetricsRecorder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
 
@@ -35,15 +39,12 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-
-import static org.springframework.http.MediaType.*;
-
 @Component
 @Slf4j
 public class PostCacheHandler extends CacheHandler {
 
     private static final String UUID_KEY = "uuid";
-    private final String SECONDARY_CACHE_KEY = "secondaryCache";
+    private static final String SECONDARY_CACHE_KEY = "secondaryCache";
 
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
@@ -62,7 +63,7 @@ public class PostCacheHandler extends CacheHandler {
         this.type = ServiceType.SAVE;
         this.repository = repository;
         this.config = config;
-        if(config.getSecondaryUris() != null) {
+        if (config.getSecondaryUris() != null) {
             config.getSecondaryUris().forEach(ip -> {
                 webClients.put(ip, WebClient.create(ip));
             });
@@ -107,7 +108,7 @@ public class PostCacheHandler extends CacheHandler {
                     if (response.getResponses().isEmpty()) {
                         return ErrorHandler.createNoElementsFound();
                     } else {
-                        return builder.createResponseMono(request, APPLICATION_JSON_UTF8, response);
+                        return builder.createResponseMono(request, MediaType.APPLICATION_JSON_UTF8, response);
                     }
                 });
 
@@ -128,7 +129,7 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private void validateUUID(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
-        if(payload.isExternalId() && !config.isAllowExternalUUID()) {
+        if (payload.isExternalId() && !config.isAllowExternalUUID()) {
             sink.error(new InvalidUUIDException("Prebid cache host forbids specifying UUID in request."));
             return;
         }
@@ -168,7 +169,8 @@ public class PostCacheHandler extends CacheHandler {
             RequestObject requestObject = new RequestObject(payloadTransfers);
             webClients.forEach((ip, webClient) -> {
                 webClient.post()
-                        .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath()).queryParam("secondaryCache", "yes").build())
+                        .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath())
+                                .queryParam("secondaryCache", "yes").build())
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .syncBody(requestObject)
                         .exchange()
@@ -191,7 +193,6 @@ public class PostCacheHandler extends CacheHandler {
         return PayloadTransfer.builder().type(wrapper.getPayload().getType())
                 .key(wrapper.getId()).value(wrapper.getPayload().getValue()).expiry(wrapper.getExpiry()).build();
     }
-
 
 }
 

@@ -10,8 +10,7 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
 
 @SpringBootApplication
 @ImportResource("classpath:spring-repository-bean.xml")
-public class PBCacheApplication implements WebFluxConfigurer
-{
+public class PBCacheApplication implements WebFluxConfigurer {
     private final CorsConfig corsConfig;
 
     @Autowired

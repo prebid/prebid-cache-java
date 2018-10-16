@@ -1,14 +1,8 @@
 package org.prebid.cache.repository.redis;
 
-import com.aerospike.client.AerospikeException;
-import io.lettuce.core.RedisException;
-import org.prebid.cache.exceptions.PayloadWrapperPropertyException;
-import org.prebid.cache.exceptions.RepositoryException;
-import org.prebid.cache.helpers.Json;
-import org.prebid.cache.model.PayloadWrapper;
-import org.prebid.cache.repository.ReactiveRepository;
 import io.lettuce.core.ReadFrom;
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisException;
 import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.api.reactive.RedisStringReactiveCommands;
@@ -16,12 +10,16 @@ import io.lettuce.core.codec.Utf8StringCodec;
 import io.lettuce.core.masterslave.MasterSlave;
 import io.lettuce.core.masterslave.StatefulRedisMasterSlaveConnection;
 import lombok.extern.slf4j.Slf4j;
+import org.prebid.cache.exceptions.PayloadWrapperPropertyException;
+import org.prebid.cache.exceptions.RepositoryException;
+import org.prebid.cache.helpers.Json;
+import org.prebid.cache.model.PayloadWrapper;
+import org.prebid.cache.repository.ReactiveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 
 @Slf4j
-public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, String>
-{
+public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, String> {
     private final RedisPropertyConfiguration redisConfig;
     private final RedisSentinelPropertyConfiguration sentinelConfig;
     private RedisClient client;
@@ -30,8 +28,7 @@ public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, S
 
     @Autowired
     public RedisRepositoryImpl(final RedisPropertyConfiguration redisConfig,
-                               final RedisSentinelPropertyConfiguration sentinelConfig)
-    {
+                               final RedisSentinelPropertyConfiguration sentinelConfig) {
         this.redisConfig = redisConfig;
         this.sentinelConfig = sentinelConfig;
     }
@@ -76,7 +73,8 @@ public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, S
 
     private StatefulRedisMasterSlaveConnection<String, String> getSentinelConnection() {
         if (sentinelConnection == null || !sentinelConnection.isOpen()) {
-            sentinelConnection = MasterSlave.connect(getRedisClient(), new Utf8StringCodec(), redisConfig.createRedisURI());
+            sentinelConnection = MasterSlave.connect(getRedisClient(), new Utf8StringCodec(),
+                    redisConfig.createRedisURI());
             sentinelConnection.setReadFrom(ReadFrom.NEAREST);
         }
         return sentinelConnection;

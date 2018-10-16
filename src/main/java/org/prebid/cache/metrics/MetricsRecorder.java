@@ -1,10 +1,8 @@
 package org.prebid.cache.metrics;
 
 import lombok.Getter;
-import lombok.Setter;
 
-public abstract class MetricsRecorder
-{
+public abstract class MetricsRecorder {
     public enum MeasurementTag {
         REQUEST_DURATION("pbc.${prefix}.request.duration"),
         REQUEST("pbc.${prefix}.request"),
@@ -18,7 +16,8 @@ public abstract class MetricsRecorder
         ERROR_SECONDARY_WRITE("pbc.err.secondaryWrite"),
         ERROR_EXISTINGID("pbc.err.existingId");
 
-        @Getter private String tag;
+        @Getter
+        private String tag;
 
         MeasurementTag(final String tag) {
             this.tag = tag;

@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Singular;
 import lombok.Value;
 
-import java.util.*;
+import java.util.List;
 
 @Value
 @Builder
