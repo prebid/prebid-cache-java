@@ -1,6 +1,5 @@
 package org.prebid.cache.handlers;
 
-import org.junit.jupiter.api.Disabled;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
 import org.prebid.cache.metrics.GraphiteTestConfig;
@@ -8,7 +7,6 @@ import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
-import org.prebid.cache.repository.ReactiveTestAerospikeRepositoryContext;
 import org.prebid.cache.routers.ApiConfig;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -35,7 +33,6 @@ import static org.mockito.BDDMockito.given;
 @ContextConfiguration(classes = {
         GetCacheHandler.class,
         PrebidServerResponseBuilder.class,
-        ReactiveTestAerospikeRepositoryContext.class,
         CacheConfig.class,
         GraphiteTestConfig.class,
         GraphiteMetricsRecorder.class,
@@ -43,7 +40,6 @@ import static org.mockito.BDDMockito.given;
 })
 @EnableConfigurationProperties
 @SpringBootTest
-@Disabled
 class GetCacheHandlerTests extends CacheHandlerTests {
 
     @Autowired
