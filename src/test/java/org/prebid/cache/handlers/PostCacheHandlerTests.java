@@ -4,17 +4,17 @@ import com.github.jenspiegsa.wiremockextension.InjectServer;
 import com.github.jenspiegsa.wiremockextension.WireMockExtension;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.common.collect.ImmutableList;
-import org.junit.jupiter.api.Disabled;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
+import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.helpers.CurrentDateProvider;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
 import org.prebid.cache.metrics.GraphiteTestConfig;
+import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadTransfer;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.model.RequestObject;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
-import org.prebid.cache.repository.ReactiveTestAerospikeRepositoryContext;
 import org.prebid.cache.routers.ApiConfig;
 import lombok.val;
 import org.junit.jupiter.api.Test;
@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.reactive.function.server.MockServerRequest;
@@ -38,6 +39,7 @@ import java.util.function.Supplier;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
@@ -46,7 +48,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 @ContextConfiguration(classes = {
         PostCacheHandler.class,
         PrebidServerResponseBuilder.class,
-        ReactiveTestAerospikeRepositoryContext.class,
         CacheConfig.class,
         GraphiteTestConfig.class,
         GraphiteMetricsRecorder.class,
@@ -56,14 +57,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 @EnableConfigurationProperties
 @SpringBootTest
 @ExtendWith(WireMockExtension.class)
-@Disabled
 class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Autowired
     GraphiteMetricsRecorder metricsRecorder;
-
-    @Autowired
-    ReactiveRepository<PayloadWrapper, String> repository;
 
     @Autowired
     PrebidServerResponseBuilder builder;
@@ -71,8 +68,11 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     @Autowired
     CacheConfig cacheConfig;
 
-    @Autowired
+    @MockBean
     Supplier<Date> currentDateProvider;
+
+    @MockBean
+    ReactiveRepository<PayloadWrapper, String> repository;
 
     @Test
     void testVerifyError() {
@@ -87,6 +87,11 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testVerifySave() {
+        val payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        val payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner, 1800L, new Date(100), true);
+        given(currentDateProvider.get()).willReturn(new Date(100));
+        given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper));
+
         val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, "prebid_");
@@ -110,12 +115,17 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testSecondaryCacheSuccess() throws InterruptedException {
+        val payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        val payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner, 1800L, new Date(100), true);
+        given(currentDateProvider.get()).willReturn(new Date(100));
+        given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper));
+
         serverMock.stubFor(post(urlPathEqualTo("/cache"))
-                .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"f31f96db-8c36-4d44-94dc-ad2d1a1d84d9\"}]}")));
+                .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}]}")));
 
         val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider);
 
-        val payload = new PayloadTransfer("json", "f31f96db-8c36-4d44-94dc-ad2d1a1d84d9", "", 1800L, "prebid_");
+        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
         val requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
@@ -167,11 +177,16 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testUUIDDuplication() {
+        val payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        val payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner, 1800L, new Date(100), true);
+        given(currentDateProvider.get()).willReturn(new Date(100));
+        given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper)).willReturn(Mono.error(new DuplicateKeyException("")));
+
         val cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
                 5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(), Collections.emptyList(), cacheConfig.getSecondaryCachePath());
         val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider);
 
-        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-a573a84312f1", "", 5L, "prebid_");
+        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
         val requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
