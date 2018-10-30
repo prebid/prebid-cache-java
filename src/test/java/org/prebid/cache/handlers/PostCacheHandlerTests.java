@@ -1,9 +1,9 @@
 package org.prebid.cache.handlers;
 
-import com.github.jenspiegsa.wiremockextension.InjectServer;
-import com.github.jenspiegsa.wiremockextension.WireMockExtension;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.common.collect.ImmutableList;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.helpers.CurrentDateProvider;
@@ -56,7 +56,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 })
 @EnableConfigurationProperties
 @SpringBootTest
-@ExtendWith(WireMockExtension.class)
 class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Autowired
@@ -82,8 +81,18 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         verifyRepositoryError(handler);
     }
 
-    @InjectServer
     WireMockServer serverMock;
+
+    @BeforeEach
+    public void setup() {
+        serverMock = new WireMockServer(8080);
+        serverMock.start();
+    }
+
+    @AfterEach
+    public void teardown() {
+        serverMock.stop();
+    }
 
     @Test
     void testVerifySave() {
