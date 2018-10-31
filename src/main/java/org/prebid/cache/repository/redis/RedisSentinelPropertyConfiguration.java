@@ -14,7 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Configuration
-@ConditionalOnProperty(prefix = "spring.redis", name = {"endpoint"}, havingValue = "true")
+@ConditionalOnProperty(prefix = "spring.redis", name = {"host"})
 @ConfigurationProperties(prefix = "spring.redis.sentinel")
 public class RedisSentinelPropertyConfiguration {
     private String master;
