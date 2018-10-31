@@ -47,7 +47,6 @@ class GetCacheHandlerTests extends CacheHandlerTests {
     GetCacheHandler handler;
 
     @MockBean
-    @Qualifier("aerospike")
     ReactiveRepository<PayloadWrapper, String> repository;
 
     @Test

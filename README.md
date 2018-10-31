@@ -78,63 +78,18 @@ $ java -jar prebid-cache.jar -Dspring.profiles.active=prod -Dlog.dir=/app/prebid
 ### _Cache Configuration_
 Prebid cache uses Aerospike as a default cache implementation but also supports Redis. For switching from Aerospike to Redis change next:
 
-_GetCacheHandler.java:_
-```text
- @Autowired
- public GetCacheHandler(@Qualifier("aerospike") final ReactiveRepository<PayloadWrapper, String> repository,
-                           final CacheConfig config,
-                           final GraphiteMetricsRecorder metricsRecorder,
-                           final PrebidServerResponseBuilder builder);
+_application.yml:_
+```yaml
+ spring.aerospike.endpoint: true
+ spring.redis.endpoint: false
 ```  
 
 to 
 
-```text
-  @Autowired
-  public GetCacheHandler(@Qualifier("redis") final ReactiveRepository<PayloadWrapper, String> repository,
-                            final CacheConfig config,
-                            final GraphiteMetricsRecorder metricsRecorder,
-                            final PrebidServerResponseBuilder builder);
+```yaml
+ spring.aerospike.endpoint: false
+ spring.redis.endpoint: true
 ```  
-
-_PostCacheHandler.java:_
-```text
- @Autowired
- public PostCacheHandler(@Qualifier("aerospike") final ReactiveRepository<PayloadWrapper, String> repository,
-                             final CacheConfig config,
-                             final GraphiteMetricsRecorder metricsRecorder,
-                             final PrebidServerResponseBuilder builder,
-                             final Supplier<Date> currentDateProvider);
-``` 
-
-to 
-
-```text
-  @Autowired
-  public PostCacheHandler(@Qualifier("redis") final ReactiveRepository<PayloadWrapper, String> repository,
-                              final CacheConfig config,
-                              final GraphiteMetricsRecorder metricsRecorder,
-                              final PrebidServerResponseBuilder builder,
-                              final Supplier<Date> currentDateProvider);
-``` 
-
-Also for correct tests running please change at :
-
-_GetCacheHandlerTests.java, PostCacheHandlerTests.java:_
-
-```text
-   @MockBean
-   @Qualifier("aerospike")
-   ReactiveRepository<PayloadWrapper, String> repository;
-``` 
-
-to 
-
-```text
-   @MockBean
-   @Qualifier("redis")
-   ReactiveRepository<PayloadWrapper, String> repository;
-``` 
 
 It is possible to override the default YAML configuration by supplying a custom configuration.  See example scenario(s) below.
 

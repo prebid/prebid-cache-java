@@ -4,6 +4,7 @@ import io.lettuce.core.RedisURI;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -13,6 +14,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Configuration
+@ConditionalOnProperty(prefix = "spring.redis", name = {"endpoint"}, havingValue = "true")
 @ConfigurationProperties(prefix = "spring.redis.sentinel")
 public class RedisSentinelPropertyConfiguration {
     private String master;

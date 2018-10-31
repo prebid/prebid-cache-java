@@ -10,7 +10,6 @@ import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -29,7 +28,7 @@ public class GetCacheHandler extends CacheHandler {
     private static final String UNSUPPORTED_MEDIATYPE = "Unsupported Media Type.";
 
     @Autowired
-    public GetCacheHandler(@Qualifier("aerospike") final ReactiveRepository<PayloadWrapper, String> repository,
+    public GetCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
                            final CacheConfig config,
                            final GraphiteMetricsRecorder metricsRecorder,
                            final PrebidServerResponseBuilder builder) {

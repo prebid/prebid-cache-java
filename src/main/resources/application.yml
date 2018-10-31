@@ -90,9 +90,12 @@ spring:
     max_retry: 3
     namespace: "prebid_cache"
     prevent_UUID_duplication : true
+    endpoint: false
+
 spring.redis.host: localhost
 spring.redis.port: 6379
 spring.redis.password:
+spring.redis.endpoint: false
 #spring.redis.sentinel.master: mymaster
 #spring.redis.sentinel.nodes: localhost:26379
 
