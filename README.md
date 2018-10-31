@@ -76,20 +76,20 @@ $ java -jar prebid-cache.jar -Dspring.profiles.active=prod -Dlog.dir=/app/prebid
 ```
 
 ### _Cache Configuration_
-Prebid cache uses Aerospike as a default cache implementation but also supports Redis. For switching from Aerospike to Redis change next:
+Prebid cache uses Aerospike as a default cache implementation but also supports Redis. For switching from Aerospike 
+to Redis replace next:
 
 _application.yml:_
 ```yaml
- spring.aerospike.endpoint: true
- spring.redis.endpoint: false
+ spring.aerospike.host: value
 ```  
 
-to 
+with 
 
 ```yaml
- spring.aerospike.endpoint: false
- spring.redis.endpoint: true
+ spring.redis.host: value
 ```  
+
 
 It is possible to override the default YAML configuration by supplying a custom configuration.  See example scenario(s) below.
 
