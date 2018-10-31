@@ -22,6 +22,7 @@ import java.time.Duration;
 @Component
 @Slf4j
 public class GetCacheHandler extends CacheHandler {
+
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
     private static final String UNSUPPORTED_MEDIATYPE = "Unsupported Media Type.";

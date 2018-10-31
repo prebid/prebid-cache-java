@@ -16,9 +16,13 @@ import org.prebid.cache.helpers.Json;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
+@Repository
 @Slf4j
+@ConditionalOnProperty(prefix = "spring.redis", name = {"host"})
 public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, String> {
     private final RedisPropertyConfiguration redisConfig;
     private final RedisSentinelPropertyConfiguration sentinelConfig;

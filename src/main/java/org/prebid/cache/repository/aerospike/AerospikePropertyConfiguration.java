@@ -12,6 +12,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +28,7 @@ import static java.util.Objects.requireNonNull;
 @AllArgsConstructor
 @Configuration
 @EnableConfigurationProperties
+@ConditionalOnProperty(prefix = "spring.aerospike", name = {"host"})
 @ConfigurationProperties(prefix = "spring.aerospike")
 public class AerospikePropertyConfiguration {
     private String host;

@@ -1,5 +1,0 @@
-
----
-cache.profiles.active: aerospike
-cache.aerospike.classname.canonical: org.prebid.cache.repository.aerospike.AerospikeRepositoryImpl
-cache.aerospike.property.configuration.classname: AerospikePropertyConfiguration
