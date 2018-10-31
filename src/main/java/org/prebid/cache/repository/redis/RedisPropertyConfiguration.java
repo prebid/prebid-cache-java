@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @NoArgsConstructor
 @AllArgsConstructor
 @Configuration
-@ConditionalOnProperty(prefix = "spring.redis", name = {"endpoint"}, havingValue = "true")
+@ConditionalOnProperty(prefix = "spring.redis", name = {"host"})
 @ConfigurationProperties(prefix = "spring.redis")
 public class RedisPropertyConfiguration {
     private String host;

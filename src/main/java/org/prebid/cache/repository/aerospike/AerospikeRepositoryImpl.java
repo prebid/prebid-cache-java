@@ -30,8 +30,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-@Repository("aerospike")
-@ConditionalOnProperty(prefix = "spring.aerospike", name = {"endpoint"}, havingValue = "true")
+@Repository
+@ConditionalOnProperty(prefix = "spring.aerospike", name = {"host"})
 @Slf4j
 @RequiredArgsConstructor
 public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrapper, String> {

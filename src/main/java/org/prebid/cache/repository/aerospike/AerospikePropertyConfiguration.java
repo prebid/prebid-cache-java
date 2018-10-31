@@ -28,7 +28,7 @@ import static java.util.Objects.requireNonNull;
 @AllArgsConstructor
 @Configuration
 @EnableConfigurationProperties
-@ConditionalOnProperty(prefix = "spring.aerospike", name = {"endpoint"}, havingValue = "true")
+@ConditionalOnProperty(prefix = "spring.aerospike", name = {"host"})
 @ConfigurationProperties(prefix = "spring.aerospike")
 public class AerospikePropertyConfiguration {
     private String host;
