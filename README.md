@@ -39,7 +39,7 @@ $ sudo service aerospike start
 
 ```bash
 $ cd prebid-cache-java
-$ mvn clean gplus:execute package
+$ mvn clean package
 ...
 [INFO] Layout: JAR
 [INFO] ------------------------------------------------------------------------
@@ -78,20 +78,63 @@ $ java -jar prebid-cache.jar -Dspring.profiles.active=prod -Dlog.dir=/app/prebid
 ### _Cache Configuration_
 Prebid cache uses Aerospike as a default cache implementation but also supports Redis. For switching from Aerospike to Redis change next:
 
-_repository.yml:_
-```yaml
-cache.profiles.active: aerospike
-cache.aerospike.classname.canonical: org.prebid.cache.repository.aerospike.AerospikeRepositoryImpl
-cache.aerospike.property.configuration.classname: AerospikePropertyConfiguration
+_GetCacheHandler.java:_
+```text
+ @Autowired
+ public GetCacheHandler(@Qualifier("aerospike") final ReactiveRepository<PayloadWrapper, String> repository,
+                           final CacheConfig config,
+                           final GraphiteMetricsRecorder metricsRecorder,
+                           final PrebidServerResponseBuilder builder);
 ```  
 
 to 
 
-```yaml
-cache.profiles.active: redis
-cache.redis.classname.canonical: org.prebid.cache.repository.redis.RedisRepositoryImpl
-cache.redis.property.configuration.classname: RedisPropertyConfiguration
+```text
+  @Autowired
+  public GetCacheHandler(@Qualifier("redis") final ReactiveRepository<PayloadWrapper, String> repository,
+                            final CacheConfig config,
+                            final GraphiteMetricsRecorder metricsRecorder,
+                            final PrebidServerResponseBuilder builder);
 ```  
+
+_PostCacheHandler.java:_
+```text
+ @Autowired
+ public PostCacheHandler(@Qualifier("aerospike") final ReactiveRepository<PayloadWrapper, String> repository,
+                             final CacheConfig config,
+                             final GraphiteMetricsRecorder metricsRecorder,
+                             final PrebidServerResponseBuilder builder,
+                             final Supplier<Date> currentDateProvider);
+``` 
+
+to 
+
+```text
+  @Autowired
+  public PostCacheHandler(@Qualifier("redis") final ReactiveRepository<PayloadWrapper, String> repository,
+                              final CacheConfig config,
+                              final GraphiteMetricsRecorder metricsRecorder,
+                              final PrebidServerResponseBuilder builder,
+                              final Supplier<Date> currentDateProvider);
+``` 
+
+Also for correct tests running please change at :
+
+_GetCacheHandlerTests.java, PostCacheHandlerTests.java:_
+
+```text
+   @MockBean
+   @Qualifier("aerospike")
+   ReactiveRepository<PayloadWrapper, String> repository;
+``` 
+
+to 
+
+```text
+   @MockBean
+   @Qualifier("redis")
+   ReactiveRepository<PayloadWrapper, String> repository;
+``` 
 
 It is possible to override the default YAML configuration by supplying a custom configuration.  See example scenario(s) below.
 
@@ -158,16 +201,6 @@ public class CustomPropertyConfiguration
     private int port;
 }
 
-```
-
-###### C. YAML Configuration and custom Maven goal (gplus:execute)
-The Spring cache repository context is defined in this Spring XML configuration (spring-repository-bean.xml).  There is no need to modify this XML configuration because it is automatically generated from a custom maven goal called _gplus:execute_.  However, if a custom cache implementation is needed, then a custom cache YAML configuration needs to be provided.  See example below: 
-
-_src/main/resources/repository.yml_:
-```yaml
-cache.profiles.active: custom
-cache.custom.classname.canonical: org.prebid.cache.repository.custom.CustomRepositoryImpl
-cache.custom.property.configuration.classname: CustomPropertyConfiguration
 ```
 
 ### _Metrics_

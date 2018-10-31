@@ -12,6 +12,7 @@ import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -46,6 +47,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
     GetCacheHandler handler;
 
     @MockBean
+    @Qualifier("aerospike")
     ReactiveRepository<PayloadWrapper, String> repository;
 
     @Test

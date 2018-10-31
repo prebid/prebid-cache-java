@@ -18,6 +18,7 @@ import org.prebid.cache.model.ResponseObject;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -54,7 +55,7 @@ public class PostCacheHandler extends CacheHandler {
     private final Map<String, WebClient> webClients = new HashMap<>();
 
     @Autowired
-    public PostCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
+    public PostCacheHandler(@Qualifier("aerospike") final ReactiveRepository<PayloadWrapper, String> repository,
                             final CacheConfig config,
                             final GraphiteMetricsRecorder metricsRecorder,
                             final PrebidServerResponseBuilder builder,

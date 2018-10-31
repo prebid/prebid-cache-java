@@ -16,8 +16,10 @@ import org.prebid.cache.helpers.Json;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
+@Repository("redis")
 @Slf4j
 public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, String> {
     private final RedisPropertyConfiguration redisConfig;
