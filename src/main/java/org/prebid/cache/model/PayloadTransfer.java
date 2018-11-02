@@ -13,6 +13,7 @@ public class PayloadTransfer {
     String key;
     Object value;
     Long expiry;
+    Long ttlseconds;
     transient String prefix;
 
     public String valueAsString() {
