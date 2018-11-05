@@ -86,7 +86,7 @@ public class PostCacheHandler extends CacheHandler {
         val payloadFlux = flux
                 .map(payload -> payload.toBuilder()
                         .prefix(config.getPrefix())
-                        .expiry(adjustExpiry(payload.getExpiry()))
+                        .expiry(adjustExpiry(payload.compareAndGetExpiry()))
                         .build())
                 .map(payloadWrapperTransformer(currentDateProvider))
                 .handle(this::validateUUID)

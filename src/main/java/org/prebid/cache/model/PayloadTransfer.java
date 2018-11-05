@@ -13,6 +13,7 @@ public class PayloadTransfer {
     String key;
     Object value;
     Long expiry;
+    Long ttlseconds;
     transient String prefix;
 
     public String valueAsString() {
@@ -24,5 +25,9 @@ public class PayloadTransfer {
         } else {
             return Json.toJson(value);
         }
+    }
+
+    public Long compareAndGetExpiry() {
+        return ttlseconds != null ? ttlseconds : expiry;
     }
 }

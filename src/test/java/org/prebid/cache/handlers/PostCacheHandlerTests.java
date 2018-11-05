@@ -103,7 +103,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider);
 
-        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, "prebid_");
+        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
         val requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
@@ -134,7 +134,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider);
 
-        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, "prebid_");
+        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
         val requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
@@ -165,7 +165,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(), false, Collections.emptyList(), cacheConfig.getSecondaryCachePath());
         val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider);
 
-        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, "prebid_");
+        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
         val requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
@@ -195,7 +195,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(), Collections.emptyList(), cacheConfig.getSecondaryCachePath());
         val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider);
 
-        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, "prebid_");
+        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
         val requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
