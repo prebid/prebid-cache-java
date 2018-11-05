@@ -26,4 +26,8 @@ public class PayloadTransfer {
             return Json.toJson(value);
         }
     }
+
+    public Long compareAndGetExpiry() {
+        return ttlseconds != null ? ttlseconds : expiry;
+    }
 }
