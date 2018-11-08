@@ -58,6 +58,9 @@
         <wiremock.version>2.11.0</wiremock.version>
         <checkstyle-plugin.version>2.17</checkstyle-plugin.version>
         <checkstyle.version>7.6</checkstyle.version>
+
+        <!-- Freestar Kubernetes/Docker additions -->
+        <docker.image.version>latest</docker.image.version>
     </properties>
 
     <dependencies>
@@ -312,6 +315,26 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.4.13</version>
+                <configuration>
+                    <forceTags>true</forceTags>
+                    <imageTags>
+                        <imageTag>${docker.image.version}</imageTag>
+                    </imageTags>
+                    <imageName>${docker.image.prefix}/${project.build.finalName}-java</imageName>
+                    <dockerDirectory>src/main/docker</dockerDirectory>
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                    </resources>
+                </configuration>
             </plugin>
         </plugins>
     </build>
