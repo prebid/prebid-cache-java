@@ -11,7 +11,7 @@ server.compression.enabled: true
 
 # cors
 cors:
-  enabled: false
+  enabled: true
   mapping: "/cache/**"
   allowedOrigins: "*"
   allowedMethods: "GET"
@@ -112,4 +112,3 @@ management.endpoint.env.enabled: false
 management.endpoint.configprops.enabled: false
 logging.level.root: warn
 logging.config: classpath:log4j2-prod.xml
-
