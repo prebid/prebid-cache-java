@@ -40,7 +40,6 @@
         <maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
         <maven-surefire-plugin.version>2.22.0</maven-surefire-plugin.version>
         <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
-        <jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version>
         <spring-boot-maven-plugin.version>2.0.2.RELEASE</spring-boot-maven-plugin.version>
         <reactor-core.version>3.1.7.RELEASE</reactor-core.version>
         <lettuce-core.version>5.0.4.RELEASE</lettuce-core.version>
@@ -58,6 +57,8 @@
         <wiremock.version>2.11.0</wiremock.version>
         <checkstyle-plugin.version>2.17</checkstyle-plugin.version>
         <checkstyle.version>7.6</checkstyle.version>
+        <jacoco-plugin.version>0.8.0</jacoco-plugin.version>
+        <awaitility.version>3.0.0</awaitility.version>
     </properties>
 
     <dependencies>
@@ -189,6 +190,12 @@
             <artifactId>reactor-extra</artifactId>
             <version>${reactor-extra.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${awaitility.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -269,39 +276,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>com.github.cjnygard</groupId>
-                <artifactId>rest-maven-plugin</artifactId>
-                <version>0.1.4</version>
-                <executions>
-                    <execution>
-                        <phase>integration-test</phase>
-                        <goals>
-                            <goal>rest-request</goal>
-                        </goals>
-                        <configuration>
-                            <endpoint>http://localhost:8081/cache</endpoint>
-                            <method>POST</method>
-                            <headers>
-                                <Content-Type>application/json</Content-Type>
-                            </headers>
-                            <requestType>
-                                <type>application</type>
-                                <subtype>json</subtype>
-                            </requestType>
-                            <responseType>
-                                <type>application</type>
-                                <subtype>json</subtype>
-                            </responseType>
-                            <fileset>
-                                <include>post.json</include>
-                                <directory>${project.build.resources.directory}</directory>
-                            </fileset>
-                            <outputDir>${project.basedir}/logs</outputDir>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <executions>
@@ -310,6 +284,53 @@
                         <goals>
                             <goal>checkstyle</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco-plugin.version}</version>
+                <configuration>
+                    <excludes>
+                        <exclude>**/listners/**</exclude>
+                        <exclude>**/repository/**</exclude>
+                        <exclude>**/config/**</exclude>
+                        <exclude>**/routers/**</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>60%</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

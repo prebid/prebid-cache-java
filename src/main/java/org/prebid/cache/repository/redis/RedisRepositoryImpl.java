@@ -46,7 +46,7 @@ public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, S
             expiry = wrapper.getExpiry();
             normalizedId = wrapper.getNormalizedId();
         } catch (PayloadWrapperPropertyException e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             return Mono.empty();
         }
 
