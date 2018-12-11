@@ -200,7 +200,7 @@ public class PostCacheHandler extends CacheHandler {
                 try {
                     requestObject = objectMapper.readValue(value, RequestObject.class);
                 } catch (IOException e) {
-                    log.error(e.getMessage(), e);
+                    log.error("Exception occurred while deserialize request body", e);
                 }
                 return requestObject;
             });
