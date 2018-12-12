@@ -1,5 +1,6 @@
 package org.prebid.cache.handlers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
@@ -7,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
+import org.prebid.cache.exceptions.RequestBodyDeserializeException;
 import org.prebid.cache.helpers.RandomUUID;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder;
@@ -22,6 +24,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -30,6 +33,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
@@ -52,6 +56,7 @@ public class PostCacheHandler extends CacheHandler {
     private final Function<PayloadWrapper, Map<String, String>> payloadWrapperToMapTransformer = payload ->
             ImmutableMap.of(UUID_KEY, payload.getId());
     private final Map<String, WebClient> webClients = new HashMap<>();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public PostCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
@@ -78,7 +83,7 @@ public class PostCacheHandler extends CacheHandler {
 
         String secondaryCache = request.queryParam(SECONDARY_CACHE_KEY).orElse(StringUtils.EMPTY);
 
-        val bodyMono = request.bodyToMono(RequestObject.class);
+        val bodyMono = getRequestBodyMono(request);
         val monoList = bodyMono.map(RequestObject::getPuts);
         val flux = monoList.flatMapMany(Flux::fromIterable);
         val payloadFlux = flux
@@ -187,6 +192,23 @@ public class PostCacheHandler extends CacheHandler {
     private PayloadTransfer wrapperToTransfer(final PayloadWrapper wrapper) {
         return PayloadTransfer.builder().type(wrapper.getPayload().getType())
                 .key(wrapper.getId()).value(wrapper.getPayload().getValue()).expiry(wrapper.getExpiry()).build();
+    }
+
+    private Mono<RequestObject> getRequestBodyMono(final ServerRequest request) {
+        if (MediaType.TEXT_PLAIN.equals(request.headers().contentType().orElse(MediaType.APPLICATION_JSON))) {
+            return request.body(BodyExtractors.toMono(String.class)).map(value -> {
+                RequestObject requestObject = null;
+                try {
+                    requestObject = objectMapper.readValue(value, RequestObject.class);
+                } catch (IOException e) {
+                    log.error("Exception occurred while deserialize request body", e);
+                }
+                return requestObject;
+            }).doOnError(throwable ->
+                    Mono.error(new RequestBodyDeserializeException("Exception occurred while deserialize request body",
+                            throwable)));
+        }
+        return request.bodyToMono(RequestObject.class);
     }
 
 }

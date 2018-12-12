@@ -14,7 +14,7 @@ cors:
   enabled: false
   mapping: "/cache/**"
   allowedOrigins: "*"
-  allowedMethods: "GET"
+  allowedMethods: GET,POST
   allowCredentials: true
 
 # cache

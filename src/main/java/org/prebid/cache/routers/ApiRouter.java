@@ -28,11 +28,13 @@ public class ApiRouter {
                               final ErrorHandler errorHandler,
                               final ApiConfig apiConfig) {
         return route(POST(apiConfig.getPath())
-            .and(accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8)), postCacheHandler::save)
-            .andRoute(GET(apiConfig.getPath())
-                    .and(accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8)), getCacheHandler::fetch)
-            .andRoute(GET(apiConfig.getPath())
-                    .and(accept(MediaType.APPLICATION_XML)), getCacheHandler::fetch)
-            .andOther(route(RequestPredicates.all(), errorHandler::invalidRequest));
+                        .and(accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8, MediaType.TEXT_PLAIN)),
+                postCacheHandler::save)
+                .andRoute(GET(apiConfig.getPath())
+                                .and(accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8)),
+                        getCacheHandler::fetch)
+                .andRoute(GET(apiConfig.getPath())
+                        .and(accept(MediaType.APPLICATION_XML)), getCacheHandler::fetch)
+                .andOther(route(RequestPredicates.all(), errorHandler::invalidRequest));
     }
 }
