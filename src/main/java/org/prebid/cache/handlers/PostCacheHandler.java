@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
+import org.prebid.cache.exceptions.RequestBodyDeserializeException;
 import org.prebid.cache.helpers.RandomUUID;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder;
@@ -203,7 +204,9 @@ public class PostCacheHandler extends CacheHandler {
                     log.error("Exception occurred while deserialize request body", e);
                 }
                 return requestObject;
-            });
+            }).doOnError(throwable ->
+                    Mono.error(new RequestBodyDeserializeException("Exception occurred while deserialize request body",
+                            throwable)));
         }
         return request.bodyToMono(RequestObject.class);
     }
