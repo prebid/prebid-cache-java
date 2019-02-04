@@ -93,15 +93,19 @@ with
 
 It is possible to override the default YAML configuration by supplying a custom configuration.  See example scenario(s) below.
 
-###### Fault Tolerant Redis Sentinel (1 master and 2 slaves)
+###### Cluster config for Redis and Aerospike
 
+Redis cluster settings
 _application-default.yml:_
 ```yaml
-spring.redis.host: redis_master_host
-spring.redis.port: 6379
-spring.redis.sentinel.master: master
-spring.redis.sentinel.nodes: sentinel_host1:26379,sentinel_host2:26379,sentinel_host3:26379
+spring.redis.host: redis_host_1:port,redis_host_2:port,redis_host_3:port 
+spring.redis.is_cluster: true
 ```    
+Aerospike cluster settings
+_application-default.yml:_
+```yaml
+spring.aerospike.host: aerospike_host_1:port,aerospike_host_2:port,aerospike_host_3:port 
+```  
 
 ### _Optional:  Bring Your Own (BYO) Cache Implementation_
 
