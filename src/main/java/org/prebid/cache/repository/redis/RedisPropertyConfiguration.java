@@ -32,7 +32,7 @@ import static java.util.Objects.requireNonNull;
 public class RedisPropertyConfiguration {
 
     private String host;
-    private int timeout;
+    private long timeout;
     private String password;
     private Boolean isCluster;
 
