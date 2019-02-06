@@ -100,6 +100,7 @@ _application-default.yml:_
 ```yaml
 spring.redis.host: redis_host_1:port,redis_host_2:port,redis_host_3:port 
 spring.redis.is_cluster: true
+spring.redis.timeout: 300
 ```    
 Aerospike cluster settings
 _application-default.yml:_

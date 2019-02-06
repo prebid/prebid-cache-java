@@ -20,7 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
 @Data
@@ -36,43 +35,37 @@ public class RedisPropertyConfiguration {
     private String password;
     private Boolean isCluster;
 
-    private RedisURI createRedisURI() {
-        requireNonNull(host);
-        String[] hostParams = host.split(":");
+    private RedisURI createRedisURI(String hosts) {
+        requireNonNull(hosts);
+        String[] hostParams = hosts.split(":");
 
-        if (isNull(password)) {
-            return RedisURI.Builder.redis(hostParams[0], hostParams.length == 2 ? Integer.parseInt(hostParams[1]) : 0)
-                    .withTimeout(Duration.ofMillis(timeout))
-                    .build();
-        } else {
-            return RedisURI.Builder.redis(hostParams[0], hostParams.length == 2 ? Integer.parseInt(hostParams[1]) : 0)
-                    .withTimeout(Duration.ofMillis(timeout))
-                    .withPassword(password)
-                    .build();
+        if (hostParams.length < 2) {
+            throw new IllegalArgumentException("Illegal host URL format, host and port should be specified "
+                    + "as host:port");
         }
+        String hostname = requireNonNull(hostParams[0]);
+        int port = Integer.parseInt(hostParams[1]);
+
+        final RedisURI.Builder builder = RedisURI.Builder.redis(hostname, port)
+                .withTimeout(Duration.ofMillis(timeout));
+        if (password != null) {
+            builder.withPassword(password);
+        }
+
+        return builder.build();
     }
 
     private List<RedisURI> createRedisClusterURIs() {
         requireNonNull(host);
         return Arrays.stream(host.split(","))
-                .map(host -> {
-                    String[] hostParams = host.split(":");
-                    String hostname = requireNonNull(hostParams[0]);
-                    int port = hostParams.length == 2 ? Integer.parseInt(hostParams[1]) : 0;
-                    return isNull(password) ? RedisURI.Builder.redis(hostname, port)
-                            .withTimeout(Duration.ofMillis(timeout))
-                            .build() : RedisURI.Builder.redis(hostname, port)
-                            .withTimeout(Duration.ofMillis(timeout))
-                            .withPassword(password)
-                            .build();
-                })
+                .map(this::createRedisURI)
                 .collect(Collectors.toList());
     }
 
     @Bean(destroyMethod = "shutdown")
     @ConditionalOnExpression("'${spring.redis.is_cluster}' == 'false'")
     RedisClient client() {
-        return RedisClient.create(createRedisURI());
+        return RedisClient.create(createRedisURI(getHost()));
     }
 
     @Bean(destroyMethod = "close")
