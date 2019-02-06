@@ -15,12 +15,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.requireNonNull;
 
 @Data
@@ -31,30 +31,40 @@ import static java.util.Objects.requireNonNull;
 @ConfigurationProperties(prefix = "spring.redis")
 public class RedisPropertyConfiguration {
 
-    private static final int DEFAULT_PORT = 6379;
     private String host;
-    private int port;
+    private int timeout;
     private String password;
     private Boolean isCluster;
 
-    RedisURI createRedisURI() {
-        if (password == null) {
-            return RedisURI.Builder.redis(host, port).withTimeout(Duration.ofMillis(1000)).build();
+    private RedisURI createRedisURI() {
+        requireNonNull(host);
+        String[] hostParams = host.split(":");
+
+        if (isNull(password)) {
+            return RedisURI.Builder.redis(hostParams[0], hostParams.length == 2 ? Integer.parseInt(hostParams[1]) : 0)
+                    .withTimeout(Duration.ofMillis(timeout))
+                    .build();
         } else {
-            return RedisURI.Builder.redis(host, port).withPassword(password).build();
+            return RedisURI.Builder.redis(hostParams[0], hostParams.length == 2 ? Integer.parseInt(hostParams[1]) : 0)
+                    .withTimeout(Duration.ofMillis(timeout))
+                    .withPassword(password)
+                    .build();
         }
     }
 
-    public static List<RedisURI> createRedisClusterURIs(@NotNull String hostList) {
-        return Arrays.stream(hostList.split(","))
+    private List<RedisURI> createRedisClusterURIs() {
+        requireNonNull(host);
+        return Arrays.stream(host.split(","))
                 .map(host -> {
                     String[] hostParams = host.split(":");
                     String hostname = requireNonNull(hostParams[0]);
-                    int port = DEFAULT_PORT;
-                    if (hostParams.length == 2) {
-                        port = Integer.parseInt(hostParams[1]);
-                    }
-                    return RedisURI.Builder.redis(hostname, port).withTimeout(Duration.ofMillis(1000)).build();
+                    int port = hostParams.length == 2 ? Integer.parseInt(hostParams[1]) : 0;
+                    return isNull(password) ? RedisURI.Builder.redis(hostname, port)
+                            .withTimeout(Duration.ofMillis(timeout))
+                            .build() : RedisURI.Builder.redis(hostname, port)
+                            .withTimeout(Duration.ofMillis(timeout))
+                            .withPassword(password)
+                            .build();
                 })
                 .collect(Collectors.toList());
     }
@@ -74,7 +84,7 @@ public class RedisPropertyConfiguration {
     @Bean(destroyMethod = "shutdown")
     @ConditionalOnExpression("'${spring.redis.is_cluster}' == 'true'")
     RedisClusterClient clusterClient() {
-        return RedisClusterClient.create(createRedisClusterURIs(getHost()));
+        return RedisClusterClient.create(createRedisClusterURIs());
     }
 
     @Bean(destroyMethod = "close")
