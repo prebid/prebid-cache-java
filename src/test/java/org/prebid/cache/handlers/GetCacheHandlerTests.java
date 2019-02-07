@@ -1,5 +1,6 @@
 package org.prebid.cache.handlers;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
 import org.prebid.cache.metrics.GraphiteTestConfig;
@@ -47,6 +48,9 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
     @MockBean
     ReactiveRepository<PayloadWrapper, String> repository;
+
+    @MockBean
+    CircuitBreaker circuitBreaker;
 
     @Test
     void testVerifyError() {

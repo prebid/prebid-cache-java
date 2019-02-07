@@ -2,6 +2,8 @@ package org.prebid.cache.handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
@@ -57,13 +59,15 @@ public class PostCacheHandler extends CacheHandler {
             ImmutableMap.of(UUID_KEY, payload.getId());
     private final Map<String, WebClient> webClients = new HashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final CircuitBreaker circuitBreaker;
 
     @Autowired
     public PostCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
                             final CacheConfig config,
                             final GraphiteMetricsRecorder metricsRecorder,
                             final PrebidServerResponseBuilder builder,
-                            final Supplier<Date> currentDateProvider) {
+                            final Supplier<Date> currentDateProvider,
+                            final CircuitBreaker circuitBreaker) {
         this.metricsRecorder = metricsRecorder;
         this.type = ServiceType.SAVE;
         this.repository = repository;
@@ -74,6 +78,7 @@ public class PostCacheHandler extends CacheHandler {
         this.builder = builder;
         this.currentDateProvider = currentDateProvider;
         this.metricTagPrefix = "write";
+        this.circuitBreaker = circuitBreaker;
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
@@ -95,11 +100,13 @@ public class PostCacheHandler extends CacheHandler {
                 .handle(this::validateUUID)
                 .handle(this::validateExpiry)
                 .concatMap(repository::save)
+                .transform(CircuitBreakerOperator.of(circuitBreaker))
                 .timeout(Duration.ofMillis(config.getTimeoutMs()))
                 .subscribeOn(Schedulers.parallel())
                 .collectList()
                 .doOnNext(payloadWrappers -> sendRequestToSecondaryPrebidCacheHosts(payloadWrappers, secondaryCache))
                 .flatMapMany(Flux::fromIterable)
+                .transform(CircuitBreakerOperator.of(circuitBreaker))
                 .subscribeOn(Schedulers.parallel());
 
         final Mono<ServerResponse> responseMono = payloadFlux

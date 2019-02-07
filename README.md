@@ -251,6 +251,29 @@ _src/main/resources/log4j-dev.xml_:
 </Configuration>
 ```
 
+### _Circuit Breaker_
+To make prebid-cache more robust  in face of network disruption or dependent services outage circuit breaker is available and should be configured at application.yml. 
+
+_src/main/resources/application.yml_:
+```yaml
+# dev
+circuitbreaker:
+  failure_rate_threshold: 50
+  open_state_duration: 60000
+  closed_state_calls_number: 5
+  half_open_state_calls_number: 3
+```
+where:
+
+* _failure_rate_threshold_ is the failure rate threshold in percentage above which the CircuitBreaker should trip open and start short-circuiting calls
+
+* _open_state_duration_ is the wait duration which specifies how long the CircuitBreaker should stay open, before it switches to half open
+
+* _closed_state_calls_number_ is the size of the ring buffer when the CircuitBreaker is closed
+
+* _half_open_state_calls_number_ is the size of the ring buffer when the CircuitBreaker is half open
+
+ 
 ### _Services (DevOps)_
 This section contains instructions on how to run the app as a service in various different ways.  DevOps should find this section relevant and useful.  By default, the packaged JAR is setup to be fully executable.
 
