@@ -2,6 +2,7 @@ package org.prebid.cache.handlers;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
+import org.prebid.cache.config.CircuitBreakerPropertyConfiguration;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
 import org.prebid.cache.metrics.GraphiteTestConfig;
 import org.prebid.cache.model.Payload;
@@ -37,7 +38,8 @@ import static org.mockito.BDDMockito.given;
         CacheConfig.class,
         GraphiteTestConfig.class,
         GraphiteMetricsRecorder.class,
-        ApiConfig.class
+        ApiConfig.class,
+        CircuitBreakerPropertyConfiguration.class
 })
 @EnableConfigurationProperties
 @SpringBootTest
@@ -46,11 +48,11 @@ class GetCacheHandlerTests extends CacheHandlerTests {
     @Autowired
     GetCacheHandler handler;
 
-    @MockBean
-    ReactiveRepository<PayloadWrapper, String> repository;
+    @Autowired
+    CircuitBreaker circuitBreaker;
 
     @MockBean
-    CircuitBreaker circuitBreaker;
+    ReactiveRepository<PayloadWrapper, String> repository;
 
     @Test
     void testVerifyError() {

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
+import org.prebid.cache.config.CircuitBreakerPropertyConfiguration;
 import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.helpers.CurrentDateProvider;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
@@ -58,7 +59,8 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
         GraphiteTestConfig.class,
         GraphiteMetricsRecorder.class,
         ApiConfig.class,
-        CurrentDateProvider.class
+        CurrentDateProvider.class,
+        CircuitBreakerPropertyConfiguration.class
 })
 @EnableConfigurationProperties
 @SpringBootTest
@@ -73,18 +75,18 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     @Autowired
     CacheConfig cacheConfig;
 
+    @Autowired
+    CircuitBreaker circuitBreaker;
+
     @MockBean
     Supplier<Date> currentDateProvider;
 
     @MockBean
     ReactiveRepository<PayloadWrapper, String> repository;
 
-    @MockBean
-    CircuitBreaker circuitBreaker;
-
     @Test
     void testVerifyError() {
-        PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, CircuitBreaker.ofDefaults("test"));
+        PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, circuitBreaker);
         verifyJacksonError(handler);
         verifyRepositoryError(handler);
     }
@@ -109,7 +111,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         given(currentDateProvider.get()).willReturn(new Date(100));
         given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper));
 
-        val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, CircuitBreaker.ofDefaults("test"));
+        val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
@@ -140,7 +142,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         serverMock.stubFor(post(urlPathEqualTo("/cache"))
                 .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}]}")));
 
-        val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, CircuitBreaker.ofDefaults("test"));
+        val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
@@ -170,7 +172,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         //given
         val cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
                 cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(), false, Collections.emptyList(), cacheConfig.getSecondaryCachePath());
-        val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider, CircuitBreaker.ofDefaults("test"));
+        val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
@@ -200,7 +202,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         val cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
                 5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(), Collections.emptyList(), cacheConfig.getSecondaryCachePath());
-        val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider, CircuitBreaker.ofDefaults("testName"));
+        val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
