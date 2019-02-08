@@ -35,6 +35,13 @@ metrics:
     port: 2003
     prefix: prebid
 
+# circuit breaker
+circuitbreaker:
+  failure_rate_threshold: 50
+  open_state_duration: 60000
+  closed_state_calls_number: 5
+  half_open_state_calls_number: 3
+
 # endpoint actuators
 management.health.defaults.enabled: false
 management.endpoints.enabled-by-default: false
@@ -76,7 +83,7 @@ cache:
   min_expiry: 15
   max_expiry: 28800
   allow_external_UUID: true
-  secondary_cache_path : "cache"
+  secondary_cache_path: "cache"
 
 metrics.graphite.enabled: false
 spring:
@@ -89,7 +96,7 @@ spring:
     max_backoff: 1000
     max_retry: 3
     namespace: "prebid_cache"
-    prevent_UUID_duplication : true
+    prevent_UUID_duplication: true
 
 ---
 # dev
