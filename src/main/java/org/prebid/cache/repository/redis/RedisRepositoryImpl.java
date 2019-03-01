@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 
 @Repository
 @Slf4j
-@ConditionalOnProperty(prefix = "spring.redis", name = {"host"})
+@ConditionalOnProperty(prefix = "spring.redis", name = {"timeout"})
 @RequiredArgsConstructor
 public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, String> {
     private final RedisStringReactiveCommands<String, String> reactiveCommands;
