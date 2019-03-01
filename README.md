@@ -90,6 +90,17 @@ with
  spring.redis.host: value
 ```  
 
+For configuring single redis node, please use next properties:
+
+```yaml
+ spring:
+   redis:   
+     host: host
+     timeout: value
+     port: value
+```  
+
+
 
 It is possible to override the default YAML configuration by supplying a custom configuration.  See example scenario(s) below.
 
@@ -98,9 +109,14 @@ It is possible to override the default YAML configuration by supplying a custom 
 Redis cluster settings
 _application-default.yml:_
 ```yaml
-spring.redis.host: redis_host_1:port,redis_host_2:port,redis_host_3:port 
-spring.redis.is_cluster: true
-spring.redis.timeout: 300
+spring:
+  redis:
+    cluster:
+      nodes:
+        - host_1:port_1
+        - host_2:port_2
+        - host_3:port_3
+    timeout: 300
 ```    
 Aerospike cluster settings
 _application-default.yml:_

@@ -9,14 +9,13 @@ import io.lettuce.core.cluster.api.StatefulRedisClusterConnection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import lombok.Singular;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,27 +25,26 @@ import static java.util.Objects.requireNonNull;
 @NoArgsConstructor
 @AllArgsConstructor
 @Configuration
-@ConditionalOnProperty(prefix = "spring.redis", name = {"host"})
+@ConditionalOnProperty(prefix = "spring.redis", name = {"timeout"})
 @ConfigurationProperties(prefix = "spring.redis")
 public class RedisPropertyConfiguration {
 
     private String host;
     private long timeout;
     private String password;
-    private Boolean isCluster;
+    private int port;
+    private Cluster cluster;
 
-    private RedisURI createRedisURI(String hosts) {
-        requireNonNull(hosts);
-        String[] hostParams = hosts.split(":");
+    @Data
+    public static class Cluster {
 
-        if (hostParams.length < 2) {
-            throw new IllegalArgumentException("Illegal host URL format, host and port should be specified "
-                    + "as host:port");
-        }
-        String hostname = requireNonNull(hostParams[0]);
-        int port = Integer.parseInt(hostParams[1]);
+        @Singular
+        List<String> nodes;
+    }
 
-        final RedisURI.Builder builder = RedisURI.Builder.redis(hostname, port)
+    private RedisURI createRedisURI(String host, int port) {
+        requireNonNull(host);
+        final RedisURI.Builder builder = RedisURI.Builder.redis(host, port)
                 .withTimeout(Duration.ofMillis(timeout));
         if (password != null) {
             builder.withPassword(password);
@@ -56,39 +54,40 @@ public class RedisPropertyConfiguration {
     }
 
     private List<RedisURI> createRedisClusterURIs() {
-        requireNonNull(host);
-        return Arrays.stream(host.split(","))
-                .map(this::createRedisURI)
+
+        return cluster.getNodes().stream()
+                .map(node -> node.split(":"))
+                .map(host -> createRedisURI(host[0], Integer.parseInt(host[1])))
                 .collect(Collectors.toList());
     }
 
     @Bean(destroyMethod = "shutdown")
-    @ConditionalOnExpression("'${spring.redis.is_cluster}' == 'false'")
+    @ConditionalOnProperty(prefix = "spring.redis", name = "host")
     RedisClient client() {
-        return RedisClient.create(createRedisURI(getHost()));
+        return RedisClient.create(createRedisURI(getHost(), getPort()));
     }
 
     @Bean(destroyMethod = "close")
-    @ConditionalOnExpression("'${spring.redis.is_cluster}' == 'false'")
+    @ConditionalOnProperty(prefix = "spring.redis", name = "host")
     StatefulRedisConnection<String, String> connection() {
         return client().connect();
     }
 
     @Bean(destroyMethod = "shutdown")
-    @ConditionalOnExpression("'${spring.redis.is_cluster}' == 'true'")
+    @ConditionalOnProperty(prefix = "spring.redis", name = "host", matchIfMissing = true, havingValue = "null")
     RedisClusterClient clusterClient() {
         return RedisClusterClient.create(createRedisClusterURIs());
     }
 
     @Bean(destroyMethod = "close")
-    @ConditionalOnExpression("'${spring.redis.is_cluster}' == 'true'")
+    @ConditionalOnProperty(prefix = "spring.redis", name = "host", matchIfMissing = true, havingValue = "null")
     StatefulRedisClusterConnection<String, String> clusterConnection() {
         return clusterClient().connect();
     }
 
     @Bean
     RedisStringReactiveCommands<String, String> reactiveCommands() {
-        if (getIsCluster()) {
+        if (getHost() == null) {
             return clusterConnection().reactive();
         } else {
             return connection().reactive();
