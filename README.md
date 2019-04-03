@@ -1,7 +1,7 @@
 (work in progress)
 
 # _Prebid Cache Java_
-Prebid Cache provides the caching service component for the Prebid Server project.  Currently, the API supports both the GET and POST endpoints.  Prebid Cache Java provides a Redis and Aerospike implementation for the cache. By default it uses Aerospike. How to switch between Redis And Aerospike described at Cache Cinfiguration section.  However, Prebid Cache is designed to support any cache implementation.  
+Prebid Cache provides the caching service component for the Prebid Server project.  Currently, the API supports both the GET and POST endpoints.  Prebid Cache Java provides a Redis and Aerospike implementation for the cache. By default it uses Aerospike. How to switch between Redis And Aerospike described at Cache Configuration section. However, Prebid Cache is designed to support any cache implementation.  
 
 ## Integration Guide
 Project configuration is managed through the use of YAML configuration (see resources folder).
