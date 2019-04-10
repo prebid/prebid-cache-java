@@ -2,9 +2,14 @@ package org.prebid.cache.handlers;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.common.collect.ImmutableList;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import lombok.val;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
+import org.prebid.cache.config.CircuitBreakerPropertyConfiguration;
 import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.helpers.CurrentDateProvider;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
@@ -16,9 +21,6 @@ import org.prebid.cache.model.RequestObject;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.prebid.cache.routers.ApiConfig;
-import lombok.val;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,15 +36,20 @@ import reactor.test.StepVerifier;
 
 import java.util.Collections;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
@@ -52,7 +59,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
         GraphiteTestConfig.class,
         GraphiteMetricsRecorder.class,
         ApiConfig.class,
-        CurrentDateProvider.class
+        CurrentDateProvider.class,
+        CircuitBreakerPropertyConfiguration.class
 })
 @EnableConfigurationProperties
 @SpringBootTest
@@ -67,6 +75,9 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     @Autowired
     CacheConfig cacheConfig;
 
+    @Autowired
+    CircuitBreaker circuitBreaker;
+
     @MockBean
     Supplier<Date> currentDateProvider;
 
@@ -75,8 +86,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testVerifyError() {
-        PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider);
-
+        PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, circuitBreaker);
         verifyJacksonError(handler);
         verifyRepositoryError(handler);
     }
@@ -101,7 +111,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         given(currentDateProvider.get()).willReturn(new Date(100));
         given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper));
 
-        val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider);
+        val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
@@ -132,7 +142,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         serverMock.stubFor(post(urlPathEqualTo("/cache"))
                 .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}]}")));
 
-        val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider);
+        val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
@@ -152,8 +162,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 .expectComplete()
                 .verify();
 
-        //do not touch this
-        Thread.sleep(10);
+        await().atLeast(10, TimeUnit.MILLISECONDS);
 
         verify(postRequestedFor(urlEqualTo("/cache?secondaryCache=yes")));
     }
@@ -163,7 +172,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         //given
         val cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
                 cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(), false, Collections.emptyList(), cacheConfig.getSecondaryCachePath());
-        val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider);
+        val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
@@ -193,7 +202,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         val cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
                 5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(), Collections.emptyList(), cacheConfig.getSecondaryCachePath());
-        val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider);
+        val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
         val request = Mono.just(new RequestObject(ImmutableList.of(payload)));

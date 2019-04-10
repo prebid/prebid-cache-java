@@ -58,7 +58,7 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
             normalizedId = wrapper.getNormalizedId();
             policy.expiration = (int) expiry;
         } catch (PayloadWrapperPropertyException e) {
-            e.printStackTrace();
+            log.error("Exception occurred while extracting normalized id from payload", e);
             return Mono.empty();
         }
 

@@ -7,6 +7,10 @@ import java.util.UUID;
 
 @Slf4j
 public class RandomUUID {
+
+    private RandomUUID() {
+    }
+
     public static String extractUUID(final PayloadTransfer payload) {
         return (payload.getKey() != null)
                 ? payload.getKey() : String.valueOf(UUID.randomUUID());
@@ -28,8 +32,5 @@ public class RandomUUID {
             log.debug("Invalid UUID: {}", uuid);
 
         return isValid;
-    }
-
-    private RandomUUID() {
     }
 }
