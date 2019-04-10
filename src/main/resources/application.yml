@@ -87,16 +87,9 @@ cache:
 
 metrics.graphite.enabled: false
 spring:
-  aerospike:
-    port: 3000
-    host: localhost
-    cores: 4
-    password:
-    first_backoff: 300
-    max_backoff: 1000
-    max_retry: 3
-    namespace: "prebid_cache"
-    prevent_UUID_duplication: true
+  redis:
+    port: 6379
+    host: 10.0.0.4
 
 ---
 # dev
