@@ -1,7 +1,7 @@
 (work in progress)
 
 # _Prebid Cache Java_
-Prebid Cache provides the caching service component for the Prebid Server project.  Currently, the API supports both the GET and POST endpoints.  Prebid Cache Java provides a Redis and Aerospike implementation for the cache. By default it uses Aerospike. How to switch between Redis And Aerospike described at Cache Cinfiguration section.  However, Prebid Cache is designed to support any cache implementation.  
+Prebid Cache provides the caching service component for the Prebid Server project.  Currently, the API supports both the GET and POST endpoints.  Prebid Cache Java provides a Redis and Aerospike implementation for the cache. By default it uses Aerospike. How to switch between Redis And Aerospike described at Cache Configuration section. However, Prebid Cache is designed to support any cache implementation.  
 
 ## Integration Guide
 Project configuration is managed through the use of YAML configuration (see resources folder).
@@ -90,18 +90,39 @@ with
  spring.redis.host: value
 ```  
 
+For configuring single redis node, please use next properties:
+
+```yaml
+ spring:
+   redis:   
+     host: host
+     timeout: value
+     port: value
+```  
+
+
 
 It is possible to override the default YAML configuration by supplying a custom configuration.  See example scenario(s) below.
 
-###### Fault Tolerant Redis Sentinel (1 master and 2 slaves)
+###### Cluster config for Redis and Aerospike
 
+Redis cluster settings
 _application-default.yml:_
 ```yaml
-spring.redis.host: redis_master_host
-spring.redis.port: 6379
-spring.redis.sentinel.master: master
-spring.redis.sentinel.nodes: sentinel_host1:26379,sentinel_host2:26379,sentinel_host3:26379
+spring:
+  redis:
+    cluster:
+      nodes:
+        - host_1:port_1
+        - host_2:port_2
+        - host_3:port_3
+    timeout: 300
 ```    
+Aerospike cluster settings
+_application-default.yml:_
+```yaml
+spring.aerospike.host: aerospike_host_1:port,aerospike_host_2:port,aerospike_host_3:port 
+```  
 
 ### _Optional:  Bring Your Own (BYO) Cache Implementation_
 
@@ -246,6 +267,29 @@ _src/main/resources/log4j-dev.xml_:
 </Configuration>
 ```
 
+### _Circuit Breaker_
+To make prebid-cache more robust  in face of network disruption or dependent services outage circuit breaker is available and should be configured at application.yml. 
+
+_src/main/resources/application.yml_:
+```yaml
+# dev
+circuitbreaker:
+  failure_rate_threshold: 50
+  open_state_duration: 60000
+  closed_state_calls_number: 5
+  half_open_state_calls_number: 3
+```
+where:
+
+* _failure_rate_threshold_ is the failure rate threshold in percentage above which the CircuitBreaker should trip open and start short-circuiting calls
+
+* _open_state_duration_ is the wait duration which specifies how long the CircuitBreaker should stay open, before it switches to half open
+
+* _closed_state_calls_number_ is the size of the ring buffer when the CircuitBreaker is closed
+
+* _half_open_state_calls_number_ is the size of the ring buffer when the CircuitBreaker is half open
+
+ 
 ### _Services (DevOps)_
 This section contains instructions on how to run the app as a service in various different ways.  DevOps should find this section relevant and useful.  By default, the packaged JAR is setup to be fully executable.
 

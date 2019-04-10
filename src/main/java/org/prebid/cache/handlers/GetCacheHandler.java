@@ -1,5 +1,7 @@
 package org.prebid.cache.handlers;
 
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
@@ -25,19 +27,22 @@ public class GetCacheHandler extends CacheHandler {
 
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
+    private final CircuitBreaker circuitBreaker;
     private static final String UNSUPPORTED_MEDIATYPE = "Unsupported Media Type.";
 
     @Autowired
     public GetCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
                            final CacheConfig config,
                            final GraphiteMetricsRecorder metricsRecorder,
-                           final PrebidServerResponseBuilder builder) {
+                           final PrebidServerResponseBuilder builder,
+                           final CircuitBreaker circuitBreaker) {
         this.metricsRecorder = metricsRecorder;
         this.type = ServiceType.FETCH;
         this.repository = repository;
         this.config = config;
         this.builder = builder;
         this.metricTagPrefix = "read";
+        this.circuitBreaker = circuitBreaker;
     }
 
     public Mono<ServerResponse> fetch(ServerRequest request) {
@@ -49,6 +54,7 @@ public class GetCacheHandler extends CacheHandler {
         return request.queryParam(ID_KEY).map(id -> {
             val normalizedId = String.format("%s%s", config.getPrefix(), id);
             val responseMono = repository.findById(normalizedId)
+                    .transform(CircuitBreakerOperator.of(circuitBreaker))
                     .timeout(Duration.ofMillis(config.getTimeoutMs()))
                     .subscribeOn(Schedulers.parallel())
                     .transform(this::validateErrorResult)
