@@ -7,6 +7,7 @@ import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.exceptions.PrebidException;
 import org.prebid.cache.exceptions.RepositoryException;
 import org.prebid.cache.exceptions.RequestParsingException;
+import org.prebid.cache.exceptions.ResourceNotFoundException;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.springframework.http.HttpMethod;
@@ -14,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+
+import java.util.concurrent.TimeoutException;
 
 @Slf4j
 abstract class CacheHandler extends MetricsHandler {
@@ -42,7 +45,6 @@ abstract class CacheHandler extends MetricsHandler {
     <T> Mono<T> validateErrorResult(final Mono<T> mono) {
         return mono.doOnSuccess(v -> log.debug("{}: {}", type, v))
                 .onErrorResume(t -> {
-                    log.error(t.getMessage(), t);
                     // skip overwrite, report first prebid error
                     if (t instanceof PrebidException) {
                         // TODO: 19.09.18 move to handleErrorMetrics
@@ -65,7 +67,14 @@ abstract class CacheHandler extends MetricsHandler {
     // TODO: 19.09.18 refactor this to normal interaction with mono instead of "casting" exceptions to status codes
     private Mono<ServerResponse> handleErrorMetrics(final Throwable error,
                                                     final ServerRequest request) {
-        log.error(error.getMessage(), error);
+        if (error instanceof ResourceNotFoundException) {
+            log.debug(error.getMessage());
+        } else if (error instanceof TimeoutException) {
+            metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_TIMEDOUT);
+        } else {
+            log.error("Error occurred while processing the request", error);
+        }
+
         return builder.error(Mono.just(error), request)
                 .doAfterSuccessOrError((v, t) -> {
                     HttpMethod method = request.method();
