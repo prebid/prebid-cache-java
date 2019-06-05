@@ -298,7 +298,7 @@
                 <version>${jacoco-plugin.version}</version>
                 <configuration>
                     <excludes>
-                        <exclude>**/listners/**</exclude>
+                        <exclude>**/listeners/**</exclude>
                         <exclude>**/repository/**</exclude>
                         <exclude>**/config/**</exclude>
                         <exclude>**/routers/**</exclude>

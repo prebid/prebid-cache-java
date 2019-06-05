@@ -1,4 +1,4 @@
-package org.prebid.cache.listners;
+package org.prebid.cache.listeners;
 
 import com.aerospike.client.AerospikeException;
 import com.aerospike.client.Key;
