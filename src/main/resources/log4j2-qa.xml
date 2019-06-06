@@ -8,7 +8,7 @@
     <Properties>
         <Property name="fileName">${sys:log.dir}/spring-boot-service.log</Property>
         <Property name="fileNamePattern">
-            ${sys:log.dir}/%d{yyyy-MM-dd}-%i.log
+            ${sys:log.dir}/spring-boot-service-%d{yyyy-MM-dd}-%i.log
         </Property>
         <Property name="logPattern">
             %d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${hostName} --- [%15.15t] %-40.40c{1.} : %m%n%ex
@@ -19,7 +19,7 @@
             <PatternLayout pattern="${logPattern}"/>
         </Console>
         <!-- Rolling File Appender -->
-        <RollingFile name="FileAppender" fileName="${fileName}" filePattern="$fileNamePattern">
+        <RollingFile name="FileAppender" fileName="${fileName}" filePattern="${fileNamePattern}">
             <PatternLayout>
                 <Pattern>${logPattern}</Pattern>
             </PatternLayout>
