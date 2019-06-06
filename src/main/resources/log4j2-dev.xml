@@ -19,7 +19,7 @@
             <PatternLayout pattern="${logPattern}"/>
         </Console>
         <!-- Rolling File Appender -->
-        <RollingFile name="FileAppender" fileName="${fileName}" filePattern="$fileNamePattern">
+        <RollingFile name="FileAppender" fileName="${fileName}" filePattern="${fileNamePattern}">
             <PatternLayout>
                 <Pattern>${logPattern}</Pattern>
             </PatternLayout>
