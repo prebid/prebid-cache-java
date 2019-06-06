@@ -12,11 +12,11 @@
     </Appenders>
     <Loggers>
         <AsyncLogger name="org.prebid.cache" level="debug" additivity="false">
-            <AppenderRef ref="ConsoleAppender" />
+            <AppenderRef ref="ConsoleAppender"/>
         </AsyncLogger>
 
         <Root level="debug">
-            <AppenderRef ref="ConsoleAppender" />
+            <AppenderRef ref="ConsoleAppender"/>
         </Root>
     </Loggers>
 </Configuration>
