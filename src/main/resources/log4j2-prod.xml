@@ -6,25 +6,22 @@
 
 <Configuration status="WARN" monitorInterval="30">
     <Properties>
-        <Property name="fileName">${sys:log.dir}/spring-boot-service.log</Property>
+        <Property name="fileName">${sys:log.dir}/prebid-cache.log</Property>
         <Property name="fileNamePattern">
-            ${sys:log.dir}/%d{yyyy-MM-dd}-%i.log
+            ${sys:log.dir}/prebid-cache-%d{yyyy-MM-dd}-%i.log.gz
         </Property>
         <Property name="logPattern">
             %d{yyyy-MM-dd HH:mm:ss.SSS} %5p ${hostName} --- [%15.15t] %-40.40c{1.} : %m%n%ex
         </Property>
     </Properties>
     <Appenders>
-        <Console name="ConsoleAppender" target="SYSTEM_OUT" follow="true">
-            <PatternLayout pattern="${logPattern}"/>
-        </Console>
         <!-- Rolling File Appender -->
-        <RollingFile name="FileAppender" fileName="${fileName}" filePattern="$fileNamePattern">
+        <RollingFile name="FileAppender" fileName="${fileName}" filePattern="${fileNamePattern}">
             <PatternLayout>
                 <Pattern>${logPattern}</Pattern>
             </PatternLayout>
             <Policies>
-                <SizeBasedTriggeringPolicy size="100MB" />
+                <SizeBasedTriggeringPolicy size="100MB"/>
             </Policies>
             <DefaultRolloverStrategy max="30"/>
         </RollingFile>
@@ -35,7 +32,7 @@
         </AsyncLogger>
 
         <Root level="warn">
-            <AppenderRef ref="ConsoleAppender" />
+            <AppenderRef ref="FileAppender"/>
         </Root>
     </Loggers>
 </Configuration>
