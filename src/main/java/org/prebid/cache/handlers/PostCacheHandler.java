@@ -186,7 +186,7 @@ public class PostCacheHandler extends CacheHandler {
                         metricsRecorder.getSecondaryCacheWriteError().mark();
                         log.info("Failed to send request : ", throwable);
                     })
-                    .subscribe((clientResponse) -> {
+                    .subscribe(clientResponse -> {
                         if (clientResponse.statusCode() != HttpStatus.OK) {
                             metricsRecorder.getSecondaryCacheWriteError().mark();
                             log.debug(clientResponse.statusCode().toString());
