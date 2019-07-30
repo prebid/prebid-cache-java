@@ -31,6 +31,9 @@
             <AppenderRef ref="FileAppender"/>
         </AsyncLogger>
 
+        <Logger name="io.netty.channel.unix.Errors" level="off"> </Logger>
+        <Logger name="reactor.netty.tcp.TcpServer" level="off"> </Logger>
+
         <Root level="debug">
             <AppenderRef ref="FileAppender"/>
         </Root>
