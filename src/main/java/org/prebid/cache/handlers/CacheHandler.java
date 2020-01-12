@@ -69,6 +69,8 @@ abstract class CacheHandler extends MetricsHandler {
                                                     final ServerRequest request) {
         if (error instanceof ResourceNotFoundException) {
             log.debug(error.getMessage());
+        } else if (error instanceof BadRequestException) {
+            log.error(error.getMessage());
         } else if (error instanceof TimeoutException) {
             metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_TIMEDOUT);
         } else {
