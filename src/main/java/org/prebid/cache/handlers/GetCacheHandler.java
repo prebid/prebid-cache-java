@@ -70,7 +70,7 @@ public class GetCacheHandler extends CacheHandler {
                             return Mono.error(new UnsupportedMediaTypeException(UNSUPPORTED_MEDIATYPE));
                         }
                     })
-                    .switchIfEmpty(ErrorHandler.createResourceNotFound());
+                    .switchIfEmpty(ErrorHandler.createResourceNotFound(normalizedId));
             return finalizeResult(responseMono, request, timerContext);
         }).orElseGet(() -> {
             val responseMono = ErrorHandler.createInvalidParameters();

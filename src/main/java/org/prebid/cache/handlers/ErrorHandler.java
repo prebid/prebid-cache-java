@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class ErrorHandler extends MetricsHandler {
     private static final String RESOURCE_NOT_FOUND_BAD_URL = "Resource Not Found - Bad URL.";
-    private static final String RESOURCE_NOT_FOUND = "Resource Not Found.";
+    private static final String RESOURCE_NOT_FOUND = "Resource Not Found: uuid %s";
     private static final String INVALID_PARAMETERS = "Invalid Parameter(s): uuid not found.";
     private static final String NO_ELEMENTS_FOUND = "No Elements Found.";
 
@@ -25,8 +25,8 @@ public class ErrorHandler extends MetricsHandler {
         this.builder = builder;
     }
 
-    static Mono<ServerResponse> createResourceNotFound() {
-        return Mono.error(new ResourceNotFoundException(RESOURCE_NOT_FOUND));
+    static Mono<ServerResponse> createResourceNotFound(String uuid) {
+        return Mono.error(new ResourceNotFoundException(String.format(RESOURCE_NOT_FOUND, uuid)));
     }
 
     static Mono<ServerResponse> createInvalidParameters() {
