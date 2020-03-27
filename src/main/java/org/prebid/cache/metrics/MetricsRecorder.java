@@ -7,6 +7,7 @@ public abstract class MetricsRecorder {
         REQUEST_DURATION("pbc.${prefix}.request.duration"),
         REQUEST("pbc.${prefix}.request"),
         ERROR_UNKNOWN("pbc.${prefix}.err.unknown"),
+        ERROR_TIMEDOUT("pbc.${prefix}.err.timedOut"),
         ERROR_MISSINGID("pbc.${prefix}.err.missingId"),
         ERROR_BAD_REQUEST("pbc.${prefix}.err.badRequest"),
         REQUEST_INVALID("pbc.request.invalid"),
