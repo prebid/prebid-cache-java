@@ -15,7 +15,7 @@
     </organization>
 
     <scm>
-        <developerConnection>scm:git:git@github.rp-core.com:ContainerTag/prebid-cache-java.git</developerConnection>
+        <developerConnection>scm:git:git@github.com:rubicon-project/prebid-cache-java.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -41,7 +41,7 @@
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven-source-plugin.version>maven-release-plugin3.0.1</maven-source-plugin.version>
+        <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
         <maven-clean-plugin.version>3.0.0</maven-clean-plugin.version>
         <maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
         <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
@@ -351,7 +351,7 @@
                 <version>${maven-release-plugin.version}</version>
                 <configuration>
                     <tagNameFormat>@{project.version}</tagNameFormat>
-                    <scmCommentPrefix xml:space="precache">Prebid Cache </scmCommentPrefix>
+                    <scmCommentPrefix xml:space="preserve">Prebid Cache </scmCommentPrefix>
                 </configuration>
             </plugin>
         </plugins>
