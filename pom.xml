@@ -14,6 +14,11 @@
         <url>http://prebid.org/</url>
     </organization>
 
+    <scm>
+        <developerConnection>scm:git:git@github.com:rubicon-project/prebid-cache-java.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -59,6 +64,7 @@
         <jacoco-plugin.version>0.8.2</jacoco-plugin.version>
         <awaitility.version>3.0.0</awaitility.version>
         <resilience4j.version>0.13.2</resilience4j.version>
+        <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
     </properties>
 
     <dependencies>
@@ -338,6 +344,15 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <configuration>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                    <scmCommentPrefix xml:space="preserve">Prebid Cache </scmCommentPrefix>
+                </configuration>
             </plugin>
         </plugins>
     </build>
