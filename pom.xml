@@ -4,7 +4,7 @@
 
     <groupId>org.prebid.cache</groupId>
     <artifactId>prebid-cache</artifactId>
-    <version>1.11.0</version>
+    <version>1.12.0-SNAPSHOT</version>
 
     <name>prebid-cache</name>
     <description>Prebid Cache</description>
@@ -15,7 +15,7 @@
 
     <scm>
         <developerConnection>scm:git:git@github.com:rubicon-project/prebid-cache-java.git</developerConnection>
-        <tag>1.11.0</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <parent>
