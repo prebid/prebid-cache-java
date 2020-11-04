@@ -45,6 +45,8 @@ public class RedisPropertyConfiguration {
         @Singular
         List<String> nodes;
 
+        boolean enableTopologyRefresh;
+
         Integer topologyPeriodicRefreshPeriod;
     }
 
@@ -68,13 +70,17 @@ public class RedisPropertyConfiguration {
     }
 
     private ClusterClientOptions createRedisClusterOptions() {
+        final ClusterTopologyRefreshOptions topologyRefreshOptions = cluster.isEnableTopologyRefresh()
+                ? ClusterTopologyRefreshOptions.builder()
+                .enablePeriodicRefresh()
+                .refreshPeriod(Duration.of(cluster.getTopologyPeriodicRefreshPeriod(), ChronoUnit.SECONDS))
+                .enableAllAdaptiveRefreshTriggers()
+                .build()
+                : null;
+
         return ClusterClientOptions.builder()
                 .disconnectedBehavior(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS)
-                .topologyRefreshOptions(ClusterTopologyRefreshOptions.builder()
-                        .enablePeriodicRefresh()
-                        .refreshPeriod(Duration.of(cluster.getTopologyPeriodicRefreshPeriod(), ChronoUnit.SECONDS))
-                        .enableAllAdaptiveRefreshTriggers()
-                        .build())
+                .topologyRefreshOptions(topologyRefreshOptions)
                 .build();
     }
 
