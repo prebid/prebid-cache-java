@@ -53,6 +53,7 @@
         <rest-maven-plugin.version>0.1.4</rest-maven-plugin.version>
         <reflections.version>0.9.11</reflections.version>
         <equals-verifier.version>2.4.3</equals-verifier.version>
+		<spotbug.version>3.1.11</spotbug.version>
 	</properties>
 
 	<dependencies>
@@ -288,6 +289,11 @@
                     </execution>
                 </executions>
             </plugin>
+			<plugin>
+				<groupId>com.github.spotbugs</groupId>
+				<artifactId>spotbugs-maven-plugin</artifactId>
+				<version>${spotbug.version}</version>
+			</plugin>
 		</plugins>
 	</build>
 
