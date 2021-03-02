@@ -1,5 +1,6 @@
 package org.prebid.cache.handlers;
 
+import com.codahale.metrics.MetricRegistry;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.google.common.collect.ImmutableList;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -12,7 +13,7 @@ import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.config.CircuitBreakerPropertyConfiguration;
 import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.helpers.CurrentDateProvider;
-import org.prebid.cache.metrics.GraphiteMetricsRecorder;
+import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.GraphiteTestConfig;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadTransfer;
@@ -57,7 +58,8 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
         PrebidServerResponseBuilder.class,
         CacheConfig.class,
         GraphiteTestConfig.class,
-        GraphiteMetricsRecorder.class,
+        MetricsRecorder.class,
+        MetricRegistry.class,
         ApiConfig.class,
         CurrentDateProvider.class,
         CircuitBreakerPropertyConfiguration.class
@@ -67,7 +69,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Autowired
-    GraphiteMetricsRecorder metricsRecorder;
+    MetricsRecorder metricsRecorder;
 
     @Autowired
     PrebidServerResponseBuilder builder;

@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.BadRequestException;
 import org.prebid.cache.exceptions.ResourceNotFoundException;
-import org.prebid.cache.metrics.GraphiteMetricsRecorder;
+import org.prebid.cache.metrics.MetricsRecorder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -20,7 +20,7 @@ public class ErrorHandler extends MetricsHandler {
     private static final String NO_ELEMENTS_FOUND = "No Elements Found.";
 
     @Autowired
-    public ErrorHandler(final GraphiteMetricsRecorder metricsRecorder, final PrebidServerResponseBuilder builder) {
+    public ErrorHandler(final MetricsRecorder metricsRecorder, final PrebidServerResponseBuilder builder) {
         this.metricsRecorder = metricsRecorder;
         this.builder = builder;
     }

@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
-import org.prebid.cache.metrics.GraphiteMetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.CacheConfig;
@@ -33,7 +32,7 @@ public class GetCacheHandler extends CacheHandler {
     @Autowired
     public GetCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
                            final CacheConfig config,
-                           final GraphiteMetricsRecorder metricsRecorder,
+                           final MetricsRecorder metricsRecorder,
                            final PrebidServerResponseBuilder builder,
                            final CircuitBreaker circuitBreaker) {
         this.metricsRecorder = metricsRecorder;

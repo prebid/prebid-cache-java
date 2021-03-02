@@ -75,6 +75,7 @@ cors:
 metrics:
   graphite:
     enabled: true
+    interval: 60
 
 ---
 spring.profiles: local
@@ -85,7 +86,12 @@ cache:
   allow_external_UUID: true
   secondary_cache_path: "cache"
 
-metrics.graphite.enabled: false
+metrics:
+  graphite:
+    enabled: false
+  console:
+    enabled: true
+    interval: 60
 spring:
   aerospike:
     port: 3000

@@ -50,6 +50,7 @@
         <guava.version>23.0</guava.version>
         <disruptor.version>3.4.2</disruptor.version>
         <lombok.version>1.18.4</lombok.version>
+        <metrics.version>4.0.3</metrics.version>
         <metrics-graphite.version>4.0.2</metrics-graphite.version>
         <javax.el-api.version>3.0.0</javax.el-api.version>
         <rest-maven-plugin.version>0.1.4</rest-maven-plugin.version>
@@ -124,6 +125,16 @@
             <artifactId>lombok</artifactId>
             <version>${lombok.version}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>${metrics.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.dropwizard.metrics</groupId>
+            <artifactId>metrics-jvm</artifactId>
+            <version>${metrics.version}</version>
         </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>

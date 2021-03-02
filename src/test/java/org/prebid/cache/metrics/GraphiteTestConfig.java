@@ -10,6 +10,6 @@ public class GraphiteTestConfig {
     @Bean
     @Primary
     public GraphiteConfig createGraphiteConfig() {
-        return new GraphiteConfig("127.0.0.1", 2003, "test", false);
+        return new GraphiteConfig("127.0.0.1", 2003, "test", false, 60);
     }
 }
