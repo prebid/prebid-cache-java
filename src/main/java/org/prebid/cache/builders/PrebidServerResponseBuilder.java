@@ -81,8 +81,7 @@ public class PrebidServerResponseBuilder {
                         .varyBy(HttpHeaders.ACCEPT_ENCODING)
                         .cacheControl(CacheControl.noCache());
 
-        headers = applyHeaders(headers, request);
-        return headers;
+        return applyHeaders(headers, request);
     }
 
     private static ServerResponse.BodyBuilder applyHeaders(final ServerResponse.BodyBuilder builder,

@@ -11,6 +11,7 @@ import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.exceptions.PayloadWrapperPropertyException;
 import org.prebid.cache.exceptions.RepositoryException;
@@ -58,7 +59,8 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
             normalizedId = wrapper.getNormalizedId();
             policy.expiration = (int) expiry;
         } catch (PayloadWrapperPropertyException e) {
-            log.error("Exception occurred while extracting normalized id from payload", e);
+            log.error("Exception occurred while extracting normalized id from payload: {}, cause: {}",
+                    ExceptionUtils.getMessage(e), ExceptionUtils.getMessage(e));
             return Mono.empty();
         }
 
