@@ -7,6 +7,7 @@ import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOper
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
@@ -184,7 +185,8 @@ public class PostCacheHandler extends CacheHandler {
                     .exchange()
                     .doOnError(throwable -> {
                         metricsRecorder.getSecondaryCacheWriteError().mark();
-                        log.info("Failed to send request : ", throwable);
+                        log.info("Failed to send request: {}, cause: {}",
+                                ExceptionUtils.getMessage(throwable), ExceptionUtils.getMessage(throwable));
                     })
                     .subscribe(clientResponse -> {
                         if (clientResponse.statusCode() != HttpStatus.OK) {
@@ -208,7 +210,8 @@ public class PostCacheHandler extends CacheHandler {
                 try {
                     requestObject = objectMapper.readValue(value, RequestObject.class);
                 } catch (IOException e) {
-                    log.error("Exception occurred while deserialize request body", e);
+                    log.error("Exception occurred while deserialize request body: {}, cause: {}",
+                            ExceptionUtils.getMessage(e), ExceptionUtils.getMessage(e));
                 }
                 return requestObject;
             }).doOnError(throwable ->
@@ -217,6 +220,5 @@ public class PostCacheHandler extends CacheHandler {
         }
         return request.bodyToMono(RequestObject.class);
     }
-
 }
 
