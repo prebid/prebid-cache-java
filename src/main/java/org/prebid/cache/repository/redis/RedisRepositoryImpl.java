@@ -30,7 +30,7 @@ public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, S
             expiry = wrapper.getExpiry();
             normalizedId = wrapper.getNormalizedId();
         } catch (PayloadWrapperPropertyException e) {
-            log.error("Exception occurred while getting payload wrapper property: {}, cause: {}",
+            log.error("Exception occurred while getting payload wrapper property: '{}', cause: '{}'",
                     ExceptionUtils.getMessage(e), ExceptionUtils.getMessage(e));
             return Mono.empty();
         }

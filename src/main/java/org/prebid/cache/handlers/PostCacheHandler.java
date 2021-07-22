@@ -185,7 +185,7 @@ public class PostCacheHandler extends CacheHandler {
                     .exchange()
                     .doOnError(throwable -> {
                         metricsRecorder.getSecondaryCacheWriteError().mark();
-                        log.info("Failed to send request: {}, cause: {}",
+                        log.info("Failed to send request: '{}', cause: '{}'",
                                 ExceptionUtils.getMessage(throwable), ExceptionUtils.getMessage(throwable));
                     })
                     .subscribe(clientResponse -> {
@@ -210,7 +210,7 @@ public class PostCacheHandler extends CacheHandler {
                 try {
                     requestObject = objectMapper.readValue(value, RequestObject.class);
                 } catch (IOException e) {
-                    log.error("Exception occurred while deserialize request body: {}, cause: {}",
+                    log.error("Exception occurred while deserialize request body: '{}', cause: '{}'",
                             ExceptionUtils.getMessage(e), ExceptionUtils.getMessage(e));
                 }
                 return requestObject;

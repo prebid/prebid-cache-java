@@ -75,7 +75,7 @@ abstract class CacheHandler extends MetricsHandler {
         } else if (error instanceof TimeoutException) {
             metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_TIMEDOUT);
         } else {
-            log.error("Error occurred while processing the request: {}, cause: {}",
+            log.error("Error occurred while processing the request: '{}', cause: '{}'",
                     ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
         }
 

@@ -49,7 +49,7 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
     private static final String BIN_NAME = "cache";
 
     @Override
-    public Mono save(final PayloadWrapper wrapper) {
+    public Mono<PayloadWrapper> save(final PayloadWrapper wrapper) {
         long expiry;
         String normalizedId;
         WritePolicy policy = writePolicy();
@@ -59,7 +59,7 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
             normalizedId = wrapper.getNormalizedId();
             policy.expiration = (int) expiry;
         } catch (PayloadWrapperPropertyException e) {
-            log.error("Exception occurred while extracting normalized id from payload: {}, cause: {}",
+            log.error("Exception occurred while extracting normalized id from payload: '{}', cause: '{}'",
                     ExceptionUtils.getMessage(e), ExceptionUtils.getMessage(e));
             return Mono.empty();
         }
