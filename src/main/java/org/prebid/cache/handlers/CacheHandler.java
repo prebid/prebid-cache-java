@@ -22,6 +22,7 @@ import java.util.concurrent.TimeoutException;
 abstract class CacheHandler extends MetricsHandler {
     ServiceType type;
     static final String ID_KEY = "uuid";
+    static final String CACHE_HOST_KEY = "ch";
     private static final String UUID_DUPLICATION = "UUID duplication.";
 
     protected String metricTagPrefix;
