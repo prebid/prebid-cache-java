@@ -182,7 +182,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
     }
 
     @Test
-    void testVerifyFetchReturnsServerErrorWhenResponseStatusIsNotOk() {
+    void testVerifyFetchReturnsBadRequestWhenResponseStatusIsNotOk() {
 
         serverMock.stubFor(get(urlPathEqualTo("/cache"))
                 .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=utf-8")
