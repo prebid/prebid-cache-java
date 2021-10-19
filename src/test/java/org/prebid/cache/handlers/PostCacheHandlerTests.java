@@ -106,25 +106,24 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testVerifySave() {
-        val payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        val payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner, 1800L, new Date(100), true);
+        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner, 1800L, new Date(100), true);
         given(currentDateProvider.get()).willReturn(new Date(100));
         given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper));
 
-        val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, circuitBreaker);
+        final var handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
-        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
-        val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
-        val requestMono = MockServerRequest.builder()
+        final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
+        final var request = Mono.just(new RequestObject(ImmutableList.of(payload)));
+        final var requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
                 .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .body(request);
 
-        val responseMono = handler.save(requestMono);
+        final var responseMono = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumer = serverResponse -> {
-            assertEquals(200, serverResponse.statusCode().value());
-        };
+        Consumer<ServerResponse> consumer =
+                serverResponse -> assertEquals(200, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
                 .consumeNextWith(consumer)
@@ -133,29 +132,28 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     }
 
     @Test
-    void testSecondaryCacheSuccess() throws InterruptedException {
-        val payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        val payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner, 1800L, new Date(100), true);
+    void testSecondaryCacheSuccess() {
+        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner, 1800L, new Date(100), true);
         given(currentDateProvider.get()).willReturn(new Date(100));
         given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper));
 
         serverMock.stubFor(post(urlPathEqualTo("/cache"))
                 .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}]}")));
 
-        val handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, circuitBreaker);
+        final var handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
-        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
-        val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
-        val requestMono = MockServerRequest.builder()
+        final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
+        final var request = Mono.just(new RequestObject(ImmutableList.of(payload)));
+        final var requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
                 .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .body(request);
 
-        val responseMono = handler.save(requestMono);
+        final var responseMono = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumer = serverResponse -> {
-            assertEquals(200, serverResponse.statusCode().value());
-        };
+        Consumer<ServerResponse> consumer =
+                serverResponse -> assertEquals(200, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
                 .consumeNextWith(consumer)
@@ -170,22 +168,21 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     @Test
     void testExternalUUIDInvalid() {
         //given
-        val cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
+        final var cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
                 cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(), false, Collections.emptyList(), cacheConfig.getSecondaryCachePath());
-        val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider, circuitBreaker);
+        final var handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
-        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
-        val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
-        val requestMono = MockServerRequest.builder()
+        final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
+        final var request = Mono.just(new RequestObject(ImmutableList.of(payload)));
+        final var requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
                 .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .body(request);
 
-        val responseMono = handler.save(requestMono);
+        final var responseMono = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumer = serverResponse -> {
-            assertEquals(400, serverResponse.statusCode().value());
-        };
+        Consumer<ServerResponse> consumer =
+                serverResponse -> assertEquals(400, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
                 .consumeNextWith(consumer)
@@ -195,38 +192,36 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testUUIDDuplication() {
-        val payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        val payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner, 1800L, new Date(100), true);
+        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner, 1800L, new Date(100), true);
         given(currentDateProvider.get()).willReturn(new Date(100));
         given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper)).willReturn(Mono.error(new DuplicateKeyException("")));
 
-        val cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
+        final var cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
                 5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(), Collections.emptyList(), cacheConfig.getSecondaryCachePath());
-        val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider, circuitBreaker);
+        final var handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
-        val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
-        val request = Mono.just(new RequestObject(ImmutableList.of(payload)));
-        val requestMono = MockServerRequest.builder()
+        final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
+        final var request = Mono.just(new RequestObject(ImmutableList.of(payload)));
+        final var requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
                 .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
                 .body(request);
 
-        val responseMono = handler.save(requestMono);
+        final var responseMono = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumer = serverResponse -> {
-            assertEquals(200, serverResponse.statusCode().value());
-        };
+        Consumer<ServerResponse> consumer =
+                serverResponse -> assertEquals(200, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
                 .consumeNextWith(consumer)
                 .expectComplete()
                 .verify();
 
-        val responseMonoSecond = handler.save(requestMono);
+        final var responseMonoSecond = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumerSecond = serverResponse -> {
-            assertEquals(400, serverResponse.statusCode().value());
-        };
+        Consumer<ServerResponse> consumerSecond =
+                serverResponse -> assertEquals(400, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMonoSecond)
                 .consumeNextWith(consumerSecond)

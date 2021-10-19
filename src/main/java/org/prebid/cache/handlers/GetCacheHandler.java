@@ -3,7 +3,6 @@ package org.prebid.cache.handlers;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
@@ -48,12 +47,12 @@ public class GetCacheHandler extends CacheHandler {
     public Mono<ServerResponse> fetch(ServerRequest request) {
         // metrics
         metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
-        val timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(this.type)
+        final var timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(this.type)
                 .orElse(null);
 
         return request.queryParam(ID_KEY).map(id -> {
-            val normalizedId = String.format("%s%s", config.getPrefix(), id);
-            val responseMono = repository.findById(normalizedId)
+            final var normalizedId = String.format("%s%s", config.getPrefix(), id);
+            final var responseMono = repository.findById(normalizedId)
                     .transform(CircuitBreakerOperator.of(circuitBreaker))
                     .timeout(Duration.ofMillis(config.getTimeoutMs()))
                     .subscribeOn(Schedulers.parallel())
@@ -73,7 +72,7 @@ public class GetCacheHandler extends CacheHandler {
                     .switchIfEmpty(ErrorHandler.createResourceNotFound(normalizedId));
             return finalizeResult(responseMono, request, timerContext);
         }).orElseGet(() -> {
-            val responseMono = ErrorHandler.createInvalidParameters();
+            final var responseMono = ErrorHandler.createInvalidParameters();
             return finalizeResult(responseMono, request, timerContext);
         });
 

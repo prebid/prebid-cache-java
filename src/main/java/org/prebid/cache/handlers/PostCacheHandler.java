@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableMap;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
@@ -83,15 +82,15 @@ public class PostCacheHandler extends CacheHandler {
 
     public Mono<ServerResponse> save(final ServerRequest request) {
         metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
-        val timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(type)
+        final var timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(type)
                 .orElse(null);
 
         String secondaryCache = request.queryParam(SECONDARY_CACHE_KEY).orElse(StringUtils.EMPTY);
 
-        val bodyMono = getRequestBodyMono(request);
-        val monoList = bodyMono.map(RequestObject::getPuts);
-        val flux = monoList.flatMapMany(Flux::fromIterable);
-        val payloadFlux = flux
+        final var bodyMono = getRequestBodyMono(request);
+        final var monoList = bodyMono.map(RequestObject::getPuts);
+        final var flux = monoList.flatMapMany(Flux::fromIterable);
+        final var payloadFlux = flux
                 .map(payload -> payload.toBuilder()
                         .prefix(config.getPrefix())
                         .expiry(adjustExpiry(payload.compareAndGetExpiry()))

@@ -62,19 +62,17 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void tesVerifyFetch() {
-        val payload = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        val payloadWrapper = new PayloadWrapper("12", "prebid_", payload, 1800L, new Date(), true);
+        final var payload = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        final var payloadWrapper = new PayloadWrapper("12", "prebid_", payload, 1800L, new Date(), true);
         given(repository.findById("prebid_a8db2208-d085-444c-9721-c1161d7f09ce")).willReturn(Mono.just(payloadWrapper));
 
-        val requestMono = MockServerRequest.builder()
+        final var requestMono = MockServerRequest.builder()
                 .method(HttpMethod.GET)
                 .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
                 .build();
 
-        val responseMono = handler.fetch(requestMono);
-        BiConsumer<ServerResponse, Throwable> consumer = (v, t) -> {
-            assertEquals(200, v.statusCode().value());
-        };
+        final var responseMono = handler.fetch(requestMono);
+        BiConsumer<ServerResponse, Throwable> consumer = (v, t) -> assertEquals(200, v.statusCode().value());
 
         responseMono.doAfterSuccessOrError(consumer)
                 .subscribe();
