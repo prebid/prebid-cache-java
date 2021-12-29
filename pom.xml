@@ -4,7 +4,7 @@
 
     <groupId>org.prebid.cache</groupId>
     <artifactId>prebid-cache</artifactId>
-    <version>1.12.2-SNAPSHOT</version>
+    <version>1.12.3-SNAPSHOT</version>
 
     <name>prebid-cache</name>
     <description>Prebid Cache</description>
