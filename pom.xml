@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.prebid.cache</groupId>
@@ -22,10 +23,14 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.1.6.RELEASE</version>
-        <relativePath />
+        <relativePath/>
     </parent>
 
     <properties>
+        <skipUnitTests>false</skipUnitTests>
+        <skipFunctionalTests>false</skipFunctionalTests>
+        <useFixedContainerPorts>false</useFixedContainerPorts>
+
         <project.build.resources.directory>src/main/resources</project.build.resources.directory>
         <main.class>org.prebid.cache.PBCacheApplication</main.class>
         <junit-jupiter.version>5.3.1</junit-jupiter.version>
@@ -66,6 +71,15 @@
         <resilience4j.version>0.13.2</resilience4j.version>
         <log4j2.version>2.17.1</log4j2.version> <!-- Workaround for CVE-2021-44832-->
         <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+
+        <!-- Functional Tests -->
+        <kotest.version>5.1.0</kotest.version>
+        <kotlin.version>1.6.10</kotlin.version>
+        <testcontainers.version>1.16.3</testcontainers.version>
+        <mockserver-client.version>5.12.0</mockserver-client.version>
+        <restassured.version>3.3.0</restassured.version>
+        <jackson-kotlin-module.version>2.9.10</jackson-kotlin-module.version>
+        <docker-maven-plugin.version>0.39.1</docker-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -213,6 +227,63 @@
             <version>${awaitility.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- Functional Test Dependencies -->
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlin-stdlib-jdk8</artifactId>
+            <version>${kotlin.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.kotest</groupId>
+            <artifactId>kotest-runner-junit5-jvm</artifactId>
+            <version>${kotest.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>mockserver</artifactId>
+            <version>${testcontainers.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mock-server</groupId>
+            <artifactId>mockserver-client-java</artifactId>
+            <version>${mockserver-client.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>${restassured.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>json-path</artifactId>
+            <version>${restassured.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>xml-path</artifactId>
+            <version>${restassured.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-kotlin</artifactId>
+            <version>${jackson-kotlin-module.version}</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -266,6 +337,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <skipTests>${skipUnitTests}</skipTests>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -292,6 +366,84 @@
                     <embeddedLaunchScript>src/scripts/custom_launch.script</embeddedLaunchScript>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <configuration>
+                    <skipITs>${skipFunctionalTests}</skipITs>
+                    <includes>
+                        <include>**/*Spec.java</include>
+                    </includes>
+                    <systemPropertyVariables>
+                        <useFixedContainerPorts>${useFixedContainerPorts}</useFixedContainerPorts>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>kotlin-maven-plugin</artifactId>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <version>${kotlin.version}</version>
+                <executions>
+                    <execution>
+                        <id>test-compile</id>
+                        <phase>process-test-sources</phase>
+                        <goals>
+                            <goal>test-compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <source>src/test/kotlin</source>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>${docker-maven-plugin.version}</version>
+                <configuration>
+                    <skip>${skipFunctionalTests}</skip>
+                    <images>
+                        <image>
+                            <name>${project.artifactId}</name>
+                            <build>
+                                <dockerFile>${project.basedir}/Dockerfile</dockerFile>
+                                <tags>
+                                    <tag>latest</tag>
+                                </tags>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>build-containers</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>remove-containers</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>remove</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
@@ -309,6 +461,7 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${jacoco-plugin.version}</version>
                 <configuration>
+                    <skip>${skipUnitTests}</skip>
                     <excludes>
                         <exclude>**/listeners/**</exclude>
                         <exclude>**/repository/**</exclude>
