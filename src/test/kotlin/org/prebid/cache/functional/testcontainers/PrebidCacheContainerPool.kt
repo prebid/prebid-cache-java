@@ -4,11 +4,6 @@ import org.prebid.cache.functional.testcontainers.container.PrebidCacheContainer
 
 class PrebidCacheContainerPool(private val containerImageName: String) {
 
-    companion object {
-        private val MAX_CONTAINER_COUNT: Int = (System.getProperty("max.containers.count") ?: "3").toInt()
-        private val prebidCacheContainerMap: MutableMap<Map<String, String>, PrebidCacheContainer> = mutableMapOf()
-    }
-
     fun getPrebidCacheContainer(config: Map<String, String>): PrebidCacheContainer {
         if (prebidCacheContainerMap.size >= MAX_CONTAINER_COUNT) {
             val oldestContainerConfig =
@@ -29,5 +24,10 @@ class PrebidCacheContainerPool(private val containerImageName: String) {
     fun stopPrebidCacheContainer(config: Map<String, String>) {
         if (prebidCacheContainerMap.containsKey(config)) prebidCacheContainerMap.getValue(config).stop()
         prebidCacheContainerMap.remove(config)
+    }
+
+    companion object {
+        private val MAX_CONTAINER_COUNT: Int = (System.getProperty("max.containers.count") ?: "3").toInt()
+        private val prebidCacheContainerMap: MutableMap<Map<String, String>, PrebidCacheContainer> = mutableMapOf()
     }
 }

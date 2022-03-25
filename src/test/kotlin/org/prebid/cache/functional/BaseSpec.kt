@@ -7,13 +7,15 @@ import org.prebid.cache.functional.testcontainers.PrebidCacheContainerConfig
 abstract class BaseSpec {
 
     companion object {
-        val prebidCacheConfig = PrebidCacheContainerConfig(ContainerDependencies.redisContainer.getContainerHost(),
-                ContainerDependencies.aerospikeContainer.getContainerHost())
+        val prebidCacheConfig = PrebidCacheContainerConfig(
+            ContainerDependencies.redisContainer.getContainerHost(),
+            ContainerDependencies.aerospikeContainer.getContainerHost()
+        )
 
         fun getPrebidCacheApi(config: Map<String, String> = prebidCacheConfig.getBaseRedisConfig("false")): PrebidCacheApi {
             val prebidCacheContainer =
-                    ContainerDependencies.prebidCacheContainerPool.getPrebidCacheContainer(config)
-            return PrebidCacheApi(prebidCacheContainer.getHostUri())
+                ContainerDependencies.prebidCacheContainerPool.getPrebidCacheContainer(config)
+            return PrebidCacheApi(prebidCacheContainer.host, prebidCacheContainer.getHostPort())
         }
     }
 }
