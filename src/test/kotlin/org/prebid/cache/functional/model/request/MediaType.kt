@@ -7,7 +7,5 @@ enum class MediaType {
     JSON, XML, UNSUPPORTED;
 
     @JsonValue
-    fun getValue(): String {
-        return name.lowercase()
-    }
+    fun getValue(): String = name.lowercase()
 }

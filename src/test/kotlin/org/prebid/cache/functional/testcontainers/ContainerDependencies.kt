@@ -17,17 +17,17 @@ abstract class ContainerDependencies {
         val network: Network = Network.newNetwork()
         val redisContainer: RedisContainer = RedisContainer(redisImageName).withNetwork(network)
         val aerospikeContainer: AerospikeContainer = AerospikeContainer(aerospikeImageName).withNetwork(network)
-        val webCacheContainer: WebCacheContainer = WebCacheContainer(mockServerImageVersion).withNetwork(network) as WebCacheContainer
+        val webCacheContainer: WebCacheContainer =
+            WebCacheContainer(mockServerImageVersion).withNetwork(network) as WebCacheContainer
         val prebidCacheContainerPool = PrebidCacheContainerPool(prebidCacheImageName)
 
         fun startCacheServerContainers() {
             Startables.deepStart(listOf(redisContainer, aerospikeContainer))
-                    .join()
+                .join()
         }
 
-        fun stopCacheServerContainers() {
+        fun stopCacheServerContainers() =
             listOf(redisContainer, aerospikeContainer).parallelStream()
-                    .forEach { it.stop() }
-        }
+                .forEach { it.stop() }
     }
 }

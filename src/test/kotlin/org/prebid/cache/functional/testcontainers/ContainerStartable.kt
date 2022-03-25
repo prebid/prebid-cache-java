@@ -6,11 +6,7 @@ import io.kotest.core.listeners.ProjectListener
 @AutoScan
 object ContainerStartable : ProjectListener {
 
-    override suspend fun beforeProject() {
-        ContainerDependencies.startCacheServerContainers()
-    }
+    override suspend fun beforeProject() = ContainerDependencies.startCacheServerContainers()
 
-    override suspend fun afterProject() {
-        ContainerDependencies.stopCacheServerContainers()
-    }
+    override suspend fun afterProject() = ContainerDependencies.stopCacheServerContainers()
 }
