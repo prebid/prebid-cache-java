@@ -23,7 +23,6 @@ import org.prebid.cache.model.ResponseObject;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -180,7 +179,7 @@ public class PostCacheHandler extends CacheHandler {
             webClients.forEach((ip, webClient) -> webClient.post()
                     .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath())
                             .queryParam("secondaryCache", "yes").build())
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON)
                     .syncBody(requestObject)
                     .exchange()
                     .doOnError(throwable -> {

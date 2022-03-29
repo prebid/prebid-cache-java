@@ -48,6 +48,7 @@
         <lettuce-core.version>6.0.1.RELEASE</lettuce-core.version>
         <gson.version>2.8.5</gson.version>
         <guava.version>23.0</guava.version>
+        <caffeine.version>2.8.8</caffeine.version>
         <disruptor.version>3.4.2</disruptor.version>
         <lombok.version>1.18.4</lombok.version>
         <metrics-graphite.version>4.0.2</metrics-graphite.version>
@@ -113,6 +114,11 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>${guava.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>${caffeine.version}</version>
         </dependency>
         <!-- Needed for Async Logging with Log4j 2 -->
         <dependency>

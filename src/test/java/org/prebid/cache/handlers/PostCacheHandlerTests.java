@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.reactive.function.server.MockServerRequest;
@@ -41,9 +42,10 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToIgnoreCase;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.awaitility.Awaitility.await;
@@ -164,14 +166,17 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         await().atLeast(10, TimeUnit.MILLISECONDS);
 
-        verify(postRequestedFor(urlEqualTo("/cache?secondaryCache=yes")));
+        verify(postRequestedFor(urlPathEqualTo("/cache"))
+                .withQueryParam("secondaryCache", equalTo("yes"))
+                .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase("application/json")));
     }
 
     @Test
     void testExternalUUIDInvalid() {
         //given
         val cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
-                cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(), false, Collections.emptyList(), cacheConfig.getSecondaryCachePath());
+                cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(),
+                false, Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
         val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
@@ -201,7 +206,8 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper)).willReturn(Mono.error(new DuplicateKeyException("")));
 
         val cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(), cacheConfig.getTimeoutMs(),
-                5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(), Collections.emptyList(), cacheConfig.getSecondaryCachePath());
+                5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(),
+                Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
         val handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder, currentDateProvider, circuitBreaker);
 
         val payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null, "prebid_");
@@ -224,14 +230,12 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         val responseMonoSecond = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumerSecond = serverResponse -> {
-            assertEquals(400, serverResponse.statusCode().value());
-        };
+        Consumer<ServerResponse> consumerSecond = serverResponse ->
+                assertEquals(400, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMonoSecond)
                 .consumeNextWith(consumerSecond)
                 .expectComplete()
                 .verify();
-
     }
 }
