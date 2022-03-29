@@ -172,7 +172,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
         val responseMono = handler.fetch(requestMono);
 
         Consumer<ServerResponse> consumer = serverResponse -> {
-            assertEquals(400, serverResponse.statusCode().value());
+            assertEquals(404, serverResponse.statusCode().value());
         };
 
         StepVerifier.create(responseMono)

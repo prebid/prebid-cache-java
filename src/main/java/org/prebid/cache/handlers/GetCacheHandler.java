@@ -10,7 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
-import org.prebid.cache.exceptions.BadRequestException;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
 import org.prebid.cache.metrics.GraphiteMetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder;
@@ -123,7 +122,7 @@ public class GetCacheHandler extends CacheHandler {
                 .transform(CircuitBreakerOperator.of(circuitBreaker))
                 .timeout(Duration.ofMillis(config.getTimeoutMs()))
                 .subscribeOn(Schedulers.parallel())
-                .handle(this::validateServerResponse)
+                .handle(this::updateProxyMetrics)
                 .flatMap(GetCacheHandler::fromClientResponse)
                 .doOnError(error -> {
                     metricsRecorder.getProxyFailure().mark();
@@ -133,17 +132,15 @@ public class GetCacheHandler extends CacheHandler {
                 });
     }
 
-    private void validateServerResponse(final ClientResponse clientResponse,
-                                        final SynchronousSink<ClientResponse> sink) {
+    private void updateProxyMetrics(final ClientResponse clientResponse,
+                                    final SynchronousSink<ClientResponse> sink) {
         if (HttpStatus.OK.equals(clientResponse.statusCode())) {
             metricsRecorder.getProxySuccess().mark();
-            sink.next(clientResponse);
-            return;
+        } else {
+            metricsRecorder.getProxyFailure().mark();
         }
-        sink.error(new BadRequestException(
-                String.format("Unexpected status code: '%s', in response from remote server",
-                        clientResponse.statusCode())));
 
+        sink.next(clientResponse);
     }
 
     private static Mono<ServerResponse> fromClientResponse(final ClientResponse clientResponse) {
