@@ -26,7 +26,7 @@ class SecondaryCacheSpec : ShouldSpec({
         webCacheContainerClient = WebCacheContainerClient(
             ContainerDependencies.webCacheContainer.host,
             ContainerDependencies.webCacheContainer.serverPort
-        )
+        ).apply { initSecondaryCacheResponse() }
         webCacheContainerUri =
             "http://${ContainerDependencies.webCacheContainer.getContainerHost()}:${WebCacheContainer.PORT}"
 
@@ -57,7 +57,8 @@ class SecondaryCacheSpec : ShouldSpec({
         responseObject.responses[0].uuid shouldBe requestObject.puts[0].key
 
         // and: Request to secondary cache was sent
-        val secondaryCacheRecordedRequests = webCacheContainerClient.getRecordedRequests(requestObject.puts[0].key!!)
+        val secondaryCacheRecordedRequests =
+            webCacheContainerClient.getSecondaryCacheRecordedRequests(requestObject.puts[0].key!!)
         secondaryCacheRecordedRequests?.size shouldBe 1
 
         // and: Request contained secondaryCache=yes query parameter
@@ -84,7 +85,8 @@ class SecondaryCacheSpec : ShouldSpec({
         responseObject.responses[0].uuid shouldBe requestObject.puts[0].key
 
         // and: Request to secondary cache was sent
-        val secondaryCacheRecordedRequests = webCacheContainerClient.getRecordedRequests(requestObject.puts[0].key!!)
+        val secondaryCacheRecordedRequests =
+            webCacheContainerClient.getSecondaryCacheRecordedRequests(requestObject.puts[0].key!!)
         secondaryCacheRecordedRequests?.size shouldBe 1
 
         // and: Secondary cache request 'expiry' parameter matches to the PBC request 'ttlseconds' parameter
@@ -109,7 +111,8 @@ class SecondaryCacheSpec : ShouldSpec({
         responseObject.responses[0].uuid shouldBe requestObject.puts[0].key
 
         // and: Request to secondary cache was sent
-        val secondaryCacheRecordedRequests = webCacheContainerClient.getRecordedRequests(requestObject.puts[0].key!!)
+        val secondaryCacheRecordedRequests =
+            webCacheContainerClient.getSecondaryCacheRecordedRequests(requestObject.puts[0].key!!)
         secondaryCacheRecordedRequests?.size shouldBe 1
 
         // and: Secondary cache request 'expiry' parameter matches to the Prebid Cache 'cache.expiry.sec' config property
@@ -137,7 +140,8 @@ class SecondaryCacheSpec : ShouldSpec({
         responseObject.responses[0].uuid shouldBe requestObject.puts[0].key
 
         // and: Request to secondary cache was sent
-        val secondaryCacheRecordedRequests = webCacheContainerClient.getRecordedRequests(requestObject.puts[0].key!!)
+        val secondaryCacheRecordedRequests =
+            webCacheContainerClient.getSecondaryCacheRecordedRequests(requestObject.puts[0].key!!)
         secondaryCacheRecordedRequests?.size shouldBe 1
 
         // and: Secondary cache request 'expiry' parameter matches to the Prebid Cache 'cache.max.expiry' config property
@@ -165,7 +169,8 @@ class SecondaryCacheSpec : ShouldSpec({
         responseObject.responses[0].uuid shouldBe requestObject.puts[0].key
 
         // and: Request to secondary cache was sent
-        val secondaryCacheRecordedRequests = webCacheContainerClient.getRecordedRequests(requestObject.puts[0].key!!)
+        val secondaryCacheRecordedRequests =
+            webCacheContainerClient.getSecondaryCacheRecordedRequests(requestObject.puts[0].key!!)
         secondaryCacheRecordedRequests?.size shouldBe 1
 
         // and: Secondary cache request 'expiry' parameter matches to the Prebid Cache 'cache.min.expiry' config property
