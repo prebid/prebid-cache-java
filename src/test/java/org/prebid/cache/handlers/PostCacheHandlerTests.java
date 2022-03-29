@@ -230,10 +230,8 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         val responseMonoSecond = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumerSecond = serverResponse -> {
-            assertEquals(400, serverResponse.statusCode().value());
-            assertEquals(400, serverResponse.statusCode().value());
-        };
+        Consumer<ServerResponse> consumerSecond = serverResponse ->
+                assertEquals(400, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMonoSecond)
                 .consumeNextWith(consumerSecond)

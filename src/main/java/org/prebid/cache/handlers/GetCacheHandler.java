@@ -88,10 +88,10 @@ public class GetCacheHandler extends CacheHandler {
                                        final Timer.Context timerContext) {
         val cacheUrl = resolveCacheUrl(request);
 
-        val responseMono = StringUtils.contains(cacheUrl, config.getAllowedProxyHost())
-                || StringUtils.contains(cacheUrl, LOCALHOST)
-                ? processProxyRequest(request, id, cacheUrl)
-                : processRequest(request, id);
+        val responseMono =
+                StringUtils.containsAny(cacheUrl, config.getAllowedProxyHost(), LOCALHOST)
+                        ? processProxyRequest(request, id, cacheUrl)
+                        : processRequest(request, id);
 
         return finalizeResult(responseMono, request, timerContext);
     }
@@ -156,27 +156,29 @@ public class GetCacheHandler extends CacheHandler {
                 .timeout(Duration.ofMillis(config.getTimeoutMs()))
                 .subscribeOn(Schedulers.parallel())
                 .transform(this::validateErrorResult)
-                .flatMap(wrapper -> {
-                    if (wrapper.getPayload().getType().equals(PayloadType.JSON.toString())) {
-                        metricsRecorder.markMeterForTag(this.metricTagPrefix,
-                                MetricsRecorder.MeasurementTag.JSON);
-                        return builder.createResponseMono(request,
-                                MediaType.APPLICATION_JSON_UTF8,
-                                wrapper);
-                    } else if (wrapper.getPayload()
-                            .getType()
-                            .equals(PayloadType.XML.toString())) {
-                        metricsRecorder.markMeterForTag(this.metricTagPrefix,
-                                MetricsRecorder.MeasurementTag.XML);
-                        return builder.createResponseMono(request,
-                                MediaType.APPLICATION_XML,
-                                wrapper);
-                    } else {
-                        // unhandled media type
-                        return Mono.error(new UnsupportedMediaTypeException(UNSUPPORTED_MEDIATYPE));
-                    }
-                })
+                .flatMap(wrapper -> createServerResponse(wrapper, request))
                 .switchIfEmpty(ErrorHandler.createResourceNotFound(normalizedId));
+    }
+
+    private Mono<ServerResponse> createServerResponse(final PayloadWrapper wrapper, final ServerRequest request) {
+
+        if (wrapper.getPayload().getType().equals(PayloadType.JSON.toString())) {
+            metricsRecorder.markMeterForTag(this.metricTagPrefix,
+                    MetricsRecorder.MeasurementTag.JSON);
+            return builder.createResponseMono(request,
+                    MediaType.APPLICATION_JSON_UTF8,
+                    wrapper);
+        } else if (wrapper.getPayload()
+                .getType()
+                .equals(PayloadType.XML.toString())) {
+            metricsRecorder.markMeterForTag(this.metricTagPrefix,
+                    MetricsRecorder.MeasurementTag.XML);
+            return builder.createResponseMono(request,
+                    MediaType.APPLICATION_XML,
+                    wrapper);
+        }
+
+        return Mono.error(new UnsupportedMediaTypeException(UNSUPPORTED_MEDIATYPE));
     }
 }
 
