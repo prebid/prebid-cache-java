@@ -51,6 +51,12 @@ class PrebidCacheContainerConfig(private val redisHost: String, private val aero
             "cache.secondary-uris" to secondaryCacheUri
         )
 
+    fun getProxyCacheHostConfig(cacheHost: String): Map<String, String> =
+        mapOf(
+            "cache.host_param_protocol" to "http",
+            "cache.allowed-proxy-host" to cacheHost
+        )
+
     private fun getBaseConfig(allowExternalUuid: String): Map<String, String> =
         getCachePrefixConfig() + getCacheExpiryConfig() + getAllowExternalUuidConfig(allowExternalUuid) +
                 getCacheTimeoutConfig("500")

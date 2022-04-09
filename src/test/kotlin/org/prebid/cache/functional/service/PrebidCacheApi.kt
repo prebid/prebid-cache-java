@@ -45,9 +45,10 @@ class PrebidCacheApi(prebidCacheHost: String, prebidCachePort: Int) {
         }
     }
 
-    suspend fun getCache(uuid: String?): HttpResponse =
+    suspend fun getCache(uuid: String?, proxyCacheHost: String? = null): HttpResponse =
         client.get(CACHE_ENDPOINT) {
             if (uuid != null) parameter(UUID_QUERY_PARAMETER, uuid)
+            if (proxyCacheHost != null) parameter(PROXY_CACHE_HOST_QUERY_PARAMETER, proxyCacheHost)
         }
 
     suspend fun postCache(requestObject: RequestObject, secondaryCache: String? = null): ResponseObject =
@@ -64,6 +65,7 @@ class PrebidCacheApi(prebidCacheHost: String, prebidCachePort: Int) {
     companion object {
         private const val CACHE_ENDPOINT = "/cache"
         private const val UUID_QUERY_PARAMETER = "uuid"
+        private const val PROXY_CACHE_HOST_QUERY_PARAMETER = "ch"
         private const val SECONDARY_CACHE_QUERY_PARAMETER = "secondaryCache"
     }
 }
