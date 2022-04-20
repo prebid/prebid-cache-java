@@ -8,15 +8,16 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.prebid.cache.exceptions.PayloadWrapperPropertyException;
 import org.prebid.cache.exceptions.RepositoryException;
 import org.prebid.cache.helpers.Json;
+import org.prebid.cache.helpers.ValidateRedisPropertyConditional;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.ReactiveRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 
 @Repository
 @Slf4j
-@ConditionalOnProperty(prefix = "spring.redis", name = {"timeout"})
+@Conditional(ValidateRedisPropertyConditional.class)
 @RequiredArgsConstructor
 public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, String> {
     private final RedisStringReactiveCommands<String, String> reactiveCommands;
