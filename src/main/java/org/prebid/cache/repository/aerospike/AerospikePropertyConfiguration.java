@@ -31,37 +31,19 @@ import static java.util.Objects.requireNonNull;
 @ConditionalOnProperty(prefix = "spring.aerospike", name = {"host"})
 @ConfigurationProperties(prefix = "spring.aerospike")
 public class AerospikePropertyConfiguration {
-
-    @NotNull
     private String host;
-
-    @NotNull
     private Integer port;
-
-    @NotNull
     private String password;
-
-    @NotNull
     private Integer cores;
-
-    @NotNull
     private Long firstBackoff;
-
-    @NotNull
     private Long maxBackoff;
-
-    @NotNull
     private int maxRetry;
-
-    @NotNull
     private String namespace;
-
-    @NotNull
     private boolean preventUUIDDuplication;
 
     private static final int DEFAULT_PORT = 3000;
 
-    public static Host[] extractHosts(String hostList) {
+    public static Host[] extractHosts(@NotNull String hostList) {
         return Arrays.stream(hostList.split(","))
                 .map(host -> {
                     String[] params = host.split(":");
@@ -75,7 +57,7 @@ public class AerospikePropertyConfiguration {
                 .toArray(Host[]::new);
     }
 
-    public static boolean isAerospikeCluster(String hostList) {
+    public static boolean isAerospikeCluster(@NotNull String hostList) {
         return hostList.split(",").length > 1;
     }
 
