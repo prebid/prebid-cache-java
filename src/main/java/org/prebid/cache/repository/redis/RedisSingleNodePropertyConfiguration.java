@@ -63,5 +63,4 @@ public class RedisSingleNodePropertyConfiguration {
     RedisStringReactiveCommands<String, String> reactiveCommands() {
         return connection().reactive();
     }
-
 }
