@@ -71,7 +71,7 @@ class ProxyCacheHostSpec : ShouldSpec({
         // then: Internal Server Error exception is thrown
         assertSoftly {
             exception.statusCode shouldBe INTERNAL_SERVER_ERROR.value()
-            exception.responseBody shouldContain "\"message\":\"$cacheHost: Name or service not known\""
+            exception.responseBody shouldContain "\"message\":\"$cacheHost: Temporary failure in name resolution\""
         }
     }
 

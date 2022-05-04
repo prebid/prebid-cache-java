@@ -59,7 +59,8 @@ class PrebidCacheContainerConfig(private val redisHost: String, private val aero
 
     private fun getBaseConfig(allowExternalUuid: String): Map<String, String> =
         getCachePrefixConfig() + getCacheExpiryConfig() + getAllowExternalUuidConfig(allowExternalUuid) +
-                getCacheTimeoutConfig("500")
+                getCacheTimeoutConfig("2500")
+
 
     private fun getCachePrefixConfig(): Map<String, String> = mapOf("cache.prefix" to "prebid_")
 
