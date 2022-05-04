@@ -2,6 +2,7 @@ package org.prebid.cache.handlers;
 
 import com.codahale.metrics.Timer;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.prebid.cache.exceptions.BadRequestException;
 import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.exceptions.PrebidException;
@@ -22,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 abstract class CacheHandler extends MetricsHandler {
     ServiceType type;
     static final String ID_KEY = "uuid";
+    static final String CACHE_HOST_KEY = "ch";
     private static final String UUID_DUPLICATION = "UUID duplication.";
 
     protected String metricTagPrefix;
@@ -74,7 +76,8 @@ abstract class CacheHandler extends MetricsHandler {
         } else if (error instanceof TimeoutException) {
             metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_TIMEDOUT);
         } else {
-            log.error("Error occurred while processing the request", error);
+            log.error("Error occurred while processing the request: '{}', cause: '{}'",
+                    ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
         }
 
         return builder.error(Mono.just(error), request)

@@ -58,10 +58,7 @@ public class AerospikePropertyConfiguration {
     }
 
     public static boolean isAerospikeCluster(@NotNull String hostList) {
-        if (hostList.split(",").length > 1) {
-            return true;
-        }
-        return false;
+        return hostList.split(",").length > 1;
     }
 
     @Bean

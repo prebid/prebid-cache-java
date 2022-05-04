@@ -18,6 +18,7 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 public class GraphiteMetricsRecorder extends MetricsRecorder {
+
     protected static final String PREFIX_PLACEHOLDER = "\\$\\{prefix\\}";
 
     private static final MetricRegistry REGISTRY = new MetricRegistry();
@@ -38,6 +39,10 @@ public class GraphiteMetricsRecorder extends MetricsRecorder {
             REGISTRY.meter(MeasurementTag.ERROR_SECONDARY_WRITE.getTag());
 
     private static final Meter EXISTING_KEY_ERROR = REGISTRY.meter(MeasurementTag.ERROR_EXISTINGID.getTag());
+
+    private static final Meter PROXY_SUCCESS = REGISTRY.meter(MeasurementTag.PROXY_SUCCESS.getTag());
+
+    private static final Meter PROXY_FAILURE = REGISTRY.meter(MeasurementTag.PROXY_FAILURE.getTag());
 
     @Autowired
     public GraphiteMetricsRecorder(final GraphiteConfig config) {
@@ -71,6 +76,14 @@ public class GraphiteMetricsRecorder extends MetricsRecorder {
 
     public Meter getExistingKeyError() {
         return EXISTING_KEY_ERROR;
+    }
+
+    public Meter getProxySuccess() {
+        return PROXY_SUCCESS;
+    }
+
+    public Meter getProxyFailure() {
+        return PROXY_FAILURE;
     }
 
     private Meter meterForTag(final String prefix, final MeasurementTag measurementTag) {
