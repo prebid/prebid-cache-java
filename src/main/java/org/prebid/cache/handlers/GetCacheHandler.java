@@ -1,5 +1,7 @@
 package org.prebid.cache.handlers;
 
+import com.codahale.metrics.Timer;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import lombok.extern.slf4j.Slf4j;
@@ -62,17 +64,17 @@ public class GetCacheHandler extends CacheHandler {
 
     private static Map<String, WebClient> createClientsCache(final int ttl, final int size) {
         return Caffeine.newBuilder()
-                .expireAfterWrite(ttl, TimeUnit.SECONDS)
-                .maximumSize(size)
-                .<String, WebClient>build()
-                .asMap();
+            .expireAfterWrite(ttl, TimeUnit.SECONDS)
+            .maximumSize(size)
+            .<String, WebClient>build()
+            .asMap();
     }
 
     public Mono<ServerResponse> fetch(ServerRequest request) {
         // metrics
         metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
-        final var timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(this.type)
-                .orElse(null);
+        final var timerContext =
+                metricsRecorder.createRequestContextTimerOptionalForServiceType(this.type).orElse(null);
 
         return request.queryParam(ID_KEY).map(id -> fetch(request, id, timerContext)).orElseGet(() -> {
             final var responseMono = ErrorHandler.createInvalidParameters();
