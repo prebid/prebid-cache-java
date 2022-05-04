@@ -5,7 +5,6 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -65,20 +64,20 @@ public class GetCacheHandler extends CacheHandler {
 
     private static Map<String, WebClient> createClientsCache(final int ttl, final int size) {
         return Caffeine.newBuilder()
-                .expireAfterWrite(ttl, TimeUnit.SECONDS)
-                .maximumSize(size)
-                .<String, WebClient>build()
-                .asMap();
+            .expireAfterWrite(ttl, TimeUnit.SECONDS)
+            .maximumSize(size)
+            .<String, WebClient>build()
+            .asMap();
     }
 
     public Mono<ServerResponse> fetch(ServerRequest request) {
         // metrics
         metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
-        val timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(this.type)
-                .orElse(null);
+        final var timerContext =
+                metricsRecorder.createRequestContextTimerOptionalForServiceType(this.type).orElse(null);
 
         return request.queryParam(ID_KEY).map(id -> fetch(request, id, timerContext)).orElseGet(() -> {
-            val responseMono = ErrorHandler.createInvalidParameters();
+            final var responseMono = ErrorHandler.createInvalidParameters();
             return finalizeResult(responseMono, request, timerContext);
         });
     }
@@ -86,9 +85,9 @@ public class GetCacheHandler extends CacheHandler {
     private Mono<ServerResponse> fetch(final ServerRequest request,
                                        final String id,
                                        final Timer.Context timerContext) {
-        val cacheUrl = resolveCacheUrl(request);
+        final var cacheUrl = resolveCacheUrl(request);
 
-        val responseMono =
+        final var responseMono =
                 StringUtils.containsAny(cacheUrl, config.getAllowedProxyHost(), LOCALHOST)
                         ? processProxyRequest(request, id, cacheUrl)
                         : processRequest(request, id);
@@ -97,7 +96,7 @@ public class GetCacheHandler extends CacheHandler {
     }
 
     private String resolveCacheUrl(final ServerRequest request) {
-        val cacheHostParam = request.queryParam(CACHE_HOST_KEY).orElse(null);
+        final var cacheHostParam = request.queryParam(CACHE_HOST_KEY).orElse(null);
         if (StringUtils.isNotBlank(cacheHostParam)) {
             return new URIBuilder()
                     .setHost(cacheHostParam)
@@ -113,7 +112,7 @@ public class GetCacheHandler extends CacheHandler {
                                                      final String idKeyParam,
                                                      final String cacheUrl) {
 
-        val webClient = clientsCache.computeIfAbsent(cacheUrl, WebClient::create);
+        final var webClient = clientsCache.computeIfAbsent(cacheUrl, WebClient::create);
 
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder.queryParam(ID_KEY, idKeyParam).build())
@@ -150,7 +149,7 @@ public class GetCacheHandler extends CacheHandler {
     }
 
     private Mono<ServerResponse> processRequest(final ServerRequest request, final String keyIdParam) {
-        val normalizedId = String.format("%s%s", config.getPrefix(), keyIdParam);
+        final var normalizedId = String.format("%s%s", config.getPrefix(), keyIdParam);
         return repository.findById(normalizedId)
                 .transform(CircuitBreakerOperator.of(circuitBreaker))
                 .timeout(Duration.ofMillis(config.getTimeoutMs()))

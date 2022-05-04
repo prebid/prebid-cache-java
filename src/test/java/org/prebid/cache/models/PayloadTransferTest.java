@@ -12,7 +12,7 @@ public class PayloadTransferTest {
 
     @Test
     void testStringValue() {
-        val payloadTransfer = PayloadTransfer.builder()
+        final var payloadTransfer = PayloadTransfer.builder()
                 .expiry(100L)
                 .key("2be04ba5-8f9b-4a1e-8100-d573c40312f8")
                 .prefix("prebid_")
@@ -26,7 +26,7 @@ public class PayloadTransferTest {
 
     @Test
     void testIntegerValue() {
-        val payloadTransfer = PayloadTransfer.builder()
+        final var payloadTransfer = PayloadTransfer.builder()
                 .expiry(100L)
                 .key("2be04ba5-8f9b-4a1e-8100-d573c40312f8")
                 .prefix("prebid_")
@@ -40,9 +40,9 @@ public class PayloadTransferTest {
 
     @Test
     void testObjectValue() {
-        val expectedJsonString = "{\"adm\":\"test\",\"width\":200,\"height\":100}";
+        final var expectedJsonString = "{\"adm\":\"test\",\"width\":200,\"height\":100}";
 
-        val payloadTransfer = PayloadTransfer.builder()
+        final var payloadTransfer = PayloadTransfer.builder()
                 .expiry(100L)
                 .key("2be04ba5-8f9b-4a1e-8100-d573c40312f8")
                 .prefix("prebid_")
@@ -56,7 +56,7 @@ public class PayloadTransferTest {
 
     @Test
     public void testExpiry() {
-        val payloadTransfer = PayloadTransfer.builder()
+        final var payloadTransfer = PayloadTransfer.builder()
                 .expiry(100L)
                 .key("2be04ba5-8f9b-4a1e-8100-d573c40312f8")
                 .prefix("prebid_")
@@ -70,7 +70,7 @@ public class PayloadTransferTest {
 
     @Test
     public void testTtlSeconds() {
-        val payloadTransfer = PayloadTransfer.builder()
+        final var payloadTransfer = PayloadTransfer.builder()
                 .expiry(100L)
                 .key("2be04ba5-8f9b-4a1e-8100-d573c40312f8")
                 .prefix("prebid_")
