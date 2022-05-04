@@ -27,13 +27,13 @@ class PayloadWrapperTests {
 
     @Test
     void testExpiry() {
-        val wrapper = Json.createPayloadFromJson(jsonWithExpiry, PayloadWrapper.class);
+        final var wrapper = Json.createPayloadFromJson(jsonWithExpiry, PayloadWrapper.class);
         assertEquals(1800L, wrapper.getExpiry().longValue());
     }
 
     @Test
     void testGetNormalizedId() throws PayloadWrapperPropertyException {
-        val wrapper = Json.createPayloadFromJson(jsonWithExpiry, PayloadWrapper.class);
+        final var wrapper = Json.createPayloadFromJson(jsonWithExpiry, PayloadWrapper.class);
         assertEquals("prebid_2be04ba5-8f9b-4a1e-8100-d573c40312f8", wrapper.getNormalizedId());
     }
 
