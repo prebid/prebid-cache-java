@@ -59,8 +59,8 @@
         <aerospike-client.version>4.3.0</aerospike-client.version>
         <reactor-extra.version>3.2.2.RELEASE</reactor-extra.version>
         <wiremock.version>2.11.0</wiremock.version>
-        <checkstyle-plugin.version>3.1.0</checkstyle-plugin.version>
-        <checkstyle.version>8.22</checkstyle.version>
+        <checkstyle-plugin.version>3.1.2</checkstyle-plugin.version>
+        <checkstyle.version>10.2</checkstyle.version>
         <jacoco-plugin.version>0.8.2</jacoco-plugin.version>
         <awaitility.version>3.0.0</awaitility.version>
         <resilience4j.version>0.13.2</resilience4j.version>
