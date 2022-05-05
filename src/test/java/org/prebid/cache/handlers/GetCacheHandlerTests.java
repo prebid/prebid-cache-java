@@ -64,7 +64,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
     ApiConfig apiConfig;
 
     @Autowired
-    GraphiteMetricsRecorder metricsRecorder;
+    MetricsRecorder metricsRecorder;
 
     @Autowired
     PrebidServerResponseBuilder responseBuilder;

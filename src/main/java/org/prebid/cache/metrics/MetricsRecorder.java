@@ -29,6 +29,9 @@ public class MetricsRecorder {
 
     private final Meter existingKeyError;
 
+    private final Meter proxySuccess;
+    private final Meter proxyFailure;
+
     public enum MeasurementTag {
         REQUEST_DURATION("pbc.${prefix}.request.duration"),
         REQUEST("pbc.${prefix}.request"),
@@ -64,6 +67,8 @@ public class MetricsRecorder {
         this.secondaryCacheWriteError = metricRegistry.meter(MeasurementTag.ERROR_SECONDARY_WRITE.getTag());
         this.invalidRequestMeter = metricRegistry.meter(MeasurementTag.REQUEST_INVALID.getTag());
         this.existingKeyError = metricRegistry.meter(MeasurementTag.ERROR_EXISTINGID.getTag());
+        this.proxySuccess = metricRegistry.meter(MeasurementTag.PROXY_SUCCESS.getTag());
+        this.proxyFailure = metricRegistry.meter(MeasurementTag.PROXY_SUCCESS.getTag());
     }
 
     public Meter getInvalidRequestMeter() {
@@ -76,6 +81,14 @@ public class MetricsRecorder {
 
     public Meter getExistingKeyError() {
         return existingKeyError;
+    }
+
+    public Meter getProxySuccess() {
+        return proxySuccess;
+    }
+
+    public Meter getProxyFailure() {
+        return proxyFailure;
     }
 
     public void markMeterForTag(final String prefix, final MeasurementTag measurementTag) {
