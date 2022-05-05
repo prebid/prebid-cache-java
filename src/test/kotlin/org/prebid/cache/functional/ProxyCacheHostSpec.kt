@@ -7,7 +7,7 @@ import io.kotest.data.forAll
 import io.kotest.data.row
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.client.statement.readText
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.contentType
 import org.mockserver.model.MediaType.APPLICATION_JSON_UTF_8
 import org.mockserver.model.MediaType.APPLICATION_XML
@@ -122,7 +122,7 @@ class ProxyCacheHostSpec : ShouldSpec({
         val response = prebidCacheApi.getCache(getRandomUuid(), proxyCacheHost)
 
         // then: PBC response body should be equal to proxy cache host response body
-        response.readText() shouldBe cacheHostResponseBody
+        response.bodyAsText() shouldBe cacheHostResponseBody
     }
 
     should("return a response body as a JSON or XML object requested from proxy cache host") {
@@ -145,7 +145,7 @@ class ProxyCacheHostSpec : ShouldSpec({
             response.contentType()?.contentSubtype shouldBe prebidCacheResponseMediaType.getValue()
 
             // and: transfer value is returned
-            val responseTransferValue = objectMapper.readValue(response.readText(), TransferValue::class.java)
+            val responseTransferValue = objectMapper.readValue(response.bodyAsText(), TransferValue::class.java)
 
             assertSoftly {
                 responseTransferValue.adm shouldBe proxyCacheResponseBody.adm

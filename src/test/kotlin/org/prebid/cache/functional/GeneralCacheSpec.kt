@@ -5,7 +5,7 @@ import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.client.statement.readText
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.contentType
 import org.prebid.cache.functional.mapper.objectMapper
 import org.prebid.cache.functional.model.request.MediaType.UNSUPPORTED
@@ -158,7 +158,7 @@ class GeneralCacheSpec : ShouldSpec({
         getCacheResponse.contentType()?.contentSubtype shouldBe requestObject.puts[0].type.getValue()
 
         // and: transfer value is returned
-        val responseTransferValue = objectMapper.readValue(getCacheResponse.readText(), TransferValue::class.java)
+        val responseTransferValue = objectMapper.readValue(getCacheResponse.bodyAsText(), TransferValue::class.java)
 
         assertSoftly {
             responseTransferValue.adm shouldBe requestTransferValue.adm
@@ -183,7 +183,7 @@ class GeneralCacheSpec : ShouldSpec({
         getCacheResponse.contentType()?.contentSubtype shouldBe requestObject.puts[0].type.getValue()
 
         // and: transfer value is returned
-        val responseTransferValue = objectMapper.readValue(getCacheResponse.readText(), TransferValue::class.java)
+        val responseTransferValue = objectMapper.readValue(getCacheResponse.bodyAsText(), TransferValue::class.java)
 
         assertSoftly {
             responseTransferValue.adm shouldBe requestTransferValue.adm
@@ -204,6 +204,6 @@ class GeneralCacheSpec : ShouldSpec({
         val getCacheResponse = BaseSpec.getPrebidCacheApi().getCache(postResponse.responses[0].uuid)
 
         // then: transfer value as a plain String is returned
-        getCacheResponse.readText() shouldBe requestObject.puts[0].value
+        getCacheResponse.bodyAsText() shouldBe requestObject.puts[0].value
     }
 })

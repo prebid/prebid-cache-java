@@ -6,7 +6,7 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.client.statement.readText
+import io.ktor.client.statement.bodyAsText
 import org.prebid.cache.functional.BaseSpec.Companion.prebidCacheConfig
 import org.prebid.cache.functional.mapper.objectMapper
 import org.prebid.cache.functional.model.request.PayloadTransfer
@@ -150,7 +150,7 @@ class AerospikeCacheSpec : ShouldSpec({
 
         // and: Cache record was updated in Aerospike with a second request object payload
         val getCacheResponse = prebidCacheApi.getCache(responseObject.responses[0].uuid)
-        val responseTransferValue = objectMapper.readValue(getCacheResponse.readText(), TransferValue::class.java)
+        val responseTransferValue = objectMapper.readValue(getCacheResponse.bodyAsText(), TransferValue::class.java)
 
         assertSoftly {
             responseTransferValue.adm shouldBe requestTransferValue.adm

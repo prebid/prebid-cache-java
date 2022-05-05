@@ -1,46 +1,42 @@
 package org.prebid.cache.functional.service
 
 import io.ktor.client.HttpClient
-import io.ktor.client.call.receive
+import io.ktor.client.call.body
 import io.ktor.client.engine.apache.Apache
-import io.ktor.client.features.ClientRequestException
-import io.ktor.client.features.HttpResponseValidator
-import io.ktor.client.features.ServerResponseException
-import io.ktor.client.features.defaultRequest
-import io.ktor.client.features.json.JacksonSerializer
-import io.ktor.client.features.json.JsonFeature
+import io.ktor.client.plugins.HttpResponseValidator
+import io.ktor.client.plugins.ResponseException
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.get
 import io.ktor.client.request.header
-import io.ktor.client.request.host
 import io.ktor.client.request.parameter
-import io.ktor.client.request.port
 import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.ContentType
-import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.serialization.jackson.jackson
 import org.prebid.cache.functional.model.request.RequestObject
 import org.prebid.cache.functional.model.response.ResponseObject
 
 class PrebidCacheApi(prebidCacheHost: String, prebidCachePort: Int) {
 
     private val client = HttpClient(Apache) {
+        expectSuccess = true
         defaultRequest {
             host = prebidCacheHost
             port = prebidCachePort
             header(ContentType, Json)
         }
-        install(JsonFeature) {
-            serializer = JacksonSerializer()
+        install(ContentNegotiation) {
+            jackson()
         }
         HttpResponseValidator {
-            handleResponseException { exception ->
-                val clientException = exception as? ClientRequestException ?: return@handleResponseException
-                checkResponseStatusCode(clientException.response)
-            }
-            handleResponseException { exception ->
-                val serverException = exception as? ServerResponseException ?: return@handleResponseException
-                checkResponseStatusCode(serverException.response)
+            handleResponseExceptionWithRequest { exception, _ ->
+                val clientException = exception as? ResponseException ?: return@handleResponseExceptionWithRequest
+                val statusCode = clientException.response.status
+                throw ApiException(statusCode.value, clientException.response.bodyAsText())
             }
         }
     }
@@ -54,13 +50,8 @@ class PrebidCacheApi(prebidCacheHost: String, prebidCachePort: Int) {
     suspend fun postCache(requestObject: RequestObject, secondaryCache: String? = null): ResponseObject =
         client.post(CACHE_ENDPOINT) {
             if (secondaryCache != null) parameter(SECONDARY_CACHE_QUERY_PARAMETER, secondaryCache)
-            body = requestObject
-        }
-
-    private suspend fun checkResponseStatusCode(response: HttpResponse) {
-        val statusCode = response.status.value
-        if (statusCode != OK.value) throw ApiException(statusCode, response.receive())
-    }
+            setBody(requestObject)
+        }.body()
 
     companion object {
         private const val CACHE_ENDPOINT = "/cache"
