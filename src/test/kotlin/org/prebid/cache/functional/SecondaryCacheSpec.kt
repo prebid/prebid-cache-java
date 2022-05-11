@@ -46,8 +46,7 @@ class SecondaryCacheSpec : ShouldSpec({
 
     should("send a request to secondary cache when secondary cache is configured and secondaryCache query parameter is given on request") {
         // given: Request object with set payload UUID key
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        requestObject.puts[0].key = getRandomUuid()
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = getRandomUuid() }
 
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = prebidCacheApi.postCache(requestObject, "no")
@@ -62,7 +61,8 @@ class SecondaryCacheSpec : ShouldSpec({
         secondaryCacheRecordedRequests?.size shouldBe 1
 
         // and: Request contained secondaryCache=yes query parameter
-        secondaryCacheRecordedRequests!!.first().queryStringParameters?.containsEntry("secondaryCache", "yes")
+        secondaryCacheRecordedRequests!!.first().queryStringParameters
+            ?.containsEntry("secondaryCache", "yes") shouldBe true
 
         // and: Secondary cache request body matched to the Prebid Cache request object
         val secondaryCacheRequest =
@@ -72,10 +72,11 @@ class SecondaryCacheSpec : ShouldSpec({
 
     should("set cache expiry equals to request 'ttlseconds' when ttlseconds parameter is given") {
         // given: Request object with set 'ttlseconds' parameter
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        requestObject.puts[0].key = getRandomUuid()
-        requestObject.puts[0].ttlseconds = 400
-        requestObject.puts[0].expiry = 300
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply {
+            puts[0].key = getRandomUuid()
+            puts[0].ttlseconds = 400
+            puts[0].expiry = 300
+        }
 
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = prebidCacheApi.postCache(requestObject, "no")
@@ -98,10 +99,11 @@ class SecondaryCacheSpec : ShouldSpec({
 
     should("set cache expiry from 'cache.expiry.sec' configuration property when request 'ttlseconds' and 'expiry' are absent'") {
         // given: Request object with absent 'ttlseconds' and 'expiry'
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        requestObject.puts[0].key = getRandomUuid()
-        requestObject.puts[0].ttlseconds = null
-        requestObject.puts[0].expiry = null
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply {
+            puts[0].key = getRandomUuid()
+            puts[0].ttlseconds = null
+            puts[0].expiry = null
+        }
 
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = prebidCacheApi.postCache(requestObject, "no")
@@ -127,10 +129,11 @@ class SecondaryCacheSpec : ShouldSpec({
         val configCacheMaxExpiry = specPrebidCacheConfig["cache.max.expiry"]?.toLong()
 
         // and: Request object with set 'expiry' higher than configuration 'cache.max.expiry'
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        requestObject.puts[0].key = getRandomUuid()
-        requestObject.puts[0].ttlseconds = null
-        requestObject.puts[0].expiry = configCacheMaxExpiry!! + 1
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply {
+            puts[0].key = getRandomUuid()
+            puts[0].ttlseconds = null
+            puts[0].expiry = configCacheMaxExpiry!! + 1
+        }
 
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = prebidCacheApi.postCache(requestObject, "no")
@@ -156,10 +159,11 @@ class SecondaryCacheSpec : ShouldSpec({
         val configCacheMinExpiry = specPrebidCacheConfig["cache.min.expiry"]?.toLong()
 
         // and: Request object with set 'expiry' lower than configuration 'cache.min.expiry'
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        requestObject.puts[0].key = getRandomUuid()
-        requestObject.puts[0].ttlseconds = null
-        requestObject.puts[0].expiry = configCacheMinExpiry!! - 1
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply {
+            puts[0].key = getRandomUuid()
+            puts[0].ttlseconds = null
+            puts[0].expiry = configCacheMinExpiry!! - 1
+        }
 
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = prebidCacheApi.postCache(requestObject, "no")

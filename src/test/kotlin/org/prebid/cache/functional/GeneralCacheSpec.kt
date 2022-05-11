@@ -33,8 +33,7 @@ class GeneralCacheSpec : ShouldSpec({
 
     should("throw an exception when payload transfer key is given and allow_external_UUID=false") {
         // given: Request object with set payload transfer key
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        requestObject.puts[0].key = getRandomUuid()
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = getRandomUuid() }
 
         // when: POST cache endpoint is called
         val exception = shouldThrowExactly<ApiException> { BaseSpec.getPrebidCacheApi().postCache(requestObject) }
@@ -51,8 +50,7 @@ class GeneralCacheSpec : ShouldSpec({
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(BaseSpec.prebidCacheConfig.getBaseRedisConfig("true"))
 
         // and: Request object with set payload transfer key not in UUID format
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        requestObject.puts[0].key = getRandomUuid() + "*"
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = getRandomUuid() + "*" }
 
         // when: POST cache endpoint is called
         val exception = shouldThrowExactly<ApiException> { prebidCacheApi.postCache(requestObject) }
@@ -69,8 +67,7 @@ class GeneralCacheSpec : ShouldSpec({
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(BaseSpec.prebidCacheConfig.getBaseRedisConfig("true"))
 
         // and: Request object with set empty payload transfer key
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        requestObject.puts[0].key = ""
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = "" }
 
         // when: POST cache endpoint is called
         val exception = shouldThrowExactly<ApiException> { prebidCacheApi.postCache(requestObject) }
@@ -84,8 +81,7 @@ class GeneralCacheSpec : ShouldSpec({
 
     should("throw an exception when payload object with unsupported media type is fetched from repository") {
         // given: Request object with set unsupported media type
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        requestObject.puts[0].type = UNSUPPORTED
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].type = UNSUPPORTED }
 
         // and: POST cache endpoint is called
         val response = BaseSpec.getPrebidCacheApi().postCache(requestObject)
@@ -194,8 +190,7 @@ class GeneralCacheSpec : ShouldSpec({
 
     should("return the same String transfer value which was saved to cache") {
         // given: Request object with set transfer value as plain String
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        requestObject.puts[0].value = getRandomString()
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].value = getRandomString() }
 
         // and: POST cache endpoint is called
         val postResponse = BaseSpec.getPrebidCacheApi().postCache(requestObject)

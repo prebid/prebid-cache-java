@@ -110,7 +110,7 @@ class ProxyCacheHostSpec : ShouldSpec({
         webCacheContainerClient.getProxyCacheHostRecordedRequestCount() shouldBe initialProxyCacheHostRequestCount + 1
 
         val proxyCacheHostRequest = webCacheContainerClient.getProxyCacheHostRecordedRequests()!!.last()
-        proxyCacheHostRequest.queryStringParameters?.containsEntry("uuid", requestUuid)
+        proxyCacheHostRequest.queryStringParameters?.containsEntry("uuid", requestUuid) shouldBe true
     }
 
     should("return a response body as a plain String requested from proxy cache host") {

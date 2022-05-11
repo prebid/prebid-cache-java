@@ -70,17 +70,15 @@ class AerospikeCacheSpec : ShouldSpec({
 
         // and: First request object with set UUID
         val uuid = getRandomUuid()
-        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer()
-        xmlPayloadTransfer.key = uuid
-        val requestObject = RequestObject(listOf(xmlPayloadTransfer))
+        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = uuid }
+        val requestObject = RequestObject.of(xmlPayloadTransfer)
 
         // and: First request object is saved to Aerospike cache
         prebidCacheApi.postCache(requestObject)
 
         // and: Second request object with already existing UUID is prepared
-        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer()
-        jsonPayloadTransfer.key = uuid
-        val secondRequestObject = RequestObject(listOf(jsonPayloadTransfer))
+        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply { key = uuid }
+        val secondRequestObject = RequestObject.of(jsonPayloadTransfer)
 
         // when: POST cache endpoint is called for the second time
         val exception = shouldThrowExactly<ApiException> { prebidCacheApi.postCache(secondRequestObject) }
@@ -100,11 +98,9 @@ class AerospikeCacheSpec : ShouldSpec({
         )
 
         // and: Request object with 2 payload transfers and set UUIDs is prepared
-        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer()
-        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer()
-        xmlPayloadTransfer.key = getRandomUuid()
-        jsonPayloadTransfer.key = getRandomUuid()
-        val requestObject = RequestObject(listOf(xmlPayloadTransfer, jsonPayloadTransfer))
+        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = getRandomUuid() }
+        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply { key = getRandomUuid() }
+        val requestObject = RequestObject.of(xmlPayloadTransfer, jsonPayloadTransfer)
 
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = prebidCacheApi.postCache(requestObject)
@@ -127,17 +123,15 @@ class AerospikeCacheSpec : ShouldSpec({
 
         // and: First request object
         val uuid = getRandomUuid()
-        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer()
-        xmlPayloadTransfer.key = uuid
-        val requestObject = RequestObject(listOf(xmlPayloadTransfer))
+        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = uuid }
+        val requestObject = RequestObject.of(xmlPayloadTransfer)
 
         // and: First request object is saved to Aerospike cache
         prebidCacheApi.postCache(requestObject)
 
         // and: Second request object with already existing UUID is prepared
-        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer()
-        jsonPayloadTransfer.key = uuid
-        val secondRequestObject = RequestObject(listOf(jsonPayloadTransfer))
+        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply { key = uuid }
+        val secondRequestObject = RequestObject.of(jsonPayloadTransfer)
         val requestTransferValue = objectMapper.readValue(secondRequestObject.puts[0].value, TransferValue::class.java)
 
         // when: POST cache endpoint is called for the second time

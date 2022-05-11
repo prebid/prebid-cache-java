@@ -44,6 +44,6 @@ class PrebidCacheContainer(imageName: String, config: Map<String, String>) :
         private const val FIXED_EXPOSED_APPLICATION_PORT = 49100
         private const val FIXED_EXPOSED_DEBUG_PORT = 49101
 
-        private val USE_FIXED_PORTS = (System.getProperty("useFixedContainerPorts") ?: "false").toBoolean()
+        private val USE_FIXED_PORTS = System.getProperty("useFixedContainerPorts")?.toBoolean() ?: false
     }
 }

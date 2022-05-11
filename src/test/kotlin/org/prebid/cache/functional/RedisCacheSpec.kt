@@ -16,7 +16,7 @@ import org.prebid.cache.functional.testcontainers.ContainerDependencies
 import org.prebid.cache.functional.util.getRandomUuid
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.HttpStatus.NOT_FOUND
-import java.util.UUID
+import java.util.*
 
 class RedisCacheSpec : ShouldSpec({
 
@@ -72,11 +72,9 @@ class RedisCacheSpec : ShouldSpec({
 
     should("return back two random UUIDs when allow_external_UUID=false and 2 payload transfers were successfully cached") {
         // given: Request object
-        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer()
-        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer()
-        xmlPayloadTransfer.key = null
-        jsonPayloadTransfer.key = null
-        val requestObject = RequestObject(listOf(xmlPayloadTransfer, jsonPayloadTransfer))
+        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = null }
+        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply { key = null }
+        val requestObject = RequestObject.of(xmlPayloadTransfer, jsonPayloadTransfer)
 
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = BaseSpec.getPrebidCacheApi().postCache(requestObject)
@@ -93,8 +91,7 @@ class RedisCacheSpec : ShouldSpec({
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true"))
 
         // and: Request object with set payload transfer UUID key
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        requestObject.puts[0].key = getRandomUuid()
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = getRandomUuid() }
 
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = prebidCacheApi.postCache(requestObject)
@@ -110,11 +107,9 @@ class RedisCacheSpec : ShouldSpec({
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true"))
 
         // and: Request object with set 2 payload transfers
-        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer()
-        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer()
-        xmlPayloadTransfer.key = getRandomUuid()
-        jsonPayloadTransfer.key = getRandomUuid()
-        val requestObject = RequestObject(listOf(xmlPayloadTransfer, jsonPayloadTransfer))
+        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = getRandomUuid() }
+        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply { key = getRandomUuid() }
+        val requestObject = RequestObject.of(xmlPayloadTransfer, jsonPayloadTransfer)
 
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = prebidCacheApi.postCache(requestObject)

@@ -9,8 +9,8 @@ import org.prebid.cache.functional.model.request.MediaType.XML
 @JsonInclude(NON_NULL)
 data class PayloadTransfer(
     var type: MediaType,
-    var key: String? = null,
     var value: String,
+    var key: String? = null,
     var expiry: Long? = null,
     var ttlseconds: Long? = null,
     var prefix: String? = null
