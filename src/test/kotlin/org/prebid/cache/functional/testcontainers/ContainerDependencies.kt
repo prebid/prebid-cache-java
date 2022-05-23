@@ -14,6 +14,8 @@ abstract class ContainerDependencies {
         private const val prebidCacheImageName = "prebid-cache:latest"
         private const val mockServerImageVersion = "5.13.2"
 
+        private val launchContainers = System.getProperty("launchContainers")?.toBoolean() ?: true
+
         val network: Network = Network.newNetwork()
         val redisContainer: RedisContainer = RedisContainer(redisImageName).withNetwork(network)
         val aerospikeContainer: AerospikeContainer = AerospikeContainer(aerospikeImageName).withNetwork(network)
@@ -22,12 +24,15 @@ abstract class ContainerDependencies {
         val prebidCacheContainerPool = PrebidCacheContainerPool(prebidCacheImageName)
 
         fun startCacheServerContainers() {
-            Startables.deepStart(listOf(redisContainer, aerospikeContainer))
-                .join()
+            if (launchContainers) {
+                Startables.deepStart(listOf(redisContainer, aerospikeContainer)).join()
+            }
         }
 
-        fun stopCacheServerContainers() =
-            listOf(redisContainer, aerospikeContainer).parallelStream()
-                .forEach { it.stop() }
+        fun stopCacheServerContainers() {
+            if (launchContainers) {
+                listOf(redisContainer, aerospikeContainer).parallelStream().forEach { it.stop() }
+            }
+        }
     }
 }
