@@ -5,8 +5,8 @@ import com.google.common.collect.ImmutableMap;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
@@ -22,7 +22,6 @@ import org.prebid.cache.model.ResponseObject;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -83,15 +82,15 @@ public class PostCacheHandler extends CacheHandler {
 
     public Mono<ServerResponse> save(final ServerRequest request) {
         metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
-        val timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(type)
+        final var timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(type)
                 .orElse(null);
 
         String secondaryCache = request.queryParam(SECONDARY_CACHE_KEY).orElse(StringUtils.EMPTY);
 
-        val bodyMono = getRequestBodyMono(request);
-        val monoList = bodyMono.map(RequestObject::getPuts);
-        val flux = monoList.flatMapMany(Flux::fromIterable);
-        val payloadFlux = flux
+        final var bodyMono = getRequestBodyMono(request);
+        final var monoList = bodyMono.map(RequestObject::getPuts);
+        final var flux = monoList.flatMapMany(Flux::fromIterable);
+        final var payloadFlux = flux
                 .map(payload -> payload.toBuilder()
                         .prefix(config.getPrefix())
                         .expiry(adjustExpiry(payload.compareAndGetExpiry()))
@@ -179,12 +178,13 @@ public class PostCacheHandler extends CacheHandler {
             webClients.forEach((ip, webClient) -> webClient.post()
                     .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath())
                             .queryParam("secondaryCache", "yes").build())
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                    .contentType(MediaType.APPLICATION_JSON)
                     .syncBody(requestObject)
                     .exchange()
                     .doOnError(throwable -> {
                         metricsRecorder.getSecondaryCacheWriteError().mark();
-                        log.info("Failed to send request : ", throwable);
+                        log.info("Failed to send request: '{}', cause: '{}'",
+                                ExceptionUtils.getMessage(throwable), ExceptionUtils.getMessage(throwable));
                     })
                     .subscribe(clientResponse -> {
                         if (clientResponse.statusCode() != HttpStatus.OK) {
@@ -208,7 +208,8 @@ public class PostCacheHandler extends CacheHandler {
                 try {
                     requestObject = objectMapper.readValue(value, RequestObject.class);
                 } catch (IOException e) {
-                    log.error("Exception occurred while deserialize request body", e);
+                    log.error("Exception occurred while deserialize request body: '{}', cause: '{}'",
+                            ExceptionUtils.getMessage(e), ExceptionUtils.getMessage(e));
                 }
                 return requestObject;
             }).doOnError(throwable ->
@@ -217,6 +218,5 @@ public class PostCacheHandler extends CacheHandler {
         }
         return request.bodyToMono(RequestObject.class);
     }
-
 }
 

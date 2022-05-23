@@ -4,20 +4,16 @@ import org.testcontainers.containers.GenericContainer
 
 class AerospikeContainer(imageName: String) : GenericContainer<AerospikeContainer>(imageName) {
 
-    companion object {
-        const val PORT = 3000
-        const val NAMESPACE = "prebid_cache"
-    }
-
     init {
         withNamespace()
     }
 
-    fun getContainerHost(): String {
-        return networkAliases.first()
-    }
+    fun getContainerHost(): String = networkAliases.first()
 
-    private fun withNamespace(): AerospikeContainer {
-        return withEnv(mapOf("NAMESPACE" to NAMESPACE))
+    private fun withNamespace(): AerospikeContainer = withEnv(mapOf("NAMESPACE" to NAMESPACE))
+
+    companion object {
+        const val PORT = 3000
+        const val NAMESPACE = "prebid_cache"
     }
 }

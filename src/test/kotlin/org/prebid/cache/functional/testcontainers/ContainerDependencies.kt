@@ -12,22 +12,22 @@ abstract class ContainerDependencies {
         private const val redisImageName = "redis:6.2.6-alpine"
         private const val aerospikeImageName = "aerospike:ce-5.7.0.11"
         private const val prebidCacheImageName = "prebid-cache:latest"
-        private const val mockServerImageVersion = "5.12.0"
+        private const val mockServerImageVersion = "5.13.2"
 
         val network: Network = Network.newNetwork()
         val redisContainer: RedisContainer = RedisContainer(redisImageName).withNetwork(network)
         val aerospikeContainer: AerospikeContainer = AerospikeContainer(aerospikeImageName).withNetwork(network)
-        val webCacheContainer: WebCacheContainer = WebCacheContainer(mockServerImageVersion).withNetwork(network) as WebCacheContainer
+        val webCacheContainer: WebCacheContainer =
+            WebCacheContainer(mockServerImageVersion).withNetwork(network) as WebCacheContainer
         val prebidCacheContainerPool = PrebidCacheContainerPool(prebidCacheImageName)
 
         fun startCacheServerContainers() {
             Startables.deepStart(listOf(redisContainer, aerospikeContainer))
-                    .join()
+                .join()
         }
 
-        fun stopCacheServerContainers() {
+        fun stopCacheServerContainers() =
             listOf(redisContainer, aerospikeContainer).parallelStream()
-                    .forEach { it.stop() }
-        }
+                .forEach { it.stop() }
     }
 }

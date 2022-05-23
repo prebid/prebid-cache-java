@@ -4,6 +4,7 @@ import io.lettuce.core.RedisException;
 import io.lettuce.core.api.reactive.RedisStringReactiveCommands;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.prebid.cache.exceptions.PayloadWrapperPropertyException;
 import org.prebid.cache.exceptions.RepositoryException;
 import org.prebid.cache.helpers.Json;
@@ -29,7 +30,8 @@ public class RedisRepositoryImpl implements ReactiveRepository<PayloadWrapper, S
             expiry = wrapper.getExpiry();
             normalizedId = wrapper.getNormalizedId();
         } catch (PayloadWrapperPropertyException e) {
-            log.error(e.getMessage(), e);
+            log.error("Exception occurred while getting payload wrapper property: '{}', cause: '{}'",
+                    ExceptionUtils.getMessage(e), ExceptionUtils.getMessage(e));
             return Mono.empty();
         }
 

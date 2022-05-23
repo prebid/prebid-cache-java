@@ -65,7 +65,7 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
     }
 
     private void verifyServerResponse(MediaType mediaType) {
-        val request = MockServerRequest.builder().build();
+        final var request = MockServerRequest.builder().build();
         BiConsumer<ServerResponse, Throwable> consumer = (v, t) -> {
             assertEquals(200, v.statusCode().value());
             assertTrue(v.headers().containsValue(Collections.singletonList(mediaType.toString())));
@@ -75,10 +75,9 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
     }
 
     private void verifyErrorResponse(HttpStatus status) {
-        val request = MockServerRequest.builder().build();
-        BiConsumer<ServerResponse, Throwable> consumer = (v, t) -> {
-            assertEquals(status.value(), v.statusCode().value());
-        };
+        final var request = MockServerRequest.builder().build();
+        BiConsumer<ServerResponse, Throwable> consumer =
+                (v, t) -> assertEquals(status.value(), v.statusCode().value());
 
         subscribeAndVerify(createErrorMono(request, status), consumer);
     }
@@ -183,7 +182,7 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
                 payloadValue = xmlResponse();
             }
 
-            val payload = new Payload("json", "1234567890", payloadValue);
+            final var payload = new Payload("json", "1234567890", payloadValue);
             return new PayloadWrapper("", "prefix", payload, 200L, new Date(), false);
         }
     }

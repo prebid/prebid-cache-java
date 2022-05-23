@@ -15,7 +15,9 @@ public abstract class MetricsRecorder {
         XML("pbc.${prefix}.xml"),
         ERROR_DB("pbc.${prefix}.err.db"),
         ERROR_SECONDARY_WRITE("pbc.err.secondaryWrite"),
-        ERROR_EXISTINGID("pbc.err.existingId");
+        ERROR_EXISTINGID("pbc.err.existingId"),
+        PROXY_SUCCESS("pbc.proxy.success"),
+        PROXY_FAILURE("pbc.proxy.failure");
 
         @Getter
         private String tag;

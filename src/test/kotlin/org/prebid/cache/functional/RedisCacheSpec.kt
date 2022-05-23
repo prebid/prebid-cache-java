@@ -1,5 +1,6 @@
 package org.prebid.cache.functional
 
+import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.ShouldSpec
@@ -12,7 +13,9 @@ import org.prebid.cache.functional.model.request.RequestObject
 import org.prebid.cache.functional.model.response.ResponseObject
 import org.prebid.cache.functional.service.ApiException
 import org.prebid.cache.functional.testcontainers.ContainerDependencies
-import org.prebid.cache.functional.util.PrebidCacheUtil
+import org.prebid.cache.functional.util.getRandomUuid
+import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
+import org.springframework.http.HttpStatus.NOT_FOUND
 import java.util.*
 
 class RedisCacheSpec : ShouldSpec({
@@ -23,12 +26,14 @@ class RedisCacheSpec : ShouldSpec({
         val cachePrefix = config["cache.prefix"]
 
         // when: GET cache endpoint with random UUID is called
-        val randomUuid = PrebidCacheUtil.getRandomUuid()
+        val randomUuid = getRandomUuid()
         val exception = shouldThrowExactly<ApiException> { BaseSpec.getPrebidCacheApi(config).getCache(randomUuid) }
 
         // then: Not Found exception is thrown
-        exception.statusCode shouldBe 404
-        exception.responseBody shouldContain "\"message\":\"Resource Not Found: uuid $cachePrefix$randomUuid\""
+        assertSoftly {
+            exception.statusCode shouldBe NOT_FOUND.value()
+            exception.responseBody shouldContain "\"message\":\"Resource Not Found: uuid $cachePrefix$randomUuid\""
+        }
     }
 
     should("rethrow an exception from Redis cache server when such happens") {
@@ -43,8 +48,10 @@ class RedisCacheSpec : ShouldSpec({
         val exception = shouldThrowExactly<ApiException> { prebidCacheApi.postCache(requestObject) }
 
         // then: Internal Server Error exception is thrown
-        exception.statusCode shouldBe 500
-        exception.responseBody shouldContain "\"message\":\"ERR invalid expire time in setex\""
+        assertSoftly {
+            exception.statusCode shouldBe INTERNAL_SERVER_ERROR.value()
+            exception.responseBody shouldContain "\"message\":\"ERR invalid expire time in setex\""
+        }
 
         // cleanup
         ContainerDependencies.prebidCacheContainerPool.stopPrebidCacheContainer(config)
@@ -65,11 +72,9 @@ class RedisCacheSpec : ShouldSpec({
 
     should("return back two random UUIDs when allow_external_UUID=false and 2 payload transfers were successfully cached") {
         // given: Request object
-        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer()
-        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer()
-        xmlPayloadTransfer.key = null
-        jsonPayloadTransfer.key = null
-        val requestObject = RequestObject(listOf(xmlPayloadTransfer, jsonPayloadTransfer))
+        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = null }
+        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply { key = null }
+        val requestObject = RequestObject.of(xmlPayloadTransfer, jsonPayloadTransfer)
 
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = BaseSpec.getPrebidCacheApi().postCache(requestObject)
@@ -86,8 +91,7 @@ class RedisCacheSpec : ShouldSpec({
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true"))
 
         // and: Request object with set payload transfer UUID key
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        requestObject.puts[0].key = PrebidCacheUtil.getRandomUuid()
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = getRandomUuid() }
 
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = prebidCacheApi.postCache(requestObject)
@@ -103,11 +107,9 @@ class RedisCacheSpec : ShouldSpec({
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true"))
 
         // and: Request object with set 2 payload transfers
-        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer()
-        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer()
-        xmlPayloadTransfer.key = PrebidCacheUtil.getRandomUuid()
-        jsonPayloadTransfer.key = PrebidCacheUtil.getRandomUuid()
-        val requestObject = RequestObject(listOf(xmlPayloadTransfer, jsonPayloadTransfer))
+        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = getRandomUuid() }
+        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply { key = getRandomUuid() }
+        val requestObject = RequestObject.of(xmlPayloadTransfer, jsonPayloadTransfer)
 
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = prebidCacheApi.postCache(requestObject)
