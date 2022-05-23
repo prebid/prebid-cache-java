@@ -8,7 +8,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.awaitility.Awaitility.await;
 
-public class WiremockAwaitility {
+public class AwaitilityUtil {
 
     public static void awaitAndVerify(RequestPatternBuilder requestPatternBuilder, long timeoutMillis) {
         awaitAndVerify(1, requestPatternBuilder, timeoutMillis);

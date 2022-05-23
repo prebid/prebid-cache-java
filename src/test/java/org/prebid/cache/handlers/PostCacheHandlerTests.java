@@ -42,7 +42,7 @@ import java.util.function.Supplier;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
-import static org.prebid.cache.util.WiremockAwaitility.awaitAndVerify;
+import static org.prebid.cache.util.AwaitilityUtil.awaitAndVerify;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 @ExtendWith(SpringExtension.class)
