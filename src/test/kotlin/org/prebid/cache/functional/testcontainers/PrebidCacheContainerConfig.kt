@@ -36,7 +36,7 @@ class PrebidCacheContainerConfig(private val redisHost: String, private val aero
         mapOf(
             "cache.min.expiry" to minExpiry,
             "cache.max.expiry" to maxExpiry,
-            "cache.expiry.sec" to "300"
+            "cache.expiry.sec" to "500"
         )
 
     fun getCacheTimeoutConfig(timeoutMs: String): Map<String, String> =
