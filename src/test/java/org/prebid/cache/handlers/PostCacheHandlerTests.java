@@ -36,14 +36,13 @@ import reactor.test.StepVerifier;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
+import static org.prebid.cache.util.WiremockAwaitility.awaitAndVerify;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 @ExtendWith(SpringExtension.class)
@@ -154,7 +153,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         final var responseMono = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumer =
+        final Consumer<ServerResponse> consumer =
             serverResponse -> assertEquals(200, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
@@ -162,11 +161,11 @@ class PostCacheHandlerTests extends CacheHandlerTests {
             .expectComplete()
             .verify();
 
-        await().atLeast(10, TimeUnit.MILLISECONDS);
-
-        verify(postRequestedFor(urlPathEqualTo("/cache"))
+        final var requestPatternBuilder = postRequestedFor(urlPathEqualTo("/cache"))
             .withQueryParam("secondaryCache", equalTo("yes"))
-            .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase("application/json")));
+            .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase("application/json"));
+
+        awaitAndVerify(requestPatternBuilder, 5000);
     }
 
     @Test
