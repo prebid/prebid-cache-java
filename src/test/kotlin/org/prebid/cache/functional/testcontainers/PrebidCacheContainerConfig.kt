@@ -10,27 +10,8 @@ class PrebidCacheContainerConfig(private val redisHost: String, private val aero
     fun getBaseRedisConfig(allowExternalUuid: String): Map<String, String> =
         getBaseConfig(allowExternalUuid) + getRedisConfig()
 
-    fun getBaseAerospikeConfig(allowExternalUuid: String): Map<String, String> =
-        getBaseConfig(allowExternalUuid) + getAerospikeConfig()
-
-    fun getRedisConfig(): Map<String, String> =
-        mapOf(
-            "spring.redis.port" to RedisContainer.PORT.toString(),
-            "spring.redis.host" to redisHost,
-            "spring.redis.timeout" to "300"
-        )
-
-    fun getAerospikeConfig(aerospikeNamespace: String = NAMESPACE): Map<String, String> =
-        mapOf(
-            "spring.aerospike.port" to AerospikeContainer.PORT.toString(),
-            "spring.aerospike.host" to aerospikeHost,
-            "spring.aerospike.cores" to "4",
-            "spring.aerospike.password" to "",
-            "spring.aerospike.first_backoff" to "300",
-            "spring.aerospike.max_backoff" to "1000",
-            "spring.aerospike.max_retry" to "3",
-            "spring.aerospike.namespace" to aerospikeNamespace
-        )
+    fun getBaseAerospikeConfig(allowExternalUuid: String, aerospikeNamespace: String = NAMESPACE): Map<String, String> =
+        getBaseConfig(allowExternalUuid) + getAerospikeConfig(aerospikeNamespace)
 
     fun getCacheExpiryConfig(minExpiry: String = "15", maxExpiry: String = "28800"): Map<String, String> =
         mapOf(
@@ -55,6 +36,25 @@ class PrebidCacheContainerConfig(private val redisHost: String, private val aero
         mapOf(
             "cache.host_param_protocol" to "http",
             "cache.allowed-proxy-host" to cacheHost
+        )
+
+    private fun getRedisConfig(): Map<String, String> =
+        mapOf(
+            "spring.redis.port" to RedisContainer.PORT.toString(),
+            "spring.redis.host" to redisHost,
+            "spring.redis.timeout" to "300"
+        )
+
+    private fun getAerospikeConfig(aerospikeNamespace: String): Map<String, String> =
+        mapOf(
+            "spring.aerospike.port" to AerospikeContainer.PORT.toString(),
+            "spring.aerospike.host" to aerospikeHost,
+            "spring.aerospike.cores" to "4",
+            "spring.aerospike.password" to "",
+            "spring.aerospike.first_backoff" to "300",
+            "spring.aerospike.max_backoff" to "1000",
+            "spring.aerospike.max_retry" to "3",
+            "spring.aerospike.namespace" to aerospikeNamespace
         )
 
     private fun getBaseConfig(allowExternalUuid: String): Map<String, String> =
