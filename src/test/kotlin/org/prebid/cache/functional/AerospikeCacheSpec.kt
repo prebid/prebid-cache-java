@@ -42,7 +42,7 @@ class AerospikeCacheSpec : ShouldSpec({
     should("rethrow an exception from Aerospike cache server when such happens") {
         // given: Prebid Cache with not matched to Aerospike server namespace
         val unmatchedNamespace = getRandomString()
-        val config = prebidCacheConfig.getCacheExpiryConfig() + prebidCacheConfig.getAerospikeConfig(unmatchedNamespace)
+        val config = prebidCacheConfig.getBaseAerospikeConfig("true", unmatchedNamespace)
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(config)
 
         // and: Default request object
