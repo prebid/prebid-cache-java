@@ -108,7 +108,7 @@ class GeneralCacheSpec : ShouldSpec({
         // and: Request object
         val requestObject = RequestObject.getDefaultJsonRequestObject()
 
-        // and: POST cache endpoint is called
+        // when: POST cache endpoint is called
         val exception = shouldThrowExactly<ApiException> { prebidCacheApi.postCache(requestObject) }
 
         // then: Internal Server Exception is thrown
@@ -127,8 +127,11 @@ class GeneralCacheSpec : ShouldSpec({
                     BaseSpec.prebidCacheConfig.getCacheTimeoutConfig(requestTimeoutMs)
         )
 
-        // and: GET cache endpoint is called
-        val exception = shouldThrowExactly<ApiException> { prebidCacheApi.getCache(getRandomUuid()) }
+        // and: POST cache endpoint is called
+        val postResponse = BaseSpec.getPrebidCacheApi().postCache(RequestObject.getDefaultJsonRequestObject())
+
+        // when: GET cache endpoint is called
+        val exception = shouldThrowExactly<ApiException> { prebidCacheApi.getCache(postResponse.responses[0].uuid) }
 
         // then: Internal Server Exception is thrown
         assertSoftly {
