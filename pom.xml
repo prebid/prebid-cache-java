@@ -41,7 +41,7 @@
         <ci.repository.revision.number>manual</ci.repository.revision.number>
         <mvn.build.timestamp.format>yyyy-MM-dd HH:mm</mvn.build.timestamp.format>
 
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
