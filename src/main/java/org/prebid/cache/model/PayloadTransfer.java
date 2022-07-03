@@ -15,6 +15,7 @@ public class PayloadTransfer {
     Long expiry;
     Long ttlseconds;
     transient String prefix;
+    Long timestamp;
 
     public String valueAsString() {
         if (value == null)
