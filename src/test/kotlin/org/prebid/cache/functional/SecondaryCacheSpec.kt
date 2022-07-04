@@ -183,4 +183,30 @@ class SecondaryCacheSpec : ShouldSpec({
         secondaryCacheRequest.puts.size shouldBe 1
         secondaryCacheRequest.puts[0].expiry shouldBe configCacheMinExpiry
     }
+
+    should("set cache timestamp equals to request 'timestamp' when timestamp parameter is given") {
+        // given: Request object with set 'ttlseconds' parameter
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply {
+            puts[0].key = getRandomUuid()
+            puts[0].timestamp = 1133
+        }
+
+        // when: POST cache endpoint is called
+        val responseObject: ResponseObject = prebidCacheApi.postCache(requestObject, "no")
+
+        // then: UUID from request is returned
+        responseObject.responses.size shouldBe 1
+        responseObject.responses[0].uuid shouldBe requestObject.puts[0].key
+
+        // and: Request to secondary cache was sent
+        val secondaryCacheRecordedRequests =
+                webCacheContainerClient.getSecondaryCacheRecordedRequests(requestObject.puts[0].key!!)
+        secondaryCacheRecordedRequests?.size shouldBe 1
+
+        // and: Secondary cache request 'expiry' parameter matches to the PBC request 'ttlseconds' parameter
+        val secondaryCacheRequest =
+                objectMapper.readValue(secondaryCacheRecordedRequests!!.first().bodyAsString, RequestObject::class.java)
+        secondaryCacheRequest.puts.size shouldBe 1
+        secondaryCacheRequest.puts[0].timestamp shouldBe requestObject.puts[0].timestamp
+    }
 })
