@@ -185,7 +185,7 @@ class SecondaryCacheSpec : ShouldSpec({
     }
 
     should("set cache timestamp equals to request 'timestamp' when timestamp parameter is given") {
-        // given: Request object with set 'ttlseconds' parameter
+        // given: Request object with set 'timestamp' parameter
         val requestObject = RequestObject.getDefaultJsonRequestObject().apply {
             puts[0].key = getRandomUuid()
             puts[0].timestamp = 1133
@@ -203,7 +203,7 @@ class SecondaryCacheSpec : ShouldSpec({
                 webCacheContainerClient.getSecondaryCacheRecordedRequests(requestObject.puts[0].key!!)
         secondaryCacheRecordedRequests?.size shouldBe 1
 
-        // and: Secondary cache request 'expiry' parameter matches to the PBC request 'ttlseconds' parameter
+        // and: Secondary cache request 'timestamp' parameter matches to the PBC request 'timestamp' parameter
         val secondaryCacheRequest =
                 objectMapper.readValue(secondaryCacheRecordedRequests!!.first().bodyAsString, RequestObject::class.java)
         secondaryCacheRequest.puts.size shouldBe 1
