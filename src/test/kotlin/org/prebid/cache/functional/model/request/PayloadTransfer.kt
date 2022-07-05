@@ -13,7 +13,8 @@ data class PayloadTransfer(
     var key: String? = null,
     var expiry: Long? = null,
     var ttlseconds: Long? = null,
-    var prefix: String? = null
+    var prefix: String? = null,
+    var timestamp: Long? = null
 ) {
 
     companion object {
