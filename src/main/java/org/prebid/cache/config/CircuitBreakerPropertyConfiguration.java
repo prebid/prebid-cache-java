@@ -3,7 +3,6 @@ package org.prebid.cache.config;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
-import io.github.resilience4j.circuitbreaker.monitoring.health.CircuitBreakerHealthIndicator;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -29,11 +28,12 @@ public class CircuitBreakerPropertyConfiguration {
 
     @Bean
     CircuitBreakerConfig config() {
+        int slidingWindowSize = getClosedStateCallsNumber();
         return CircuitBreakerConfig.custom()
                 .failureRateThreshold(getFailureRateThreshold())
                 .waitDurationInOpenState(Duration.ofMillis(getOpenStateDuration()))
-                .ringBufferSizeInHalfOpenState(getHalfOpenStateCallsNumber())
-                .ringBufferSizeInClosedState(getClosedStateCallsNumber())
+                .permittedNumberOfCallsInHalfOpenState(getHalfOpenStateCallsNumber())
+                .slidingWindow(slidingWindowSize, slidingWindowSize, CircuitBreakerConfig.SlidingWindowType.COUNT_BASED)
                 .build();
     }
 
@@ -45,10 +45,5 @@ public class CircuitBreakerPropertyConfiguration {
     @Bean
     CircuitBreaker circuitBreaker() {
         return registry().circuitBreaker(CIRCUIT_BREAKER_NAME, config());
-    }
-
-    @Bean
-    CircuitBreakerHealthIndicator healthIndicator() {
-        return new CircuitBreakerHealthIndicator(circuitBreaker());
     }
 }

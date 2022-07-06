@@ -36,14 +36,13 @@ import reactor.test.StepVerifier;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
+import static org.prebid.cache.util.AwaitilityUtil.awaitAndVerify;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 @ExtendWith(SpringExtension.class)
@@ -102,7 +101,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testVerifySave() {
-        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 11111L);
         final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
             , 1800L, new Date(100), true);
         given(currentDateProvider.get()).willReturn(new Date(100));
@@ -112,7 +111,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
             currentDateProvider, circuitBreaker);
 
         final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
-            "prebid_");
+            "prebid_", 11111L);
         final var request = Mono.just(new RequestObject(ImmutableList.of(payload)));
         final var requestMono = MockServerRequest.builder()
             .method(HttpMethod.POST)
@@ -132,7 +131,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testSecondaryCacheSuccess() {
-        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 11111L);
         final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
             , 1800L, new Date(100), true);
         given(currentDateProvider.get()).willReturn(new Date(100));
@@ -145,7 +144,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
             currentDateProvider, circuitBreaker);
 
         final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
-            "prebid_");
+            "prebid_", 11111L);
         final var request = Mono.just(new RequestObject(ImmutableList.of(payload)));
         final var requestMono = MockServerRequest.builder()
             .method(HttpMethod.POST)
@@ -154,7 +153,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         final var responseMono = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumer =
+        final Consumer<ServerResponse> consumer =
             serverResponse -> assertEquals(200, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
@@ -162,11 +161,11 @@ class PostCacheHandlerTests extends CacheHandlerTests {
             .expectComplete()
             .verify();
 
-        await().atLeast(10, TimeUnit.MILLISECONDS);
-
-        verify(postRequestedFor(urlPathEqualTo("/cache"))
+        final var requestPatternBuilder = postRequestedFor(urlPathEqualTo("/cache"))
             .withQueryParam("secondaryCache", equalTo("yes"))
-            .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase("application/json")));
+            .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase("application/json"));
+
+        awaitAndVerify(requestPatternBuilder, 5000);
     }
 
     @Test
@@ -180,7 +179,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
             currentDateProvider, circuitBreaker);
 
         final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
-            "prebid_");
+            "prebid_", 11111L);
         final var request = Mono.just(new RequestObject(ImmutableList.of(payload)));
         final var requestMono = MockServerRequest.builder()
             .method(HttpMethod.POST)
@@ -200,7 +199,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testUUIDDuplication() {
-        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 11111L);
         final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
             , 1800L, new Date(100), true);
         given(currentDateProvider.get()).willReturn(new Date(100));
@@ -214,7 +213,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
             currentDateProvider, circuitBreaker);
 
         final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
-            "prebid_");
+            "prebid_", 11111L);
         final var request = Mono.just(new RequestObject(ImmutableList.of(payload)));
         final var requestMono = MockServerRequest.builder()
             .method(HttpMethod.POST)

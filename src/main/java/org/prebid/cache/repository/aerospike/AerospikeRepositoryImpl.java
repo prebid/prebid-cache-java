@@ -23,7 +23,7 @@ import org.prebid.cache.repository.ReactiveRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
-import reactor.retry.Retry;
+import reactor.util.retry.Retry;
 
 import javax.validation.constraints.NotNull;
 import java.time.Duration;
@@ -65,9 +65,9 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
         }
 
         return Mono.<String>create(sink -> client.put(eventLoops.next(),
-                new AerospikeWriteListener(sink, normalizedId), policy,
-                new Key(configuration.getNamespace(), "", normalizedId),
-                new Bin(BIN_NAME, Json.toJson(wrapper)))).map(payload -> wrapper)
+                        new AerospikeWriteListener(sink, normalizedId), policy,
+                        new Key(configuration.getNamespace(), "", normalizedId),
+                        new Bin(BIN_NAME, Json.toJson(wrapper)))).map(payload -> wrapper)
                 .retryWhen(getRetryPolicy())
                 .onErrorResume(this::handleAerospikeError);
     }
@@ -75,8 +75,8 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
     @Override
     public Mono<PayloadWrapper> findById(String id) {
         return Mono.<String>create(sink -> client.get(eventLoops.next(),
-                new AerospikeReadListener(sink, id),
-                policy, new Key(configuration.getNamespace(), "", id)))
+                        new AerospikeReadListener(sink, id),
+                        policy, new Key(configuration.getNamespace(), "", id)))
                 .map(json -> Json.createPayloadFromJson(json, PayloadWrapper.class))
                 .retryWhen(getRetryPolicy())
                 .onErrorResume(this::handleAerospikeError);
@@ -96,15 +96,16 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
         return Arrays.asList(ResultCode.GENERATION_ERROR, ResultCode.KEY_NOT_FOUND_ERROR);
     }
 
-    private Retry<Object> getRetryPolicy() {
-        Duration firstBackoff = Duration.ofMillis(configuration.getFirstBackoff());
+    private Retry getRetryPolicy() {
+        Duration minBackoff = Duration.ofMillis(configuration.getFirstBackoff());
         Duration maxBackoff = Duration.ofMillis(configuration.getMaxBackoff());
+        long maxAttempts = configuration.getMaxRetry();
 
-        return Retry.onlyIf(context -> context.exception() instanceof AerospikeException
-                && getRetryCodes().contains(((AerospikeException) context.exception()).getResultCode())
-        ).doOnRetry(context -> log.warn("Retrying context {}", context))
-                .retryMax(configuration.getMaxRetry())
-                .exponentialBackoffWithJitter(firstBackoff, maxBackoff);
+        return Retry.backoff(maxAttempts, minBackoff)
+                .maxBackoff(maxBackoff)
+                .filter(e -> e instanceof AerospikeException
+                        && getRetryCodes().contains(((AerospikeException) e).getResultCode()))
+                .doAfterRetry(signal -> log.warn("Retrying context {}", signal.retryContextView()));
     }
 
     private <T> Mono<T> handleAerospikeError(Throwable throwable) {

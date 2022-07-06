@@ -42,7 +42,6 @@ public class GetCacheHandler extends CacheHandler {
     private final CircuitBreaker circuitBreaker;
     private final Map<String, WebClient> clientsCache;
     private static final String UNSUPPORTED_MEDIATYPE = "Unsupported Media Type.";
-    private static final String LOCALHOST = "localhost";
 
     @Autowired
     public GetCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
@@ -85,10 +84,11 @@ public class GetCacheHandler extends CacheHandler {
     private Mono<ServerResponse> fetch(final ServerRequest request,
                                        final String id,
                                        final Timer.Context timerContext) {
+
         final var cacheUrl = resolveCacheUrl(request);
 
         final var responseMono =
-                StringUtils.containsAny(cacheUrl, config.getAllowedProxyHost(), LOCALHOST)
+                StringUtils.containsIgnoreCase(cacheUrl, config.getAllowedProxyHost())
                         ? processProxyRequest(request, id, cacheUrl)
                         : processRequest(request, id);
 
