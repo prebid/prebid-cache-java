@@ -11,5 +11,4 @@ public class Payload {
     String type;
     String key;
     String value;
-    Long timestamp;
 }

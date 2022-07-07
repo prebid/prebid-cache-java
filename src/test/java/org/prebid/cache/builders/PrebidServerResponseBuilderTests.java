@@ -182,7 +182,7 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
                 payloadValue = xmlResponse();
             }
 
-            final var payload = new Payload("json", "1234567890", payloadValue, 11111L);
+            final var payload = new Payload("json", "1234567890", payloadValue);
             return new PayloadWrapper("", "prefix", payload, 200L, new Date(), false);
         }
     }

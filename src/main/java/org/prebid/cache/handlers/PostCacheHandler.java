@@ -129,11 +129,7 @@ public class PostCacheHandler extends CacheHandler {
                 new PayloadWrapper(
                         RandomUUID.extractUUID(transfer),
                         transfer.getPrefix(),
-                        new Payload(
-                                transfer.getType(),
-                                transfer.getKey(),
-                                transfer.valueAsString(),
-                                transfer.getTimestamp()),
+                        new Payload(transfer.getType(), transfer.getKey(), transfer.valueAsString()),
                         transfer.getExpiry(),
                         currentDateProvider.get(),
                         RandomUUID.isExternalUUID(transfer)
@@ -201,13 +197,8 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private PayloadTransfer wrapperToTransfer(final PayloadWrapper wrapper) {
-        return PayloadTransfer.builder()
-                .type(wrapper.getPayload().getType())
-                .key(wrapper.getId())
-                .value(wrapper.getPayload().getValue())
-                .expiry(wrapper.getExpiry())
-                .timestamp(wrapper.getPayload().getTimestamp())
-                .build();
+        return PayloadTransfer.builder().type(wrapper.getPayload().getType())
+                .key(wrapper.getId()).value(wrapper.getPayload().getValue()).expiry(wrapper.getExpiry()).build();
     }
 
     private Mono<RequestObject> getRequestBodyMono(final ServerRequest request) {
