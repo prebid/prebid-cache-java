@@ -209,10 +209,10 @@ class GeneralCacheSpec : ShouldSpec({
     should("ignore fields that pass to cache and return ok status code") {
         // given: Request object with fields that should be ignored
         val requestObject = RequestObject.getDefaultJsonRequestObject().apply {
-            puts[0].bidder = getRandomString()
-            puts[0].aid = getRandomString()
-            puts[0].bidid = getRandomString()
-            puts[0].timestamp = 11L
+            puts.first().bidder = getRandomString()
+            puts.first().aid = getRandomString()
+            puts.first().bidid = getRandomString()
+            puts.first().timestamp = 11L
         }
 
         // and: POST cache endpoint is called
@@ -223,5 +223,6 @@ class GeneralCacheSpec : ShouldSpec({
 
         // then: PBC should not fail
         getCacheResponse.status shouldBe HttpStatusCode.OK
+        getCacheResponse.bodyAsText() shouldBe requestObject.puts[0].value
     }
 })
