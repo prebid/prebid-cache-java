@@ -8,3 +8,5 @@ fun getRandomString(length: Int = 16): String {
     val allowedChars = ('A'..'Z') + ('a'..'z') + ('0'..'9')
     return List(length) { allowedChars.random() }.joinToString("")
 }
+
+fun getRandomLong(length: Int = 16): Long = Random().nextInt(length).toLong()
