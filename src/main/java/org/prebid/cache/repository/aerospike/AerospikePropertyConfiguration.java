@@ -35,7 +35,7 @@ public class AerospikePropertyConfiguration {
     private String host;
     @NotNull
     private Integer port;
-    @NotNull
+
     private String password;
     @NotNull
     private Integer cores;
@@ -47,7 +47,7 @@ public class AerospikePropertyConfiguration {
     private int maxRetry;
     @NotNull
     private String namespace;
-
+    @NotNull
     private boolean preventUUIDDuplication;
 
     private static final int DEFAULT_PORT = 3000;

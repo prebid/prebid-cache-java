@@ -15,11 +15,11 @@ import lombok.NoArgsConstructor;
 import lombok.Singular;
 import org.prebid.cache.helpers.ValidateRedisPropertyConditional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
-import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -32,6 +32,7 @@ import static java.util.Objects.requireNonNull;
 @AllArgsConstructor
 @Configuration
 @Conditional(ValidateRedisPropertyConditional.class)
+@ConfigurationProperties(prefix = "spring.redis")
 public class RedisPropertyConfiguration {
 
     private String host;
@@ -41,11 +42,9 @@ public class RedisPropertyConfiguration {
     private Cluster cluster;
 
     @Data
-    @ConditionalOnProperty(prefix = "spring.redis", name = {"cluster"})
     public static class Cluster {
 
         @Singular
-        @NotNull
         List<String> nodes;
 
         boolean enableTopologyRefresh;

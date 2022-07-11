@@ -12,15 +12,10 @@ public class ValidateRedisPropertyConditional implements Condition {
         final Environment contextEnvironment = context.getEnvironment();
         final boolean timeOut = contextEnvironment.containsProperty("spring.redis.timeout");
         final boolean host = contextEnvironment.containsProperty("spring.redis.host");
-        final boolean password = contextEnvironment.containsProperty("spring.redis.password");
         final boolean port = contextEnvironment.containsProperty("spring.redis.port");
         final boolean cluster = contextEnvironment.containsProperty("spring.redis.cluster");
-        final boolean clusterNodes = contextEnvironment.containsProperty("spring.redis.cluster.nodes");
+        final boolean nodes = contextEnvironment.containsProperty("spring.redis.cluster.nodes");
 
-        if (timeOut & host & port & password & cluster) {
-            return false;
-        } else if (timeOut & host & port & password) {
-            return true;
-        } else return timeOut & cluster & clusterNodes;
+        return timeOut & host & port || timeOut & cluster & nodes;
     }
 }
