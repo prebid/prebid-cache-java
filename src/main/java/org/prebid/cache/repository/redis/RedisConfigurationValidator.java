@@ -28,12 +28,13 @@ public class RedisConfigurationValidator implements Condition {
     }
 
     private static ValidationResult validateInstanceConfiguration(Environment environment) {
+        final boolean timeOut = environment.containsProperty("spring.redis.timeout");
         final boolean host = environment.containsProperty("spring.redis.host");
         final boolean password = environment.containsProperty("spring.redis.password");
         final boolean port = environment.containsProperty("spring.redis.port");
 
         final boolean instanceDefined = host || port || password;
-        final boolean instanceValid = host && port;
+        final boolean instanceValid = timeOut && host && port;
 
         return ValidationResult.of(instanceDefined, instanceValid);
     }
