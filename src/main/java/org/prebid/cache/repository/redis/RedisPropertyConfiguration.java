@@ -15,7 +15,6 @@ import lombok.NoArgsConstructor;
 import lombok.Singular;
 import org.prebid.cache.helpers.ValidateRedisPropertyConditional;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
