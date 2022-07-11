@@ -31,14 +31,23 @@ import static java.util.Objects.requireNonNull;
 @ConditionalOnProperty(prefix = "spring.aerospike", name = {"host"})
 @ConfigurationProperties(prefix = "spring.aerospike")
 public class AerospikePropertyConfiguration {
+    @NotNull
     private String host;
+    @NotNull
     private Integer port;
+    @NotNull
     private String password;
+    @NotNull
     private Integer cores;
+    @NotNull
     private Long firstBackoff;
+    @NotNull
     private Long maxBackoff;
+    @NotNull
     private int maxRetry;
+    @NotNull
     private String namespace;
+    @NotNull
     private boolean preventUUIDDuplication;
 
     private static final int DEFAULT_PORT = 3000;
