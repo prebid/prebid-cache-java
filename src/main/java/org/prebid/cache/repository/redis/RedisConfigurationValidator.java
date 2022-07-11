@@ -33,7 +33,7 @@ public class RedisConfigurationValidator implements Condition {
         final boolean port = environment.containsProperty("spring.redis.port");
 
         final boolean instanceDefined = host || port || password;
-        final boolean instanceValid = host && port && password;
+        final boolean instanceValid = host && port;
 
         return ValidationResult.of(instanceDefined, instanceValid);
     }
