@@ -16,6 +16,7 @@ import lombok.Singular;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
@@ -29,7 +30,7 @@ import static java.util.Objects.requireNonNull;
 @NoArgsConstructor
 @AllArgsConstructor
 @Configuration
-@ConditionalOnProperty(prefix = "spring.redis", name = {"timeout"})
+@Conditional(RedisConfigurationValidator.class)
 @ConfigurationProperties(prefix = "spring.redis")
 public class RedisPropertyConfiguration {
 
@@ -64,9 +65,9 @@ public class RedisPropertyConfiguration {
     private List<RedisURI> createRedisClusterURIs() {
 
         return cluster.getNodes().stream()
-                .map(node -> node.split(":"))
-                .map(host -> createRedisURI(host[0], Integer.parseInt(host[1])))
-                .collect(Collectors.toList());
+            .map(node -> node.split(":"))
+            .map(host -> createRedisURI(host[0], Integer.parseInt(host[1])))
+            .collect(Collectors.toList());
     }
 
     private ClusterClientOptions createRedisClusterOptions() {
@@ -79,9 +80,9 @@ public class RedisPropertyConfiguration {
                 : null;
 
         return ClusterClientOptions.builder()
-                .disconnectedBehavior(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS)
-                .topologyRefreshOptions(topologyRefreshOptions)
-                .build();
+            .disconnectedBehavior(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS)
+            .topologyRefreshOptions(topologyRefreshOptions)
+            .build();
     }
 
     @Bean(destroyMethod = "shutdown")
