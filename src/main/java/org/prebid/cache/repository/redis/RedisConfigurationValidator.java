@@ -24,7 +24,7 @@ public class RedisConfigurationValidator implements Condition {
             throw new IllegalArgumentException("Redis instance configuration is invalid");
         }
 
-        return true;
+        return instanceResult.isDefined() || clusterResult.isDefined();
     }
 
     private static ValidationResult validateInstanceConfiguration(Environment environment) {
