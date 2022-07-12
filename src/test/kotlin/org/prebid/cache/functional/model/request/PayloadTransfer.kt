@@ -14,7 +14,12 @@ data class PayloadTransfer(
     var expiry: Long? = null,
     var ttlseconds: Long? = null,
     var prefix: String? = null,
-    var timestamp: Long? = null
+
+    //Fields not affected on PBC
+    var timestamp: Long? = null,
+    var bidder: String? = null,
+    var bidid: String? = null,
+    var aid: String? = null,
 ) {
 
     companion object {

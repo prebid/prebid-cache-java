@@ -6,12 +6,14 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import org.prebid.cache.functional.mapper.objectMapper
 import org.prebid.cache.functional.model.request.MediaType.UNSUPPORTED
 import org.prebid.cache.functional.model.request.RequestObject
 import org.prebid.cache.functional.model.request.TransferValue
 import org.prebid.cache.functional.service.ApiException
+import org.prebid.cache.functional.util.getRandomLong
 import org.prebid.cache.functional.util.getRandomString
 import org.prebid.cache.functional.util.getRandomUuid
 import org.springframework.http.HttpStatus.BAD_REQUEST
@@ -202,6 +204,26 @@ class GeneralCacheSpec : ShouldSpec({
         val getCacheResponse = BaseSpec.getPrebidCacheApi().getCache(postResponse.responses[0].uuid)
 
         // then: transfer value as a plain String is returned
+        getCacheResponse.bodyAsText() shouldBe requestObject.puts[0].value
+    }
+
+    should("ignore fields that pass to cache and return ok status code") {
+        // given: Request object with fields that should be ignored
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply {
+            puts[0].bidder = getRandomString()
+            puts[0].aid = getRandomString()
+            puts[0].bidid = getRandomString()
+            puts[0].timestamp = getRandomLong()
+        }
+
+        // and: POST cache endpoint is called
+        val postResponse = BaseSpec.getPrebidCacheApi().postCache(requestObject)
+
+        // when: GET cache endpoint is called
+        val getCacheResponse = BaseSpec.getPrebidCacheApi().getCache(postResponse.responses[0].uuid)
+
+        // then: PBC should not fail
+        getCacheResponse.status shouldBe HttpStatusCode.OK
         getCacheResponse.bodyAsText() shouldBe requestObject.puts[0].value
     }
 })
