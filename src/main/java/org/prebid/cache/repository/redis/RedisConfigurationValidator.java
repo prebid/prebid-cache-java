@@ -30,10 +30,9 @@ public class RedisConfigurationValidator implements Condition {
     private static ValidationResult validateInstanceConfiguration(Environment environment) {
         final boolean timeOut = environment.containsProperty("spring.redis.timeout");
         final boolean host = environment.containsProperty("spring.redis.host");
-        final boolean password = environment.containsProperty("spring.redis.password");
         final boolean port = environment.containsProperty("spring.redis.port");
 
-        final boolean instanceDefined = host || port || password;
+        final boolean instanceDefined = host || port;
         final boolean instanceValid = timeOut && host && port;
 
         return ValidationResult.of(instanceDefined, instanceValid);
@@ -42,7 +41,8 @@ public class RedisConfigurationValidator implements Condition {
     private static ValidationResult validateClusterConfiguration(Environment environment) {
         final boolean timeOut = environment.containsProperty("spring.redis.timeout");
 
-        final boolean clusterNodes = environment.containsProperty(CLUSTER_PREFIX + "nodes");
+        final boolean clusterNodes = environment.containsProperty(CLUSTER_PREFIX + "nodes")
+            || environment.containsProperty(CLUSTER_PREFIX + "nodes[0]");
         final boolean clusterRefresh = environment.containsProperty(CLUSTER_PREFIX + "enable-topology-refresh");
         final boolean clusterTopology = environment.containsProperty(CLUSTER_PREFIX
                 + "topology-periodic-refresh-period");
