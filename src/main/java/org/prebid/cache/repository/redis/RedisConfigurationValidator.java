@@ -42,7 +42,7 @@ public class RedisConfigurationValidator implements Condition {
         final boolean timeOut = environment.containsProperty("spring.redis.timeout");
 
         final boolean clusterNodes = environment.containsProperty(CLUSTER_PREFIX + "nodes")
-            || environment.containsProperty(CLUSTER_PREFIX + "nodes[0]");
+                || environment.containsProperty(CLUSTER_PREFIX + "nodes[0]");
         final boolean clusterRefresh = environment.containsProperty(CLUSTER_PREFIX + "enable-topology-refresh");
         final boolean clusterTopology = environment.containsProperty(CLUSTER_PREFIX
                 + "topology-periodic-refresh-period");
