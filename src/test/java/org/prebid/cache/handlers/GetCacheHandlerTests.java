@@ -158,7 +158,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
         final var requestMono = MockServerRequest.builder()
             .method(HttpMethod.GET)
             .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
-            .queryParam("ch", "example.com")
+            .queryParam("ch", "localhost:8080")
             .build();
 
         final var responseMono = handler.fetch(requestMono);

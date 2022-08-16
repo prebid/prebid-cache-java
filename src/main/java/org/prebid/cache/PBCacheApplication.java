@@ -24,7 +24,7 @@ public class PBCacheApplication implements WebFluxConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         if (corsConfig.isEnabled()) {
             registry.addMapping(corsConfig.getMapping())
-                    .allowedOrigins(corsConfig.getAllowedOrigins())
+                    .allowedOriginPatterns(corsConfig.getAllowedOrigins())
                     .allowedMethods(corsConfig.getAllowedMethods())
                     .allowCredentials(corsConfig.isAllowCredentials());
         }
