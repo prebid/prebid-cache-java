@@ -120,7 +120,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         final var responseMono = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumer =
+        final Consumer<ServerResponse> consumer =
             serverResponse -> assertEquals(200, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
@@ -188,7 +188,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         final var responseMono = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumer =
+        final Consumer<ServerResponse> consumer =
             serverResponse -> assertEquals(400, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
@@ -222,7 +222,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         final var responseMono = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumer =
+        final Consumer<ServerResponse> consumer =
             serverResponse -> assertEquals(200, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
@@ -232,7 +232,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
         final var responseMonoSecond = handler.save(requestMono);
 
-        Consumer<ServerResponse> consumerSecond = serverResponse ->
+        final Consumer<ServerResponse> consumerSecond = serverResponse ->
             assertEquals(400, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMonoSecond)

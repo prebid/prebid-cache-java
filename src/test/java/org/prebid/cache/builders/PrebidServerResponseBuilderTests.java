@@ -66,7 +66,7 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
 
     private void verifyServerResponse(MediaType mediaType) {
         final var request = MockServerRequest.builder().build();
-        Consumer<Signal<ServerResponse>> consumer = signal -> {
+        final Consumer<Signal<ServerResponse>> consumer = signal -> {
             assertTrue(signal.isOnComplete());
 
             final ServerResponse response = signal.get();
@@ -79,7 +79,7 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
 
     private void verifyErrorResponse(HttpStatus status) {
         final var request = MockServerRequest.builder().build();
-        Consumer<Signal<ServerResponse>> consumer =
+        final Consumer<Signal<ServerResponse>> consumer =
                 signal -> assertEquals(status.value(), signal.get().statusCode().value());
 
         subscribeAndVerify(createErrorMono(request, status), consumer);
