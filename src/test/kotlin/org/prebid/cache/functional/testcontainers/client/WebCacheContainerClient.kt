@@ -48,15 +48,15 @@ class WebCacheContainerClient(mockServerHost: String, mockServerPort: Int) {
             .respond(response().withStatusCode(OK.value()))
 
     private fun getProxyCacheHostRequest(): HttpRequest =
-        request().withMethod(GET.name)
+        request().withMethod(GET.name())
             .withPath("/$WEB_CACHE_PATH")
 
     private fun getSecondaryCacheRequest(): HttpRequest =
-        request().withMethod(POST.name)
+        request().withMethod(POST.name())
             .withPath("/$WEB_CACHE_PATH")
 
     private fun getSecondaryCacheRequest(uuidKey: String): HttpRequest =
-        request().withMethod(POST.name)
+        request().withMethod(POST.name())
             .withPath("/$WEB_CACHE_PATH")
             .withBody(jsonPath("\$.puts[?(@.key == '$uuidKey')]"))
 }

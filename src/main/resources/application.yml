@@ -71,7 +71,7 @@ server.undertow.buffer-size: 16384
 server.undertow.direct-buffers: true
 
 ---
-spring.profiles: manage
+spring.config.activate.on-profile: manage
 management.health.defaults.enabled: true
 cors:
   enabled: true
@@ -80,7 +80,7 @@ metrics:
     enabled: true
 
 ---
-spring.profiles: local
+spring.config.activate.on-profile: local
 cache.expiry_sec: 300
 cache:
   min_expiry: 15
@@ -103,20 +103,20 @@ spring:
 
 ---
 # dev
-spring.profiles: dev
+spring.config.activate.on-profile: dev
 cache.expiry_sec: 28800
 logging.level.root: debug
 logging.config: classpath:log4j2-dev.xml
 
 ---
 # qa
-spring.profiles: qa
+spring.config.activate.on-profile: qa
 logging.level.root: info
 logging.config: classpath:log4j2-qa.xml
 
 ---
 # prod
-spring.profiles: prod
+spring.config.activate.on-profile: prod
 management.endpoint.metrics.enabled: false
 management.endpoint.env.enabled: false
 management.endpoint.configprops.enabled: false

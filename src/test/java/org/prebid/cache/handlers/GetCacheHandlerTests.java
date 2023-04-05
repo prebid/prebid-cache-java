@@ -27,14 +27,21 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Signal;
 import reactor.test.StepVerifier;
 
 import java.util.Date;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToIgnoreCase;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
@@ -106,10 +113,8 @@ class GetCacheHandlerTests extends CacheHandlerTests {
             .build();
 
         final var responseMono = handler.fetch(requestMono);
-        BiConsumer<ServerResponse, Throwable> consumer = (v, t) -> assertEquals(200, v.statusCode().value());
 
-        responseMono.doAfterSuccessOrError(consumer)
-            .subscribe();
+        responseMono.doOnEach(assertSignalStatusCode(200)).subscribe();
         StepVerifier.create(responseMono)
             .expectSubscription()
             .expectNextMatches(t -> true)
@@ -119,7 +124,6 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testVerifyFetchWithCacheHostParam() {
-
         serverMock.stubFor(get(urlPathEqualTo("/cache"))
             .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=utf-8")
                 .withBody("{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}")));
@@ -132,12 +136,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
             .build();
 
         final var responseMono = handler.fetch(requestMono);
-        BiConsumer<ServerResponse, Throwable> consumer = (v, t) -> {
-            assertEquals(200, v.statusCode().value());
-        };
-
-        responseMono.doAfterSuccessOrError(consumer)
-            .subscribe();
+        responseMono.doOnEach(assertSignalStatusCode(200)).subscribe();
 
         StepVerifier.create(responseMono)
             .expectSubscription()
@@ -153,7 +152,6 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testVerifyFailForNotFoundResourceWithCacheHostParam() {
-
         final var requestMono = MockServerRequest.builder()
             .method(HttpMethod.GET)
             .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
@@ -162,12 +160,9 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
         final var responseMono = handler.fetch(requestMono);
 
-        Consumer<ServerResponse> consumer = serverResponse -> {
-            assertEquals(404, serverResponse.statusCode().value());
-        };
-
+        responseMono.doOnEach(assertSignalStatusCode(404)).subscribe();
         StepVerifier.create(responseMono)
-            .consumeNextWith(consumer)
+            .consumeNextWith(assertStatusCode(404))
             .expectComplete()
             .verify();
     }
@@ -188,13 +183,8 @@ class GetCacheHandlerTests extends CacheHandlerTests {
             .build();
 
         final var responseMono = handler.fetch(requestMono);
-        BiConsumer<ServerResponse, Throwable> consumer = (v, t) -> {
-            assertEquals(400, v.statusCode().value());
-        };
 
-        responseMono.doAfterSuccessOrError(consumer)
-            .subscribe();
-
+        responseMono.doOnEach(assertSignalStatusCode(400)).subscribe();
         StepVerifier.create(responseMono)
             .expectSubscription()
             .expectNextMatches(t -> true)
@@ -205,5 +195,16 @@ class GetCacheHandlerTests extends CacheHandlerTests {
             .withQueryParam("uuid", equalTo("a8db2208-d085-444c-9721-c1161d7f09ce"))
             .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase(MediaType.APPLICATION_JSON_UTF8_VALUE))
         );
+    }
+
+    private static Consumer<ServerResponse> assertStatusCode(int statusCode) {
+        return response -> assertEquals(response.statusCode().value(), statusCode);
+    }
+
+    private static Consumer<Signal<ServerResponse>> assertSignalStatusCode(int statusCode) {
+        return signal -> {
+            assertTrue(signal.isOnComplete());
+            assertEquals(signal.get().statusCode().value(), statusCode);
+        };
     }
 }
