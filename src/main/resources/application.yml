@@ -31,12 +31,32 @@ logging.level.root: info
 logging.config: classpath:log4j2-console.xml
 
 # metrics
-metrics:
-  graphite:
-    enabled: false
-    host: localhost
-    port: 2003
-    prefix: prebid
+management:
+  metrics:
+    export:
+      appoptics:
+        enabled: false
+      atlas:
+        enabled: false
+      datadog:
+        enabled: false
+      dynatrace:
+        enabled: false
+      elastic:
+        enabled: false
+      ganglia:
+        enabled: false
+      graphite:
+        enabled: false
+        host: localhost
+        port: 2003
+        step: 1m
+        tags-as-prefix:
+        - prebid
+      humio:
+        enabled: false
+      influx:
+        enabled: false
 
 # circuit breaker
 circuitbreaker:
@@ -75,9 +95,11 @@ spring.profiles: manage
 management.health.defaults.enabled: true
 cors:
   enabled: true
-metrics:
-  graphite:
-    enabled: true
+management:
+  metrics:
+    export:
+      graphite:
+        enabled: true
 
 ---
 spring.profiles: local
@@ -88,7 +110,11 @@ cache:
   allow_external_UUID: true
   secondary_cache_path: "cache"
 
-metrics.graphite.enabled: false
+management:
+  metrics:
+    export:
+      graphite:
+        enabled: false
 spring:
   aerospike:
     port: 3000

@@ -12,7 +12,6 @@ import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
 import org.prebid.cache.exceptions.RequestBodyDeserializeException;
 import org.prebid.cache.helpers.RandomUUID;
-import org.prebid.cache.metrics.GraphiteMetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadTransfer;
@@ -63,7 +62,7 @@ public class PostCacheHandler extends CacheHandler {
     @Autowired
     public PostCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
                             final CacheConfig config,
-                            final GraphiteMetricsRecorder metricsRecorder,
+                            final MetricsRecorder metricsRecorder,
                             final PrebidServerResponseBuilder builder,
                             final Supplier<Date> currentDateProvider,
                             final CircuitBreaker circuitBreaker) {
@@ -182,13 +181,13 @@ public class PostCacheHandler extends CacheHandler {
                     .syncBody(requestObject)
                     .exchange()
                     .doOnError(throwable -> {
-                        metricsRecorder.getSecondaryCacheWriteError().mark();
+                        metricsRecorder.getSecondaryCacheWriteError().increment();
                         log.info("Failed to send request: '{}', cause: '{}'",
                                 ExceptionUtils.getMessage(throwable), ExceptionUtils.getMessage(throwable));
                     })
                     .subscribe(clientResponse -> {
                         if (clientResponse.statusCode() != HttpStatus.OK) {
-                            metricsRecorder.getSecondaryCacheWriteError().mark();
+                            metricsRecorder.getSecondaryCacheWriteError().increment();
                             log.debug(clientResponse.statusCode().toString());
                             log.info("Failed to write to remote address : {}", ip);
                         }

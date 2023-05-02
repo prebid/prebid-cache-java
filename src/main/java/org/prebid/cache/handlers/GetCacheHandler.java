@@ -1,6 +1,5 @@
 package org.prebid.cache.handlers;
 
-import com.codahale.metrics.Timer;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
@@ -10,8 +9,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
-import org.prebid.cache.metrics.GraphiteMetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder;
+import org.prebid.cache.metrics.MetricsRecorder.MetricsRecorderTimer;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
@@ -47,7 +46,7 @@ public class GetCacheHandler extends CacheHandler {
     public GetCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
                            final CacheConfig config,
                            final ApiConfig apiConfig,
-                           final GraphiteMetricsRecorder metricsRecorder,
+                           final MetricsRecorder metricsRecorder,
                            final PrebidServerResponseBuilder builder,
                            final CircuitBreaker circuitBreaker) {
         this.metricsRecorder = metricsRecorder;
@@ -83,7 +82,7 @@ public class GetCacheHandler extends CacheHandler {
 
     private Mono<ServerResponse> fetch(final ServerRequest request,
                                        final String id,
-                                       final Timer.Context timerContext) {
+                                       final MetricsRecorderTimer timerContext) {
 
         final var cacheUrl = resolveCacheUrl(request);
 
@@ -124,7 +123,7 @@ public class GetCacheHandler extends CacheHandler {
                 .handle(this::updateProxyMetrics)
                 .flatMap(GetCacheHandler::fromClientResponse)
                 .doOnError(error -> {
-                    metricsRecorder.getProxyFailure().mark();
+                    metricsRecorder.getProxyFailure().increment();
                     log.info("Failed to send request: '{}', cause: '{}'",
                             ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
 
@@ -134,9 +133,9 @@ public class GetCacheHandler extends CacheHandler {
     private void updateProxyMetrics(final ClientResponse clientResponse,
                                     final SynchronousSink<ClientResponse> sink) {
         if (HttpStatus.OK.equals(clientResponse.statusCode())) {
-            metricsRecorder.getProxySuccess().mark();
+            metricsRecorder.getProxySuccess().increment();
         } else {
-            metricsRecorder.getProxyFailure().mark();
+            metricsRecorder.getProxyFailure().increment();
         }
 
         sink.next(clientResponse);
