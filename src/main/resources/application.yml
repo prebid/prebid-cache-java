@@ -34,18 +34,6 @@ logging.config: classpath:log4j2-console.xml
 management:
   metrics:
     export:
-      appoptics:
-        enabled: false
-      atlas:
-        enabled: false
-      datadog:
-        enabled: false
-      dynatrace:
-        enabled: false
-      elastic:
-        enabled: false
-      ganglia:
-        enabled: false
       graphite:
         enabled: false
         host: localhost
@@ -53,10 +41,6 @@ management:
         step: 1m
         tags-as-prefix:
         - prebid
-      humio:
-        enabled: false
-      influx:
-        enabled: false
 
 # circuit breaker
 circuitbreaker:

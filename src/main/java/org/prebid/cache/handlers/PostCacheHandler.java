@@ -81,8 +81,7 @@ public class PostCacheHandler extends CacheHandler {
 
     public Mono<ServerResponse> save(final ServerRequest request) {
         metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
-        final var timerContext = metricsRecorder.createRequestContextTimerOptionalForServiceType(type)
-                .orElse(null);
+        final var timerContext = metricsRecorder.createRequestTimerForServiceType(type);
 
         String secondaryCache = request.queryParam(SECONDARY_CACHE_KEY).orElse(StringUtils.EMPTY);
 

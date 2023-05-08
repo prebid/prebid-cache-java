@@ -1,14 +1,13 @@
 package org.prebid.cache.metrics;
 
-import org.prebid.cache.handlers.ServiceType;
-import org.springframework.stereotype.Component;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import lombok.Getter;
+import org.prebid.cache.handlers.ServiceType;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.Optional;
 
 @Component
 public class MetricsRecorder {
@@ -93,23 +92,15 @@ public class MetricsRecorder {
         meterForTag(prefix, measurementTag).increment();
     }
 
-    public Optional<MetricsRecorderTimer> createRequestContextTimerOptionalForServiceType(
-            final ServiceType serviceType) {
-        final MetricsRecorderTimer timer = getRequestTimerForServiceType(serviceType);
-        if (timer != null)
-            return Optional.of(timer.start());
-        return Optional.empty();
-    }
-
-    private MetricsRecorderTimer getRequestTimerForServiceType(final ServiceType serviceType) {
+    public MetricsRecorderTimer createRequestTimerForServiceType(final ServiceType serviceType) {
         if (serviceType.equals(ServiceType.FETCH)) {
             return new MetricsRecorderTimer(
                 MeasurementTag.REQUEST_DURATION.getTag()
-                .replaceAll(PREFIX_PLACEHOLDER, "read"));
+                    .replaceAll(PREFIX_PLACEHOLDER, "read"));
         } else if (serviceType.equals(ServiceType.SAVE)) {
             return new MetricsRecorderTimer(
                 MeasurementTag.REQUEST_DURATION.getTag()
-                .replaceAll(PREFIX_PLACEHOLDER, "write"));
+                    .replaceAll(PREFIX_PLACEHOLDER, "write"));
         }
         return null;
     }

@@ -206,28 +206,12 @@ _src/main/resources/repository.yml_:
 management:
   metrics:
     export:
-      appoptics:
-        enabled: false
-      atlas:
-        enabled: false
-      datadog:
-        enabled: false
-      dynatrace:
-        enabled: false
-      elastic:
-        enabled: false
-      ganglia:
-        enabled: false
       graphite:
         enabled: false
         host: http://graphite.yourdomain.com
         port: 2003
         tags-as-prefix:
         - prebid
-      humio:
-        enabled: false
-      influx:
-        enabled: false
 ```
 
 ### _Logging_
