@@ -181,12 +181,12 @@ public class CustomPropertyConfiguration
 
 ### _Metrics_
 
-Currently, there is support for the capturing of metrics using _Graphite_.
-For more information, see: https://graphite.readthedocs.io/en/latest/
+Metrics are collected and exported using _Micrometer_.  
+For more information, see: https://micrometer.io
 
 ###### A. Durations (timers) and Rates (meters) 
 
-The metrics registory supports collection on these types:
+Alongside the default application health metrics exported by the Spring Actuator, the metrics repository supports collection on these types:
 * _request and request duration_
 * _json request_
 * _xml request_
@@ -196,17 +196,22 @@ The metrics registory supports collection on these types:
 * _internal server error_
 
 
-###### B. Graphite YAML Configuration
-A carbon-cache daemon needs to be running on the _Graphite_ host for collection to happen.  In addition, the sending of metrics is batched for every minute.  Connection details such as host / port will need to be specified in the configuration.
+###### B. Micrometer YAML Configuration
+
+The full list of supported monitoring systems that Micrometer can export to can be found here: https://micrometer.io/docs  
+Please keep in mind that for some of them, additional dependencies may be needed in pom.xml
 
 _src/main/resources/repository.yml_:
 ```yaml
-metrics:
-  graphite:
-    enabled: true
-    host: http://graphite.yourdomain.com
-    port: 2003
-    prefix: prebid
+management:
+  metrics:
+    export:
+      graphite:
+        enabled: false
+        host: http://graphite.yourdomain.com
+        port: 2003
+        tags-as-prefix:
+        - prebid
 ```
 
 ### _Logging_

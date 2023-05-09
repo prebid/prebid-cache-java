@@ -1,6 +1,5 @@
 package org.prebid.cache.handlers;
 
-import com.codahale.metrics.Timer;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
@@ -10,8 +9,8 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
-import org.prebid.cache.metrics.GraphiteMetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder;
+import org.prebid.cache.metrics.MetricsRecorder.MetricsRecorderTimer;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
@@ -47,7 +46,7 @@ public class GetCacheHandler extends CacheHandler {
     public GetCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
                            final CacheConfig config,
                            final ApiConfig apiConfig,
-                           final GraphiteMetricsRecorder metricsRecorder,
+                           final MetricsRecorder metricsRecorder,
                            final PrebidServerResponseBuilder builder,
                            final CircuitBreaker circuitBreaker) {
         this.metricsRecorder = metricsRecorder;
@@ -72,8 +71,7 @@ public class GetCacheHandler extends CacheHandler {
     public Mono<ServerResponse> fetch(ServerRequest request) {
         // metrics
         metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
-        final var timerContext =
-                metricsRecorder.createRequestContextTimerOptionalForServiceType(this.type).orElse(null);
+        final var timerContext = metricsRecorder.createRequestTimerForServiceType(this.type);
 
         return request.queryParam(ID_KEY).map(id -> fetch(request, id, timerContext)).orElseGet(() -> {
             final var responseMono = ErrorHandler.createInvalidParameters();
@@ -83,14 +81,14 @@ public class GetCacheHandler extends CacheHandler {
 
     private Mono<ServerResponse> fetch(final ServerRequest request,
                                        final String id,
-                                       final Timer.Context timerContext) {
+                                       final MetricsRecorderTimer timerContext) {
 
         final var cacheUrl = resolveCacheUrl(request);
 
         final var responseMono =
                 StringUtils.containsIgnoreCase(cacheUrl, config.getAllowedProxyHost())
-                        ? processProxyRequest(request, id, cacheUrl)
-                        : processRequest(request, id);
+                    ? processProxyRequest(request, id, cacheUrl)
+                    : processRequest(request, id);
 
         return finalizeResult(responseMono, request, timerContext);
     }
@@ -99,10 +97,10 @@ public class GetCacheHandler extends CacheHandler {
         final var cacheHostParam = request.queryParam(CACHE_HOST_KEY).orElse(null);
         if (StringUtils.isNotBlank(cacheHostParam)) {
             return new URIBuilder()
-                    .setHost(cacheHostParam)
-                    .setPath(apiConfig.getPath())
-                    .setScheme(config.getHostParamProtocol())
-                    .toString();
+                .setHost(cacheHostParam)
+                .setPath(apiConfig.getPath())
+                .setScheme(config.getHostParamProtocol())
+                .toString();
         }
 
         return null;
@@ -115,28 +113,27 @@ public class GetCacheHandler extends CacheHandler {
         final var webClient = clientsCache.computeIfAbsent(cacheUrl, WebClient::create);
 
         return webClient.get()
-                .uri(uriBuilder -> uriBuilder.queryParam(ID_KEY, idKeyParam).build())
-                .headers(httpHeaders -> httpHeaders.addAll(request.headers().asHttpHeaders()))
-                .exchange()
-                .transform(CircuitBreakerOperator.of(circuitBreaker))
-                .timeout(Duration.ofMillis(config.getTimeoutMs()))
-                .subscribeOn(Schedulers.parallel())
-                .handle(this::updateProxyMetrics)
-                .flatMap(GetCacheHandler::fromClientResponse)
-                .doOnError(error -> {
-                    metricsRecorder.getProxyFailure().mark();
-                    log.info("Failed to send request: '{}', cause: '{}'",
-                            ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
-
-                });
+            .uri(uriBuilder -> uriBuilder.queryParam(ID_KEY, idKeyParam).build())
+            .headers(httpHeaders -> httpHeaders.addAll(request.headers().asHttpHeaders()))
+            .exchange()
+            .transform(CircuitBreakerOperator.of(circuitBreaker))
+            .timeout(Duration.ofMillis(config.getTimeoutMs()))
+            .subscribeOn(Schedulers.parallel())
+            .handle(this::updateProxyMetrics)
+            .flatMap(GetCacheHandler::fromClientResponse)
+            .doOnError(error -> {
+                metricsRecorder.getProxyFailure().increment();
+                log.info("Failed to send request: '{}', cause: '{}'",
+                        ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
+            });
     }
 
     private void updateProxyMetrics(final ClientResponse clientResponse,
                                     final SynchronousSink<ClientResponse> sink) {
         if (HttpStatus.OK.equals(clientResponse.statusCode())) {
-            metricsRecorder.getProxySuccess().mark();
+            metricsRecorder.getProxySuccess().increment();
         } else {
-            metricsRecorder.getProxyFailure().mark();
+            metricsRecorder.getProxyFailure().increment();
         }
 
         sink.next(clientResponse);
@@ -144,37 +141,28 @@ public class GetCacheHandler extends CacheHandler {
 
     private static Mono<ServerResponse> fromClientResponse(final ClientResponse clientResponse) {
         return ServerResponse.status(clientResponse.statusCode())
-                .headers(headerConsumer -> clientResponse.headers().asHttpHeaders().forEach(headerConsumer::addAll))
-                .body(clientResponse.bodyToMono(String.class), String.class);
+            .headers(headerConsumer -> clientResponse.headers().asHttpHeaders().forEach(headerConsumer::addAll))
+            .body(clientResponse.bodyToMono(String.class), String.class);
     }
 
     private Mono<ServerResponse> processRequest(final ServerRequest request, final String keyIdParam) {
         final var normalizedId = String.format("%s%s", config.getPrefix(), keyIdParam);
         return repository.findById(normalizedId)
-                .transform(CircuitBreakerOperator.of(circuitBreaker))
-                .timeout(Duration.ofMillis(config.getTimeoutMs()))
-                .subscribeOn(Schedulers.parallel())
-                .transform(this::validateErrorResult)
-                .flatMap(wrapper -> createServerResponse(wrapper, request))
-                .switchIfEmpty(ErrorHandler.createResourceNotFound(normalizedId));
+            .transform(CircuitBreakerOperator.of(circuitBreaker))
+            .timeout(Duration.ofMillis(config.getTimeoutMs()))
+            .subscribeOn(Schedulers.parallel())
+            .transform(this::validateErrorResult)
+            .flatMap(wrapper -> createServerResponse(wrapper, request))
+            .switchIfEmpty(ErrorHandler.createResourceNotFound(normalizedId));
     }
 
     private Mono<ServerResponse> createServerResponse(final PayloadWrapper wrapper, final ServerRequest request) {
-
         if (wrapper.getPayload().getType().equals(PayloadType.JSON.toString())) {
-            metricsRecorder.markMeterForTag(this.metricTagPrefix,
-                    MetricsRecorder.MeasurementTag.JSON);
-            return builder.createResponseMono(request,
-                    MediaType.APPLICATION_JSON_UTF8,
-                    wrapper);
-        } else if (wrapper.getPayload()
-                .getType()
-                .equals(PayloadType.XML.toString())) {
-            metricsRecorder.markMeterForTag(this.metricTagPrefix,
-                    MetricsRecorder.MeasurementTag.XML);
-            return builder.createResponseMono(request,
-                    MediaType.APPLICATION_XML,
-                    wrapper);
+            metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.JSON);
+            return builder.createResponseMono(request, MediaType.APPLICATION_JSON_UTF8, wrapper);
+        } else if (wrapper.getPayload().getType().equals(PayloadType.XML.toString())) {
+            metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.XML);
+            return builder.createResponseMono(request, MediaType.APPLICATION_XML, wrapper);
         }
 
         return Mono.error(new UnsupportedMediaTypeException(UNSUPPORTED_MEDIATYPE));
