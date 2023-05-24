@@ -24,7 +24,7 @@ public class MetricsConfig {
         @Value("${management.metrics.export.graphite.prefix:}") String prefix) {
 
         return registry -> {
-            if (StringUtils.isNotEmpty(prefix)) {
+            if (StringUtils.isNotBlank(prefix)) {
                 registry.config().commonTags("prefix", prefix);
             }
         };

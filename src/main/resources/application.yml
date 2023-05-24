@@ -42,7 +42,7 @@ management:
         step: 1m
         tags-as-prefix:
           - prefix
-        prefix: test
+        prefix: changeYourPrefixHere
 
 # circuit breaker
 circuitbreaker:
