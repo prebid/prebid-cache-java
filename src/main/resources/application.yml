@@ -39,7 +39,7 @@ management:
         host: localhost
         port: 2003
         protocol: plaintext
-        step: 5s
+        step: 1m
         tags-as-prefix:
           - prefix
         prefix: test
