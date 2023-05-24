@@ -42,7 +42,7 @@ management:
         step: 1m
         tags-as-prefix:
           - prefix
-        prefix: changeYourPrefixHere
+        prefix: prebid
 
 # circuit breaker
 circuitbreaker:
