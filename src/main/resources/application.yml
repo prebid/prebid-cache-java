@@ -38,9 +38,11 @@ management:
         enabled: false
         host: localhost
         port: 2003
-        step: 1m
+        protocol: plaintext
+        step: 5s
         tags-as-prefix:
-        - prebid
+          - prefix
+        prefix: test
 
 # circuit breaker
 circuitbreaker:
