@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.config.CircuitBreakerPropertyConfiguration;
-import org.prebid.cache.metrics.GraphiteMetricsRecorder;
-import org.prebid.cache.metrics.GraphiteTestConfig;
+import org.prebid.cache.metrics.MetricsRecorder;
+import org.prebid.cache.metrics.MetricsRecorderTest;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.CacheConfig;
@@ -51,8 +51,8 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
     PrebidServerResponseBuilder.class,
     CacheConfig.class,
     CacheConfig.class,
-    GraphiteTestConfig.class,
-    GraphiteMetricsRecorder.class,
+    MetricsRecorderTest.class,
+    MetricsRecorder.class,
     ApiConfig.class,
     CircuitBreakerPropertyConfiguration.class
 })
@@ -70,7 +70,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
     ApiConfig apiConfig;
 
     @Autowired
-    GraphiteMetricsRecorder metricsRecorder;
+    MetricsRecorder metricsRecorder;
 
     @Autowired
     PrebidServerResponseBuilder responseBuilder;

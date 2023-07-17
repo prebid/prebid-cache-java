@@ -11,8 +11,8 @@ import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.config.CircuitBreakerPropertyConfiguration;
 import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.helpers.CurrentDateProvider;
-import org.prebid.cache.metrics.GraphiteMetricsRecorder;
-import org.prebid.cache.metrics.GraphiteTestConfig;
+import org.prebid.cache.metrics.MetricsRecorder;
+import org.prebid.cache.metrics.MetricsRecorderTest;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadTransfer;
 import org.prebid.cache.model.PayloadWrapper;
@@ -50,8 +50,8 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
     PostCacheHandler.class,
     PrebidServerResponseBuilder.class,
     CacheConfig.class,
-    GraphiteTestConfig.class,
-    GraphiteMetricsRecorder.class,
+    MetricsRecorderTest.class,
+    MetricsRecorder.class,
     ApiConfig.class,
     CurrentDateProvider.class,
     CircuitBreakerPropertyConfiguration.class
@@ -61,7 +61,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Autowired
-    GraphiteMetricsRecorder metricsRecorder;
+    MetricsRecorder metricsRecorder;
 
     @Autowired
     PrebidServerResponseBuilder builder;

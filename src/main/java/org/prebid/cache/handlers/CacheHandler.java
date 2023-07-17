@@ -1,6 +1,5 @@
 package org.prebid.cache.handlers;
 
-import com.codahale.metrics.Timer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.prebid.cache.exceptions.BadRequestException;
@@ -11,6 +10,7 @@ import org.prebid.cache.exceptions.RequestParsingException;
 import org.prebid.cache.exceptions.ResourceNotFoundException;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
 import org.prebid.cache.metrics.MetricsRecorder;
+import org.prebid.cache.metrics.MetricsRecorder.MetricsRecorderTimer;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.ServerRequest;
@@ -104,7 +104,7 @@ abstract class CacheHandler extends MetricsHandler {
 
     Mono<ServerResponse> finalizeResult(final Mono<ServerResponse> mono,
                                         final ServerRequest request,
-                                        final Timer.Context timerContext) {
+                                        final MetricsRecorderTimer timerContext) {
         // transform to error, if needed and send metrics
         return mono.onErrorResume(throwable -> handleErrorMetrics(throwable, request))
             .doOnEach(signal -> {
@@ -119,7 +119,7 @@ abstract class CacheHandler extends MetricsHandler {
         }
 
         if (t instanceof DuplicateKeyException) {
-            metricsRecorder.getExistingKeyError().mark();
+            metricsRecorder.getExistingKeyError().increment();
         }
     }
 }
