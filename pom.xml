@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.7</version>
+        <version>3.0.5</version>
         <relativePath />
     </parent>
 
@@ -32,7 +32,7 @@
 
         <project.build.resources.directory>src/main/resources</project.build.resources.directory>
         <main.class>org.prebid.cache.PBCacheApplication</main.class>
-        <junit-jupiter.version>5.3.1</junit-jupiter.version>
+        <junit-jupiter.version>5.9.2</junit-jupiter.version>
 
         <!-- used for rpm packaging -->
         <build.number>0</build.number>
@@ -51,34 +51,34 @@
         <maven-release-plugin.version>3.0.0-M5</maven-release-plugin.version>
         <rest-maven-plugin.version>0.1.4</rest-maven-plugin.version>
         <spring-boot-maven-plugin.version>2.6.7</spring-boot-maven-plugin.version>
-        <lettuce-core.version>6.1.8.RELEASE</lettuce-core.version>
-        <gson.version>2.9.0</gson.version>
-        <guava.version>31.1-jre</guava.version>
-        <caffeine.version>3.0.6</caffeine.version>
+        <lettuce-core.version>6.2.4.RELEASE</lettuce-core.version>
+        <gson.version>2.10.1</gson.version>
+        <guava.version>32.0.0-jre</guava.version>
+        <caffeine.version>3.1.6</caffeine.version>
         <disruptor.version>3.4.4</disruptor.version>
-        <lombok.version>1.18.24</lombok.version>
-        <metrics-graphite.version>4.0.2</metrics-graphite.version>
+        <lombok.version>1.18.28</lombok.version>
+        <metrics-graphite.version>4.2.17</metrics-graphite.version>
         <javax.el-api.version>3.0.0</javax.el-api.version>
         <reflections.version>0.10.2</reflections.version>
-        <equals-verifier.version>3.10</equals-verifier.version>
-        <aerospike-client.version>5.1.11</aerospike-client.version>
-        <reactor-extra.version>3.4.8</reactor-extra.version>
-        <wiremock.version>2.27.2</wiremock.version>
-        <checkstyle-plugin.version>3.1.2</checkstyle-plugin.version>
-        <checkstyle.version>10.2</checkstyle.version>
-        <jacoco-plugin.version>0.8.8</jacoco-plugin.version>
+        <equals-verifier.version>3.14.1</equals-verifier.version>
+        <aerospike-client.version>6.1.11</aerospike-client.version>
+        <reactor-extra.version>3.5.1</reactor-extra.version>
+        <wiremock.version>3.0.0-beta-10</wiremock.version>
+        <checkstyle-plugin.version>3.3.0</checkstyle-plugin.version>
+        <checkstyle.version>10.12.1</checkstyle.version>
+        <jacoco-plugin.version>0.8.10</jacoco-plugin.version>
         <awaitility.version>4.2.0</awaitility.version>
-        <resilience4j.version>1.7.1</resilience4j.version>
-        <log4j2.version>2.17.2</log4j2.version>
+        <resilience4j.version>2.1.0</resilience4j.version>
+        <log4j2.version>2.20.0</log4j2.version>
         <javax.validation-api>2.0.1.Final</javax.validation-api>
 
         <!-- Functional Tests -->
-        <kotest.version>5.3.0</kotest.version>
-        <kotlin.version>1.6.21</kotlin.version>
-        <testcontainers.version>1.17.1</testcontainers.version>
+        <kotest.version>5.5.5</kotest.version>
+        <kotlin.version>1.8.10</kotlin.version>
+        <testcontainers.version>1.17.6</testcontainers.version>
         <mockserver-client.version>5.13.2</mockserver-client.version>
-        <ktor.version>2.0.1</ktor.version>
-        <jackson-kotlin-module.version>2.13.2</jackson-kotlin-module.version>
+        <ktor.version>2.2.4</ktor.version>
+        <jackson-kotlin-module.version>2.14.2</jackson-kotlin-module.version>
         <docker-maven-plugin.version>0.39.1</docker-maven-plugin.version>
     </properties>
 
@@ -243,7 +243,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-core-jvm</artifactId>
-            <version>1.6.1</version>
+            <version>1.6.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>

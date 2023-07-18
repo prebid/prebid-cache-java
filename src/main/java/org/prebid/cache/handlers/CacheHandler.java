@@ -46,24 +46,24 @@ abstract class CacheHandler extends MetricsHandler {
 
     <T> Mono<T> validateErrorResult(final Mono<T> mono) {
         return mono.doOnSuccess(v -> log.debug("{}: {}", type, v))
-                .onErrorResume(t -> {
-                    // skip overwrite, report first prebid error
-                    if (t instanceof PrebidException) {
-                        // TODO: 19.09.18 move to handleErrorMetrics
-                        applyMetrics(t);
+            .onErrorResume(t -> {
+                // skip overwrite, report first prebid error
+                if (t instanceof PrebidException) {
+                    // TODO: 19.09.18 move to handleErrorMetrics
+                    applyMetrics(t);
 
-                        if (t instanceof DuplicateKeyException) {
-                            return Mono.error(new BadRequestException(UUID_DUPLICATION));
-                        }
-                        return Mono.error(t);
-                    } else if (t instanceof org.springframework.core.codec.DecodingException) {
-                        return Mono.error(new RequestParsingException(t.toString()));
-                    } else if (t instanceof org.springframework.web.server.UnsupportedMediaTypeStatusException) {
-                        return Mono.error(new UnsupportedMediaTypeException(t.toString()));
-                    } else {
-                        return Mono.error(t);
+                    if (t instanceof DuplicateKeyException) {
+                        return Mono.error(new BadRequestException(UUID_DUPLICATION));
                     }
-                });
+                    return Mono.error(t);
+                } else if (t instanceof org.springframework.core.codec.DecodingException) {
+                    return Mono.error(new RequestParsingException(t.toString()));
+                } else if (t instanceof org.springframework.web.server.UnsupportedMediaTypeStatusException) {
+                    return Mono.error(new UnsupportedMediaTypeException(t.toString()));
+                } else {
+                    return Mono.error(t);
+                }
+            });
     }
 
     // TODO: 19.09.18 refactor this to normal interaction with mono instead of "casting" exceptions to status codes
@@ -81,24 +81,25 @@ abstract class CacheHandler extends MetricsHandler {
         }
 
         return builder.error(Mono.just(error), request)
-                .doAfterSuccessOrError((v, t) -> {
-                    HttpMethod method = request.method();
-                    if (method == null || t != null || v == null) {
+            .doOnEach(signal -> {
+                final var response = signal.get();
+                HttpMethod method = request.method();
+                if (method == null || signal.isOnError() || response == null) {
+                    metricsRecorder.markMeterForTag(this.metricTagPrefix,
+                            MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
+                } else {
+                    if (response.statusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
                         metricsRecorder.markMeterForTag(this.metricTagPrefix,
                                 MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
-                    } else {
-                        if (v.statusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-                            metricsRecorder.markMeterForTag(this.metricTagPrefix,
-                                    MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
-                        } else if (v.statusCode() == HttpStatus.BAD_REQUEST) {
-                            metricsRecorder.markMeterForTag(this.metricTagPrefix,
-                                    MetricsRecorder.MeasurementTag.ERROR_BAD_REQUEST);
-                        } else if (v.statusCode() == HttpStatus.NOT_FOUND) {
-                            metricsRecorder.markMeterForTag(this.metricTagPrefix,
-                                    MetricsRecorder.MeasurementTag.ERROR_MISSINGID);
-                        }
+                    } else if (response.statusCode() == HttpStatus.BAD_REQUEST) {
+                        metricsRecorder.markMeterForTag(this.metricTagPrefix,
+                                MetricsRecorder.MeasurementTag.ERROR_BAD_REQUEST);
+                    } else if (response.statusCode() == HttpStatus.NOT_FOUND) {
+                        metricsRecorder.markMeterForTag(this.metricTagPrefix,
+                                MetricsRecorder.MeasurementTag.ERROR_MISSINGID);
                     }
-                });
+                }
+            });
     }
 
     Mono<ServerResponse> finalizeResult(final Mono<ServerResponse> mono,
@@ -106,10 +107,10 @@ abstract class CacheHandler extends MetricsHandler {
                                         final MetricsRecorderTimer timerContext) {
         // transform to error, if needed and send metrics
         return mono.onErrorResume(throwable -> handleErrorMetrics(throwable, request))
-                .doAfterSuccessOrError((v, t) -> {
-                    if (timerContext != null)
-                        timerContext.stop();
-                });
+            .doOnEach(signal -> {
+                if (timerContext != null)
+                    timerContext.stop();
+            });
     }
 
     void applyMetrics(Throwable t) {

@@ -1,15 +1,14 @@
 package org.prebid.cache.builders;
 
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.exceptions.BadRequestException;
 import org.prebid.cache.exceptions.RepositoryException;
 import org.prebid.cache.exceptions.ResourceNotFoundException;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.routers.ApiConfig;
-import lombok.val;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
@@ -20,16 +19,18 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.Signal;
 import reactor.test.StepVerifier;
 
 import java.util.Collections;
 import java.util.Date;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import static org.springframework.http.MediaType.*;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
+import static org.springframework.http.MediaType.APPLICATION_XML;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes={PrebidServerResponseBuilder.class, ApiConfig.class})
@@ -53,10 +54,9 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
     }
 
     private void subscribeAndVerify(final Mono<ServerResponse> mono,
-                                    final BiConsumer<ServerResponse, Throwable> consumer)
-    {
-        mono.doAfterSuccessOrError(consumer)
-            .subscribe();
+                                    Consumer<Signal<ServerResponse>> consumer) {
+
+        mono.doOnEach(consumer).subscribe();
         StepVerifier.create(mono)
                     .expectSubscription()
                     .expectNextMatches(t -> true)
@@ -66,9 +66,12 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
 
     private void verifyServerResponse(MediaType mediaType) {
         final var request = MockServerRequest.builder().build();
-        BiConsumer<ServerResponse, Throwable> consumer = (v, t) -> {
-            assertEquals(200, v.statusCode().value());
-            assertTrue(v.headers().containsValue(Collections.singletonList(mediaType.toString())));
+        final Consumer<Signal<ServerResponse>> consumer = signal -> {
+            assertTrue(signal.isOnComplete());
+
+            final ServerResponse response = signal.get();
+            assertEquals(200, response.statusCode().value());
+            assertTrue(response.headers().containsValue(Collections.singletonList(mediaType.toString())));
         };
 
         subscribeAndVerify(createResponseMono(request, mediaType), consumer);
@@ -76,15 +79,13 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
 
     private void verifyErrorResponse(HttpStatus status) {
         final var request = MockServerRequest.builder().build();
-        BiConsumer<ServerResponse, Throwable> consumer =
-                (v, t) -> assertEquals(status.value(), v.statusCode().value());
+        final Consumer<Signal<ServerResponse>> consumer =
+                signal -> assertEquals(status.value(), signal.get().statusCode().value());
 
         subscribeAndVerify(createErrorMono(request, status), consumer);
     }
 
-    private Mono<ServerResponse> createErrorMono(final ServerRequest request,
-                                                 final HttpStatus status)
-    {
+    private Mono<ServerResponse> createErrorMono(final ServerRequest request, final HttpStatus status) {
         Mono<Exception> mono = Mono.empty();
         if (status.equals(HttpStatus.NOT_FOUND)) {
             mono = Mono.just(new ResourceNotFoundException("not found"));

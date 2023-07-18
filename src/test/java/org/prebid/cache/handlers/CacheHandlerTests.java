@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 abstract class CacheHandlerTests {
 
     void verifyRepositoryError(CacheHandler handler) {
-        Consumer<Throwable> consumer = (t) -> {
+        final Consumer<Throwable> consumer = (t) -> {
             assertTrue(t instanceof RepositoryException);
         };
 
@@ -20,7 +20,7 @@ abstract class CacheHandlerTests {
     }
 
     void verifyJacksonError(CacheHandler handler) {
-        Consumer<Throwable> consumer = (t) -> {
+        final Consumer<Throwable> consumer = (t) -> {
             assertTrue(t instanceof RequestParsingException);
         };
 
