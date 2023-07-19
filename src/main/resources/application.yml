@@ -100,7 +100,7 @@ management:
   graphite:
     metrics:
       export:
-        enabled: true
+        enabled: false
 spring:
   aerospike:
     port: 3000
