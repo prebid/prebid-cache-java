@@ -35,7 +35,7 @@ management:
   graphite:
     metrics:
       export:
-        enabled: true
+        enabled: false
         host: localhost
         port: 2003
         protocol: plaintext
