@@ -32,9 +32,9 @@ logging.config: classpath:log4j2-console.xml
 
 # metrics
 management:
-  metrics:
-    export:
-      graphite:
+  graphite:
+    metrics:
+      export:
         enabled: false
         host: localhost
         port: 2003
@@ -82,9 +82,9 @@ management.health.defaults.enabled: true
 cors:
   enabled: true
 management:
-  metrics:
-    export:
-      graphite:
+  graphite:
+    metrics:
+      export:
         enabled: true
 
 ---
@@ -97,9 +97,9 @@ cache:
   secondary_cache_path: "cache"
 
 management:
-  metrics:
-    export:
-      graphite:
+  graphite:
+    metrics:
+      export:
         enabled: false
 spring:
   aerospike:
