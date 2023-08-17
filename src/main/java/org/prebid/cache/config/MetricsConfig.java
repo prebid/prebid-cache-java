@@ -13,20 +13,16 @@ import org.springframework.context.annotation.Configuration;
 public class MetricsConfig {
 
     @Bean
-    MeterRegistryCustomizer<MeterRegistry> identityNamingConventionMeterCustomizer() {
-        // To preserve metric names as they defined in code
-        return registry -> registry.config().namingConvention(NamingConvention.identity);
-    }
-
-    @Bean
     @ConditionalOnProperty(name = "management.graphite.metrics.export.enabled", havingValue = "true")
     MeterRegistryCustomizer<MeterRegistry> graphitePrefixMeterCustomizer(
-            @Value("${management.graphite.metrics.export.prefix:}") String prefix) {
+        @Value("${management.graphite.metrics.export.prefix:}") String prefix) {
 
         return registry -> {
             if (StringUtils.isNotBlank(prefix)) {
                 registry.config().commonTags("prefix", prefix);
             }
+            // To preserve old metric names
+            registry.config().namingConvention(NamingConvention.identity);
         };
     }
 }
