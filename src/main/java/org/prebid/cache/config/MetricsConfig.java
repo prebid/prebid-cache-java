@@ -15,7 +15,7 @@ public class MetricsConfig {
     @Bean
     @ConditionalOnProperty(name = "management.graphite.metrics.export.enabled", havingValue = "true")
     MeterRegistryCustomizer<MeterRegistry> graphitePrefixMeterCustomizer(
-        @Value("${management.graphite.metrics.export.prefix:}") String prefix) {
+            @Value("${management.graphite.metrics.export.prefix:}") String prefix) {
 
         return registry -> {
             if (StringUtils.isNotBlank(prefix)) {
