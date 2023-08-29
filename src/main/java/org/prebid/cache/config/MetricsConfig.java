@@ -21,7 +21,6 @@ public class MetricsConfig {
             if (StringUtils.isNotBlank(prefix)) {
                 registry.config().commonTags("prefix", prefix);
             }
-            // To preserve old metric names
             registry.config().namingConvention(NamingConvention.identity);
         };
     }
