@@ -61,7 +61,7 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 class GetCacheHandlerTests extends CacheHandlerTests {
 
     @Autowired
-    CircuitBreaker circuitBreaker;
+    CircuitBreaker webClientCircuitBreaker;
 
     @Autowired
     CacheConfig cacheConfig;
@@ -85,7 +85,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
     @BeforeEach
     public void setup() {
         handler =
-            new GetCacheHandler(repository, cacheConfig, apiConfig, metricsRecorder, responseBuilder, circuitBreaker);
+            new GetCacheHandler(repository, cacheConfig, apiConfig, metricsRecorder, responseBuilder, webClientCircuitBreaker);
         serverMock = new WireMockServer(8080);
         serverMock.start();
     }
