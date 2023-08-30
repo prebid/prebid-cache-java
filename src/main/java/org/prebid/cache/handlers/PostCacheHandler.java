@@ -164,7 +164,7 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private void sendRequestToSecondaryPrebidCacheHosts(List<PayloadWrapper> payloadWrappers, String secondaryCache) {
-        if (!"yes".equals(secondaryCache)) {
+        if (!"yes".equals(secondaryCache) && webClients.size() != 0) {
             final List<PayloadTransfer> payloadTransfers = new ArrayList<>();
             for (PayloadWrapper payloadWrapper : payloadWrappers) {
                 payloadTransfers.add(wrapperToTransfer(payloadWrapper));
