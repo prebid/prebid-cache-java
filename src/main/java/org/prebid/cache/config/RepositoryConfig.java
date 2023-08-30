@@ -26,7 +26,7 @@ public class RepositoryConfig {
     @Bean
     @ConditionalOnProperty(prefix = "spring.redis", name = {"timeout"})
     ReactiveRepository<PayloadWrapper, String> redisRepository(
-        RedisStringReactiveCommands<String, String> redisReactiveCommands) {
+            RedisStringReactiveCommands<String, String> redisReactiveCommands) {
 
         return new RedisRepositoryImpl(redisReactiveCommands);
     }
@@ -44,12 +44,12 @@ public class RepositoryConfig {
     @Bean
     @Primary
     ReactiveRepository<PayloadWrapper, String> circuitBreakerSecuredRepository(
-        ReactiveRepository<PayloadWrapper, String> repository,
-        CircuitBreaker repositoryCircuitBreaker,
-        CacheConfig config) {
+            ReactiveRepository<PayloadWrapper, String> repository,
+            CircuitBreaker repositoryCircuitBreaker,
+            CacheConfig config) {
 
         final var timeoutDecorator = new TimeOutCapableReactiveRepository<>(
-            repository, Duration.ofMillis(config.getTimeoutMs()));
+                repository, Duration.ofMillis(config.getTimeoutMs()));
 
         return new CircuitBreakerSecuredReactiveRepository<>(timeoutDecorator, repositoryCircuitBreaker);
     }
