@@ -49,7 +49,7 @@ public class RepositoryConfig {
             CacheConfig config) {
 
         final var timeoutDecorator = new TimeOutCapableReactiveRepository<>(
-                repository, Duration.ofMillis(config.getTimeoutMs()));
+                repository, Duration.ofNanos(config.getTimeoutMs()));
 
         return new CircuitBreakerSecuredReactiveRepository<>(timeoutDecorator, repositoryCircuitBreaker);
     }
