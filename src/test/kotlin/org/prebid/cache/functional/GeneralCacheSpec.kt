@@ -101,7 +101,7 @@ class GeneralCacheSpec : ShouldSpec({
 
     should("throw an exception on POST when request processing takes > than 'cache.timeout.ms' config property") {
         // given: Prebid Cache with a low cache request processing timeout ms
-        val requestTimeoutMs = "1"
+        val requestTimeoutMs = "0"
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(
             BaseSpec.prebidCacheConfig.getBaseRedisConfig("false") +
                     BaseSpec.prebidCacheConfig.getCacheTimeoutConfig(requestTimeoutMs)
@@ -123,7 +123,7 @@ class GeneralCacheSpec : ShouldSpec({
 
     should("throw an exception on GET when request processing takes > than 'cache.timeout.ms' config property") {
         // given: Prebid Cache with a low cache request processing timeout ms
-        val requestTimeoutMs = "1"
+        val requestTimeoutMs = "0"
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(
             BaseSpec.prebidCacheConfig.getBaseRedisConfig("false") +
                     BaseSpec.prebidCacheConfig.getCacheTimeoutConfig(requestTimeoutMs)
