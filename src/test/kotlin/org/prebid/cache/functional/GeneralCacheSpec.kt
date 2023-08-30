@@ -117,7 +117,7 @@ class GeneralCacheSpec : ShouldSpec({
         assertSoftly {
             exception.statusCode shouldBe INTERNAL_SERVER_ERROR.value()
             exception.responseBody shouldContain "\"message\":\"Did not observe any item or terminal signal within " +
-                    "${requestTimeoutMs}ms in 'circuitBreaker' (and no fallback has been configured)\""
+                    "${requestTimeoutMs}ms in 'map' (and no fallback has been configured)\""
         }
     }
 
@@ -139,7 +139,7 @@ class GeneralCacheSpec : ShouldSpec({
         assertSoftly {
             exception.statusCode shouldBe INTERNAL_SERVER_ERROR.value()
             exception.responseBody shouldContain "\"message\":\"Did not observe any item or terminal signal within " +
-                    "${requestTimeoutMs}ms in 'circuitBreaker' (and no fallback has been configured)\""
+                    "${requestTimeoutMs}ms in 'map' (and no fallback has been configured)\""
         }
     }
 
