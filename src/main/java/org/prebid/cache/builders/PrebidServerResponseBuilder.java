@@ -67,7 +67,7 @@ public class PrebidServerResponseBuilder {
                                                 translation.getHttpStatus().getReasonPhrase(),
                                                 translation.getHttpStatus().value(),
                                                 apiConfig.getPath(),
-                                                translation.getMessage(),
+                                                translation.getErrorMessage(),
                                                 new Date()
                                         )),
                                         ErrorResponse.class)
