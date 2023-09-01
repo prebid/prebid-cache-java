@@ -51,14 +51,12 @@ public class ThrowableTranslator {
     }
 
     private String getMessage(final Throwable error) {
-        if (error instanceof ErrorResponse) {
-            return Optional.of((ErrorResponse) error)
+        return Optional.of(error)
+                .filter(err -> err instanceof ErrorResponse)
+                .map(err -> (ErrorResponse) err)
                 .map(ErrorResponse::getBody)
                 .map(ProblemDetail::getDetail)
                 .orElse(error.getMessage());
-        }
-
-        return error.getMessage();
     }
 
     public HttpStatus getHttpStatus() {
