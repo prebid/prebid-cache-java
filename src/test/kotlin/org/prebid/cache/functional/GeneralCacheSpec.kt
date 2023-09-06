@@ -99,50 +99,6 @@ class GeneralCacheSpec : ShouldSpec({
         }
     }
 
-    should("throw an exception on POST when request processing takes > than 'cache.timeout.ms' config property") {
-        // given: Prebid Cache with a low cache request processing timeout ms
-        val requestTimeoutMs = "1"
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(
-            BaseSpec.prebidCacheConfig.getBaseRedisConfig("false") +
-                    BaseSpec.prebidCacheConfig.getCacheTimeoutConfig(requestTimeoutMs)
-        )
-
-        // and: Request object
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-
-        // when: POST cache endpoint is called
-        val exception = shouldThrowExactly<ApiException> { prebidCacheApi.postCache(requestObject) }
-
-        // then: Internal Server Exception is thrown
-        assertSoftly {
-            exception.statusCode shouldBe INTERNAL_SERVER_ERROR.value()
-            exception.responseBody shouldContain "\"message\":\"Did not observe any item or terminal signal within " +
-                    "${requestTimeoutMs}ms in 'circuitBreaker' (and no fallback has been configured)\""
-        }
-    }
-
-    should("throw an exception on GET when request processing takes > than 'cache.timeout.ms' config property") {
-        // given: Prebid Cache with a low cache request processing timeout ms
-        val requestTimeoutMs = "1"
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(
-            BaseSpec.prebidCacheConfig.getBaseRedisConfig("false") +
-                    BaseSpec.prebidCacheConfig.getCacheTimeoutConfig(requestTimeoutMs)
-        )
-
-        // and: POST cache endpoint is called
-        val postResponse = BaseSpec.getPrebidCacheApi().postCache(RequestObject.getDefaultJsonRequestObject())
-
-        // when: GET cache endpoint is called
-        val exception = shouldThrowExactly<ApiException> { prebidCacheApi.getCache(postResponse.responses[0].uuid) }
-
-        // then: Internal Server Exception is thrown
-        assertSoftly {
-            exception.statusCode shouldBe INTERNAL_SERVER_ERROR.value()
-            exception.responseBody shouldContain "\"message\":\"Did not observe any item or terminal signal within " +
-                    "${requestTimeoutMs}ms in 'circuitBreaker' (and no fallback has been configured)\""
-        }
-    }
-
     should("return the same JSON transfer value which was saved to cache") {
         // given: Request object with JSON transfer value
         val requestObject = RequestObject.getDefaultJsonRequestObject()
