@@ -48,7 +48,8 @@ public class GetCacheHandler extends CacheHandler {
                            final ApiConfig apiConfig,
                            final MetricsRecorder metricsRecorder,
                            final PrebidServerResponseBuilder builder,
-                           final CircuitBreaker circuitBreaker) {
+                           final CircuitBreaker webClientCircuitBreaker) {
+
         this.metricsRecorder = metricsRecorder;
         this.type = ServiceType.FETCH;
         this.repository = repository;
@@ -56,7 +57,7 @@ public class GetCacheHandler extends CacheHandler {
         this.apiConfig = apiConfig;
         this.builder = builder;
         this.metricTagPrefix = "read";
-        this.circuitBreaker = circuitBreaker;
+        this.circuitBreaker = webClientCircuitBreaker;
         this.clientsCache = createClientsCache(config.getClientsCacheDuration(), config.getClientsCacheSize());
     }
 
@@ -148,8 +149,6 @@ public class GetCacheHandler extends CacheHandler {
     private Mono<ServerResponse> processRequest(final ServerRequest request, final String keyIdParam) {
         final var normalizedId = String.format("%s%s", config.getPrefix(), keyIdParam);
         return repository.findById(normalizedId)
-            .transform(CircuitBreakerOperator.of(circuitBreaker))
-            .timeout(Duration.ofMillis(config.getTimeoutMs()))
             .subscribeOn(Schedulers.parallel())
             .transform(this::validateErrorResult)
             .flatMap(wrapper -> createServerResponse(wrapper, request))

@@ -19,7 +19,8 @@ import java.time.Duration;
 @ConfigurationProperties(prefix = "circuitbreaker")
 public class CircuitBreakerPropertyConfiguration {
 
-    private static final String CIRCUIT_BREAKER_NAME = "prebid-cache-circuit-breaker";
+    private static final String WEB_CLIENT_CIRCUIT_BREAKER_NAME = "prebid-cache-web-client-circuit-breaker";
+    private static final String REPOSITORY_CIRCUIT_BREAKER_NAME = "prebid-cache-repository-circuit-breaker";
 
     private int failureRateThreshold;
     private long openStateDuration;
@@ -43,7 +44,12 @@ public class CircuitBreakerPropertyConfiguration {
     }
 
     @Bean
-    CircuitBreaker circuitBreaker() {
-        return registry().circuitBreaker(CIRCUIT_BREAKER_NAME, config());
+    CircuitBreaker webClientCircuitBreaker() {
+        return registry().circuitBreaker(WEB_CLIENT_CIRCUIT_BREAKER_NAME, config());
+    }
+
+    @Bean
+    CircuitBreaker repositoryCircuitBreaker() {
+        return registry().circuitBreaker(REPOSITORY_CIRCUIT_BREAKER_NAME, config());
     }
 }

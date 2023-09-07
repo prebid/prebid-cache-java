@@ -34,7 +34,6 @@ import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -65,7 +64,8 @@ public class PostCacheHandler extends CacheHandler {
                             final MetricsRecorder metricsRecorder,
                             final PrebidServerResponseBuilder builder,
                             final Supplier<Date> currentDateProvider,
-                            final CircuitBreaker circuitBreaker) {
+                            final CircuitBreaker webClientCircuitBreaker) {
+
         this.metricsRecorder = metricsRecorder;
         this.type = ServiceType.SAVE;
         this.repository = repository;
@@ -76,7 +76,7 @@ public class PostCacheHandler extends CacheHandler {
         this.builder = builder;
         this.currentDateProvider = currentDateProvider;
         this.metricTagPrefix = "write";
-        this.circuitBreaker = circuitBreaker;
+        this.circuitBreaker = webClientCircuitBreaker;
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
@@ -97,13 +97,10 @@ public class PostCacheHandler extends CacheHandler {
                 .handle(this::validateUUID)
                 .handle(this::validateExpiry)
                 .concatMap(repository::save)
-                .transform(CircuitBreakerOperator.of(circuitBreaker))
-                .timeout(Duration.ofMillis(config.getTimeoutMs()))
                 .subscribeOn(Schedulers.parallel())
                 .collectList()
                 .doOnNext(payloadWrappers -> sendRequestToSecondaryPrebidCacheHosts(payloadWrappers, secondaryCache))
                 .flatMapMany(Flux::fromIterable)
-                .transform(CircuitBreakerOperator.of(circuitBreaker))
                 .subscribeOn(Schedulers.parallel());
 
         final Mono<ServerResponse> responseMono = payloadFlux
@@ -179,6 +176,7 @@ public class PostCacheHandler extends CacheHandler {
                     .contentType(MediaType.APPLICATION_JSON)
                     .syncBody(requestObject)
                     .exchange()
+                    .transform(CircuitBreakerOperator.of(circuitBreaker))
                     .doOnError(throwable -> {
                         metricsRecorder.getSecondaryCacheWriteError().increment();
                         log.info("Failed to send request: '{}', cause: '{}'",

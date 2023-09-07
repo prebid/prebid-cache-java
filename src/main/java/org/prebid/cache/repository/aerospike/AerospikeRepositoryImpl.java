@@ -20,8 +20,6 @@ import org.prebid.cache.listeners.AerospikeReadListener;
 import org.prebid.cache.listeners.AerospikeWriteListener;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.ReactiveRepository;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
@@ -31,8 +29,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-@Repository
-@ConditionalOnProperty(prefix = "spring.aerospike", name = {"host"})
 @Slf4j
 @RequiredArgsConstructor
 public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrapper, String> {
