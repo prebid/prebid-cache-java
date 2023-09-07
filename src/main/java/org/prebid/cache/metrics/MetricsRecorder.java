@@ -7,8 +7,6 @@ import lombok.Getter;
 import org.prebid.cache.handlers.ServiceType;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
-
 @Component
 public class MetricsRecorder {
 
@@ -46,21 +44,15 @@ public class MetricsRecorder {
 
     public class MetricsRecorderTimer {
         private Timer timer;
-        private long start;
-        private long stop;
+        private Timer.Sample sample;
 
         MetricsRecorderTimer(String measurementTag) {
-            this.timer = meterRegistry.timer(measurementTag);
-        }
-
-        public MetricsRecorderTimer start() {
-            this.start = System.currentTimeMillis();
-            return this;
+            timer = meterRegistry.timer(measurementTag);
+            sample = Timer.start(meterRegistry);
         }
 
         public void stop() {
-            this.stop = System.currentTimeMillis();
-            this.timer.record(Duration.ofMillis(this.stop - this.start));
+            sample.stop(timer);
         }
     }
 

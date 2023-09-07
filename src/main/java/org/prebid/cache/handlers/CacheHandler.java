@@ -11,16 +11,20 @@ import org.prebid.cache.exceptions.ResourceNotFoundException;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder.MetricsRecorderTimer;
+import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeoutException;
 
 @Slf4j
 abstract class CacheHandler extends MetricsHandler {
+    private static final int UNKNOWN_SIZE_VALUE = 1;
+    private static final double SAMPLING_RATE = 0.01;
     ServiceType type;
     static final String ID_KEY = "uuid";
     static final String CACHE_HOST_KEY = "ch";
@@ -75,6 +79,13 @@ abstract class CacheHandler extends MetricsHandler {
             log.error(error.getMessage());
         } else if (error instanceof TimeoutException) {
             metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_TIMEDOUT);
+        } else if (error instanceof DataBufferLimitException) {
+            if (ThreadLocalRandom.current().nextDouble() < SAMPLING_RATE) {
+                final Long contentLength = request.headers().contentLength()
+                        .orElse(UNKNOWN_SIZE_VALUE);
+
+                log.error("Request length: `{}` exceeds maximum size limit", contentLength);
+            }
         } else {
             log.error("Error occurred while processing the request: '{}', cause: '{}'",
                     ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
