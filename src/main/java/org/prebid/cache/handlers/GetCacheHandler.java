@@ -9,7 +9,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
-import org.prebid.cache.log.ConditionalLogger;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder.MetricsRecorderTimer;
 import org.prebid.cache.model.PayloadWrapper;
@@ -17,6 +16,7 @@ import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.prebid.cache.routers.ApiConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -49,9 +49,10 @@ public class GetCacheHandler extends CacheHandler {
                            final ApiConfig apiConfig,
                            final MetricsRecorder metricsRecorder,
                            final PrebidServerResponseBuilder builder,
-                           final CircuitBreaker webClientCircuitBreaker) {
+                           final CircuitBreaker webClientCircuitBreaker,
+                           @Value("${sampling.rate:0.01}") final Double samplingRate) {
 
-        super(new ConditionalLogger(log));
+        super(samplingRate);
         this.metricsRecorder = metricsRecorder;
         this.type = ServiceType.FETCH;
         this.repository = repository;

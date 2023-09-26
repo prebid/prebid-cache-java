@@ -16,6 +16,7 @@ import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.prebid.cache.routers.ApiConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -41,6 +42,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
@@ -78,14 +80,23 @@ class GetCacheHandlerTests extends CacheHandlerTests {
     @MockBean
     ReactiveRepository<PayloadWrapper, String> repository;
 
+    @Value("${sampling.rate:2.0}")
+    Double samplingRate;
+
     GetCacheHandler handler;
 
     WireMockServer serverMock;
 
     @BeforeEach
     public void setup() {
-        handler =
-            new GetCacheHandler(repository, cacheConfig, apiConfig, metricsRecorder, responseBuilder, webClientCircuitBreaker);
+        handler = new GetCacheHandler(
+                repository,
+                cacheConfig,
+                apiConfig,
+                metricsRecorder,
+                responseBuilder,
+                webClientCircuitBreaker,
+                samplingRate);
         serverMock = new WireMockServer(8080);
         serverMock.start();
     }

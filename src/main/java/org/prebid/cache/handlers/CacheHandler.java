@@ -23,8 +23,8 @@ import java.util.concurrent.TimeoutException;
 
 @Slf4j
 abstract class CacheHandler extends MetricsHandler {
+
     private static final int UNKNOWN_SIZE_VALUE = 1;
-    private static final double SAMPLING_RATE = 0.01;
     ServiceType type;
     static final String ID_KEY = "uuid";
     static final String CACHE_HOST_KEY = "ch";
@@ -33,9 +33,11 @@ abstract class CacheHandler extends MetricsHandler {
     protected String metricTagPrefix;
 
     private final ConditionalLogger conditionalLogger;
+    private final Double samplingRate;
 
-    protected CacheHandler(ConditionalLogger conditionalLogger) {
-        this.conditionalLogger = conditionalLogger;
+    protected CacheHandler(Double samplingRate) {
+        this.samplingRate = samplingRate;
+        this.conditionalLogger = new ConditionalLogger(log);
     }
 
     protected enum PayloadType implements StringTypeConvertible {
@@ -80,7 +82,7 @@ abstract class CacheHandler extends MetricsHandler {
     private Mono<ServerResponse> handleErrorMetrics(final Throwable error,
                                                     final ServerRequest request) {
         if (error instanceof ResourceNotFoundException) {
-            conditionalLogger.info(error.getMessage(), SAMPLING_RATE);
+            conditionalLogger.info(error.getMessage(), samplingRate);
         } else if (error instanceof BadRequestException) {
             log.error(error.getMessage());
         } else if (error instanceof TimeoutException) {
@@ -89,7 +91,7 @@ abstract class CacheHandler extends MetricsHandler {
             final long contentLength = request.headers().contentLength().orElse(UNKNOWN_SIZE_VALUE);
             conditionalLogger.error(
                     "Request length: `" + contentLength + "` exceeds maximum size limit",
-                    SAMPLING_RATE);
+                    samplingRate);
         } else {
             log.error("Error occurred while processing the request: '{}', cause: '{}'",
                     ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));

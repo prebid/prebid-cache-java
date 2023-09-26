@@ -12,7 +12,6 @@ import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
 import org.prebid.cache.exceptions.RequestBodyDeserializeException;
 import org.prebid.cache.helpers.RandomUUID;
-import org.prebid.cache.log.ConditionalLogger;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadTransfer;
@@ -22,6 +21,7 @@ import org.prebid.cache.model.ResponseObject;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -65,9 +65,10 @@ public class PostCacheHandler extends CacheHandler {
                             final MetricsRecorder metricsRecorder,
                             final PrebidServerResponseBuilder builder,
                             final Supplier<Date> currentDateProvider,
-                            final CircuitBreaker webClientCircuitBreaker) {
+                            final CircuitBreaker webClientCircuitBreaker,
+                            @Value("${sampling.rate:0.01}") final Double samplingRate) {
 
-        super(new ConditionalLogger(log));
+        super(samplingRate);
         this.metricsRecorder = metricsRecorder;
         this.type = ServiceType.SAVE;
         this.repository = repository;
