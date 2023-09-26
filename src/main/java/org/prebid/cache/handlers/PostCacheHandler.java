@@ -12,6 +12,7 @@ import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
 import org.prebid.cache.exceptions.RequestBodyDeserializeException;
 import org.prebid.cache.helpers.RandomUUID;
+import org.prebid.cache.log.ConditionalLogger;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadTransfer;
@@ -66,6 +67,7 @@ public class PostCacheHandler extends CacheHandler {
                             final Supplier<Date> currentDateProvider,
                             final CircuitBreaker webClientCircuitBreaker) {
 
+        super(new ConditionalLogger(log));
         this.metricsRecorder = metricsRecorder;
         this.type = ServiceType.SAVE;
         this.repository = repository;

@@ -9,6 +9,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
+import org.prebid.cache.log.ConditionalLogger;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder.MetricsRecorderTimer;
 import org.prebid.cache.model.PayloadWrapper;
@@ -50,6 +51,7 @@ public class GetCacheHandler extends CacheHandler {
                            final PrebidServerResponseBuilder builder,
                            final CircuitBreaker webClientCircuitBreaker) {
 
+        super(new ConditionalLogger(log));
         this.metricsRecorder = metricsRecorder;
         this.type = ServiceType.FETCH;
         this.repository = repository;
