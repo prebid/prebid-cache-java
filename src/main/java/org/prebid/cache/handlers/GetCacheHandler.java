@@ -31,6 +31,7 @@ import reactor.core.scheduler.Schedulers;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Component
 @Slf4j
@@ -113,23 +114,30 @@ public class GetCacheHandler extends CacheHandler {
     private Mono<ServerResponse> processProxyRequest(final ServerRequest request,
                                                      final String idKeyParam,
                                                      final String cacheUrl) {
-
-        final var webClient = clientsCache.computeIfAbsent(cacheUrl, WebClient::create);
+        final boolean isFirstConnection = !clientsCache.containsKey(cacheUrl);
+        final WebClient webClient = clientsCache.computeIfAbsent(cacheUrl, WebClient::create);
 
         return webClient.get()
-            .uri(uriBuilder -> uriBuilder.queryParam(ID_KEY, idKeyParam).build())
-            .headers(httpHeaders -> httpHeaders.addAll(request.headers().asHttpHeaders()))
-            .exchange()
-            .transform(CircuitBreakerOperator.of(circuitBreaker))
-            .timeout(Duration.ofMillis(config.getTimeoutMs()))
-            .subscribeOn(Schedulers.parallel())
-            .handle(this::updateProxyMetrics)
-            .flatMap(GetCacheHandler::fromClientResponse)
-            .doOnError(error -> {
-                metricsRecorder.getProxyFailure().increment();
-                log.info("Failed to send request: '{}', cause: '{}'",
-                        ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
-            });
+                .uri(uriBuilder -> uriBuilder.queryParam(ID_KEY, idKeyParam).build())
+                .headers(httpHeaders -> httpHeaders.addAll(request.headers().asHttpHeaders()))
+                .exchange()
+                .transform(CircuitBreakerOperator.of(circuitBreaker))
+                .timeout(Duration.ofMillis(config.getTimeoutMs()))
+                .subscribeOn(Schedulers.parallel())
+                .handle(this::updateProxyMetrics)
+                .flatMap(GetCacheHandler::fromClientResponse)
+                .doOnError(error -> {
+                    metricsRecorder.getProxyFailure().increment();
+                    if (error instanceof TimeoutException) {
+                        log.info(
+                                "The proxy request from {} to {} failed due to the timeout (the first connection = {})",
+                                request.uri(),
+                                cacheUrl,
+                                isFirstConnection);
+                    }
+                    log.info("Failed to send request: '{}', cause: '{}'",
+                            ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
+                });
     }
 
     private void updateProxyMetrics(final ClientResponse clientResponse,
