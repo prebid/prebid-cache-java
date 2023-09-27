@@ -31,6 +31,7 @@ import reactor.core.scheduler.Schedulers;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @Component
 @Slf4j
@@ -117,11 +118,15 @@ public class GetCacheHandler extends CacheHandler {
         final var webClient = clientsCache.computeIfAbsent(cacheUrl, WebClient::create);
 
         return webClient.get()
-            .uri(uriBuilder -> uriBuilder.queryParam(ID_KEY, idKeyParam).build())
-            .headers(httpHeaders -> httpHeaders.addAll(request.headers().asHttpHeaders()))
-            .exchange()
-            .transform(CircuitBreakerOperator.of(circuitBreaker))
-            .timeout(Duration.ofMillis(config.getTimeoutMs()))
+                .uri(uriBuilder -> uriBuilder.queryParam(ID_KEY, idKeyParam).build())
+                .headers(httpHeaders -> httpHeaders.addAll(request.headers().asHttpHeaders()))
+                .exchange()
+                .transform(CircuitBreakerOperator.of(circuitBreaker))
+                .timeout(Duration.ofMillis(config.getTimeoutMs()))
+                .onErrorMap(TimeoutException.class, ex -> {
+                    log.info("The proxy request from {} to {} failed due to the timeout", request.uri(), cacheUrl);
+                    return ex;
+                })
             .subscribeOn(Schedulers.parallel())
             .handle(this::updateProxyMetrics)
             .flatMap(GetCacheHandler::fromClientResponse)
