@@ -114,8 +114,8 @@ public class GetCacheHandler extends CacheHandler {
     private Mono<ServerResponse> processProxyRequest(final ServerRequest request,
                                                      final String idKeyParam,
                                                      final String cacheUrl) {
-
-        final var webClient = clientsCache.computeIfAbsent(cacheUrl, WebClient::create);
+        final boolean isFirstConnection = !clientsCache.containsKey(cacheUrl);
+        final WebClient webClient = clientsCache.computeIfAbsent(cacheUrl, WebClient::create);
 
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder.queryParam(ID_KEY, idKeyParam).build())
@@ -123,18 +123,21 @@ public class GetCacheHandler extends CacheHandler {
                 .exchange()
                 .transform(CircuitBreakerOperator.of(circuitBreaker))
                 .timeout(Duration.ofMillis(config.getTimeoutMs()))
-                .onErrorMap(TimeoutException.class, ex -> {
-                    log.info("The proxy request from {} to {} failed due to the timeout", request.uri(), cacheUrl);
-                    return ex;
-                })
-            .subscribeOn(Schedulers.parallel())
-            .handle(this::updateProxyMetrics)
-            .flatMap(GetCacheHandler::fromClientResponse)
-            .doOnError(error -> {
-                metricsRecorder.getProxyFailure().increment();
-                log.info("Failed to send request: '{}', cause: '{}'",
-                        ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
-            });
+                .subscribeOn(Schedulers.parallel())
+                .handle(this::updateProxyMetrics)
+                .flatMap(GetCacheHandler::fromClientResponse)
+                .doOnError(error -> {
+                    metricsRecorder.getProxyFailure().increment();
+                    if (error instanceof TimeoutException) {
+                        log.info(
+                                "The proxy request from {} to {} failed due to the timeout (the first connection = {})",
+                                request.uri(),
+                                cacheUrl,
+                                isFirstConnection);
+                    }
+                    log.info("Failed to send request: '{}', cause: '{}'",
+                            ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
+                });
     }
 
     private void updateProxyMetrics(final ClientResponse clientResponse,
