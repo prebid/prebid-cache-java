@@ -21,6 +21,7 @@ import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.prebid.cache.routers.ApiConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -39,7 +40,12 @@ import java.util.Date;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToIgnoreCase;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
 import static org.prebid.cache.util.AwaitilityUtil.awaitAndVerify;
@@ -78,10 +84,19 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     @MockBean
     ReactiveRepository<PayloadWrapper, String> repository;
 
+    @Value("${sampling.rate:2.0}")
+    Double samplingRate;
+
     @Test
     void testVerifyError() {
-        PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
-            currentDateProvider, webClientCircuitBreaker);
+        PostCacheHandler handler = new PostCacheHandler(
+                repository,
+                cacheConfig,
+                metricsRecorder,
+                builder,
+                currentDateProvider,
+                webClientCircuitBreaker,
+                samplingRate);
         verifyJacksonError(handler);
         verifyRepositoryError(handler);
     }
@@ -108,7 +123,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper));
 
         final var handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
-            currentDateProvider, webClientCircuitBreaker);
+            currentDateProvider, webClientCircuitBreaker, samplingRate);
 
         final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
             "prebid_");
@@ -141,7 +156,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
             .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}]}")));
 
         final var handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
-            currentDateProvider, webClientCircuitBreaker);
+            currentDateProvider, webClientCircuitBreaker, samplingRate);
 
         final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
             "prebid_");
@@ -176,7 +191,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
             cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(),
             false, Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
         final var handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
-            currentDateProvider, webClientCircuitBreaker);
+            currentDateProvider, webClientCircuitBreaker, samplingRate);
 
         final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
             "prebid_");
@@ -210,7 +225,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
             5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(),
             Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
         final var handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
-            currentDateProvider, webClientCircuitBreaker);
+            currentDateProvider, webClientCircuitBreaker, samplingRate);
 
         final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
             "prebid_");

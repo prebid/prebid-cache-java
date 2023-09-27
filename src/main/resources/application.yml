@@ -29,6 +29,7 @@ cache:
 # logging
 logging.level.root: info
 logging.config: classpath:log4j2-console.xml
+sampling.rate: 0.01
 
 # metrics
 management:

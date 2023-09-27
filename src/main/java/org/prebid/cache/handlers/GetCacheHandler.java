@@ -16,6 +16,7 @@ import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.prebid.cache.routers.ApiConfig;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -48,8 +49,10 @@ public class GetCacheHandler extends CacheHandler {
                            final ApiConfig apiConfig,
                            final MetricsRecorder metricsRecorder,
                            final PrebidServerResponseBuilder builder,
-                           final CircuitBreaker webClientCircuitBreaker) {
+                           final CircuitBreaker webClientCircuitBreaker,
+                           @Value("${sampling.rate:0.01}") final Double samplingRate) {
 
+        super(samplingRate);
         this.metricsRecorder = metricsRecorder;
         this.type = ServiceType.FETCH;
         this.repository = repository;
