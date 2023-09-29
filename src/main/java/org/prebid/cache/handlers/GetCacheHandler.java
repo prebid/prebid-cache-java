@@ -31,7 +31,6 @@ import reactor.core.scheduler.Schedulers;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 @Component
 @Slf4j
@@ -114,7 +113,7 @@ public class GetCacheHandler extends CacheHandler {
     private Mono<ServerResponse> processProxyRequest(final ServerRequest request,
                                                      final String idKeyParam,
                                                      final String cacheUrl) {
-        final boolean isFirstConnection = !clientsCache.containsKey(cacheUrl);
+
         final WebClient webClient = clientsCache.computeIfAbsent(cacheUrl, WebClient::create);
 
         return webClient.get()
@@ -128,13 +127,6 @@ public class GetCacheHandler extends CacheHandler {
                 .flatMap(GetCacheHandler::fromClientResponse)
                 .doOnError(error -> {
                     metricsRecorder.getProxyFailure().increment();
-                    if (error instanceof TimeoutException) {
-                        log.info(
-                                "The proxy request from {} to {} failed due to the timeout (the first connection = {})",
-                                request.uri(),
-                                cacheUrl,
-                                isFirstConnection);
-                    }
                     log.info("Failed to send request: '{}', cause: '{}'",
                             ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
                 });
@@ -160,10 +152,10 @@ public class GetCacheHandler extends CacheHandler {
     private Mono<ServerResponse> processRequest(final ServerRequest request, final String keyIdParam) {
         final var normalizedId = String.format("%s%s", config.getPrefix(), keyIdParam);
         return repository.findById(normalizedId)
-            .subscribeOn(Schedulers.parallel())
-            .transform(this::validateErrorResult)
-            .flatMap(wrapper -> createServerResponse(wrapper, request))
-            .switchIfEmpty(ErrorHandler.createResourceNotFound(normalizedId));
+                .subscribeOn(Schedulers.parallel())
+                .transform(this::validateErrorResult)
+                .flatMap(wrapper -> createServerResponse(wrapper, request))
+                .switchIfEmpty(ErrorHandler.createResourceNotFound(normalizedId));
     }
 
     private Mono<ServerResponse> createServerResponse(final PayloadWrapper wrapper, final ServerRequest request) {
