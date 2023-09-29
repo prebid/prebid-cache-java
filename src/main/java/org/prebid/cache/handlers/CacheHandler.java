@@ -13,12 +13,14 @@ import org.prebid.cache.log.ConditionalLogger;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder.MetricsRecorderTimer;
 import org.springframework.core.io.buffer.DataBufferLimitException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
 import java.util.concurrent.TimeoutException;
 
 @Slf4j
@@ -82,7 +84,8 @@ abstract class CacheHandler extends MetricsHandler {
     private Mono<ServerResponse> handleErrorMetrics(final Throwable error,
                                                     final ServerRequest request) {
         if (error instanceof ResourceNotFoundException) {
-            conditionalLogger.info(error.getMessage(), samplingRate);
+            final List<String> refererHeader = request.headers().header(HttpHeaders.REFERER);
+            conditionalLogger.info(error.getMessage() + ". Refererring URLs: " + refererHeader, samplingRate);
         } else if (error instanceof BadRequestException) {
             log.error(error.getMessage());
         } else if (error instanceof TimeoutException) {
