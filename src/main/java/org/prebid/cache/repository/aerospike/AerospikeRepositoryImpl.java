@@ -105,8 +105,7 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
     }
 
     private <T> Mono<T> handleAerospikeError(Throwable throwable) {
-        if (throwable instanceof AerospikeException) {
-            AerospikeException aerospikeException = (AerospikeException) throwable;
+        if (throwable instanceof AerospikeException aerospikeException) {
             if (aerospikeException.getResultCode() == ResultCode.KEY_EXISTS_ERROR) {
                 return Mono.error(new DuplicateKeyException(throwable.toString(), throwable));
             }
