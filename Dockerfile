@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-alpine
+FROM amazoncorretto:21
 
 WORKDIR /app/prebid-cache
 
