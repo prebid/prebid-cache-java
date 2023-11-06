@@ -56,7 +56,7 @@
         <guava.version>32.0.0-jre</guava.version>
         <caffeine.version>3.1.6</caffeine.version>
         <disruptor.version>3.4.4</disruptor.version>
-        <lombok.version>1.18.28</lombok.version>
+        <lombok.version>1.18.30</lombok.version>
         <metrics-graphite.version>4.2.17</metrics-graphite.version>
         <javax.el-api.version>3.0.0</javax.el-api.version>
         <reflections.version>0.10.2</reflections.version>
