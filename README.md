@@ -29,10 +29,31 @@ $ git clone https://github.com/prebid/prebid-cache-java.git
 
 (2). Start Redis or Aerospike:
 
+(2.1) Redis
 ```bash
 $ nohup redis-server &
+```
 
-$ sudo service aerospike start
+(2.2) Aerospike
+
+1. Install Docker Engine https://docs.docker.com/engine/install/
+2. Pull Aerospike docker image of an appropriate version https://hub.docker.com/_/aerospike
+```bash
+docker pull aerospike:<version>
+```
+3. Startup Aerospike container (the following instruction is enough for the Community Edition only)
+     - the `<version>` should correspond to the pulled image version
+     - the `<host>` and `<port>` should correspond to the `spring.aerospike.host` and `spring.aerospike.port` properties values of the Prebid Cache
+     - the `<namespace>` should correspond to the spring.aerospike.namespace property value of the Prebid Cache
+```bash
+$ docker run -d --name aerospike -e "NAMESPACE=<namespace>" -p <host>:<port>:3000 aerospike:<version>
+
+// Example (the host will be defined as localhost by default)
+$ docker run -d --name aerospike -e "NAMESPACE=prebid_cache" -p 3000:3000 aerospike:ce-6.4.0.2_1
+```
+4. Make sure that the Aerospike is up and running
+```bash
+$ docker ps
 ```
 
 (3). Start the Maven build
