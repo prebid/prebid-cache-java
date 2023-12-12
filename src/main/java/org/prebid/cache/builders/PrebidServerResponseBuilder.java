@@ -51,9 +51,10 @@ public class PrebidServerResponseBuilder {
     }
 
     private ServerResponse.BodyBuilder ok(final ServerRequest request, final MediaType mediaType) {
+        final String now = ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME);
         ServerResponse.BodyBuilder builder = ServerResponse.ok()
                                                      .contentType(mediaType)
-                                                     .header(HttpHeaders.DATE, ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+                                                     .header(HttpHeaders.DATE, now)
                                                      .varyBy(HttpHeaders.ACCEPT_ENCODING)
                                                      .cacheControl(CacheControl.noCache());
         applyHeaders(builder, request);
