@@ -50,16 +50,13 @@ public class PrebidServerResponseBuilder {
         return ok(request, mediaType).body(fromObject(response));
     }
 
-    private static ServerResponse.BodyBuilder applyHeaders(final ServerResponse.BodyBuilder builder,
-                                                           final ServerRequest request) {
-
-        final List<String> connectionHeaders = request.headers().header(HttpHeaders.CONNECTION);
-        if (hasConnectionValue(connectionHeaders, HEADER_CONNECTION_KEEPALIVE)) {
-            builder.header(HttpHeaders.CONNECTION, HEADER_CONNECTION_KEEPALIVE);
-        }
-        if (hasConnectionValue(connectionHeaders, HEADER_CONNECTION_CLOSE)) {
-            builder.header(HttpHeaders.CONNECTION, HEADER_CONNECTION_CLOSE);
-        }
+    private ServerResponse.BodyBuilder ok(final ServerRequest request, final MediaType mediaType) {
+        ServerResponse.BodyBuilder builder = ServerResponse.ok()
+                                                     .contentType(mediaType)
+                                                     .header(HttpHeaders.DATE, ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME))
+                                                     .varyBy(HttpHeaders.ACCEPT_ENCODING)
+                                                     .cacheControl(CacheControl.noCache());
+        applyHeaders(builder, request);
         return builder;
     }
 
@@ -89,20 +86,23 @@ public class PrebidServerResponseBuilder {
         return applyHeaders(headers, request);
     }
 
-    private static boolean hasConnectionValue(List<String> connectionHeaders, String value) {
-        return !connectionHeaders.isEmpty() && connectionHeaders.stream()
-                .map(String::toLowerCase)
-                .allMatch(Predicate.isEqual(value));
+    private static ServerResponse.BodyBuilder applyHeaders(final ServerResponse.BodyBuilder builder,
+                                                           final ServerRequest request) {
+
+        final List<String> connectionHeaders = request.headers().header(HttpHeaders.CONNECTION);
+        if (hasConnectionValue(connectionHeaders, HEADER_CONNECTION_KEEPALIVE)) {
+            builder.header(HttpHeaders.CONNECTION, HEADER_CONNECTION_KEEPALIVE);
+        }
+        if (hasConnectionValue(connectionHeaders, HEADER_CONNECTION_CLOSE)) {
+            builder.header(HttpHeaders.CONNECTION, HEADER_CONNECTION_CLOSE);
+        }
+        return builder;
     }
 
-    private ServerResponse.BodyBuilder ok(final ServerRequest request, final MediaType mediaType) {
-        ServerResponse.BodyBuilder builder = ServerResponse.ok()
-                .contentType(mediaType)
-                .header(HttpHeaders.DATE, ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME))
-                .varyBy(HttpHeaders.ACCEPT_ENCODING)
-                .cacheControl(CacheControl.noCache());
-        applyHeaders(builder, request);
-        return builder;
+    private static boolean hasConnectionValue(List<String> connectionHeaders, String value) {
+        return !connectionHeaders.isEmpty() && connectionHeaders.stream()
+                                                       .map(String::toLowerCase)
+                                                       .allMatch(Predicate.isEqual(value));
     }
 
 }
