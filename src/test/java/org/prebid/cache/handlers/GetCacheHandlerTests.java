@@ -140,7 +140,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
         final var requestMono = MockServerRequest.builder()
                 .method(HttpMethod.GET)
-                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
             .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
             .queryParam("ch", "localhost:8080")
             .build();
@@ -156,7 +156,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
         verify(getRequestedFor(urlPathEqualTo("/cache"))
                 .withQueryParam("uuid", equalTo("a8db2208-d085-444c-9721-c1161d7f09ce"))
-                .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase(MediaType.APPLICATION_JSON_VALUE))
+                .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase(MediaType.APPLICATION_JSON_UTF8_VALUE))
         );
     }
 
@@ -187,7 +187,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
         final var requestMono = MockServerRequest.builder()
                 .method(HttpMethod.GET)
-                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
             .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
             .queryParam("ch", "localhost:8080")
             .build();
@@ -203,7 +203,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
         verify(getRequestedFor(urlPathEqualTo("/cache"))
                 .withQueryParam("uuid", equalTo("a8db2208-d085-444c-9721-c1161d7f09ce"))
-                .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase(MediaType.APPLICATION_JSON_VALUE))
+                .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase(MediaType.APPLICATION_JSON_UTF8_VALUE))
         );
     }
 

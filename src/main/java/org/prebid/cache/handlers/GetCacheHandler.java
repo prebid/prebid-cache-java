@@ -119,7 +119,7 @@ public class GetCacheHandler extends CacheHandler {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder.queryParam(ID_KEY, idKeyParam).build())
                 .headers(httpHeaders -> httpHeaders.addAll(request.headers().asHttpHeaders()))
-                .exchangeToMono(Mono::just)
+                .exchange()
                 .transform(CircuitBreakerOperator.of(circuitBreaker))
                 .timeout(Duration.ofMillis(config.getTimeoutMs()))
                 .subscribeOn(Schedulers.parallel())

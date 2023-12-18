@@ -24,12 +24,12 @@ public class ReactiveTestRedisRepositoryContext {
     }
 
     @Bean
-    StatefulRedisConnection<String, String> connection(RedisClient redisClient) {
-        return redisClient.connect();
+    StatefulRedisConnection<String, String> connection() {
+        return client().connect();
     }
 
     @Bean
-    RedisStringReactiveCommands<String, String> reactiveCommands(StatefulRedisConnection<String, String> connection) {
-        return connection.reactive();
+    RedisStringReactiveCommands<String, String> reactiveCommands() {
+        return connection().reactive();
     }
 }

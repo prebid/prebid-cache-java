@@ -177,7 +177,7 @@ public class PostCacheHandler extends CacheHandler {
                             .queryParam("secondaryCache", "yes").build())
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(RequestObject.of(payloadTransfers))
-                    .exchangeToMono(Mono::just)
+                    .exchange()
                     .transform(CircuitBreakerOperator.of(circuitBreaker))
                     .doOnError(throwable -> {
                         metricsRecorder.getSecondaryCacheWriteError().increment();
