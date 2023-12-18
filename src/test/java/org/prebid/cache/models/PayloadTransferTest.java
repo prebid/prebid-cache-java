@@ -1,7 +1,6 @@
 package org.prebid.cache.models;
 
 import lombok.Builder;
-import lombok.val;
 import org.junit.jupiter.api.Test;
 import org.prebid.cache.model.PayloadTransfer;
 

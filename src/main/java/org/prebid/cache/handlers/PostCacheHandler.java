@@ -110,7 +110,7 @@ public class PostCacheHandler extends CacheHandler {
                 .map(payloadWrapperToMapTransformer)
                 .collectList()
                 .transform(this::validateErrorResult)
-                .map(ResponseObject::new)
+                .map(ResponseObject::of)
                 .flatMap(response -> {
                     if (response.getResponses().isEmpty()) {
                         return ErrorHandler.createNoElementsFound();
@@ -123,15 +123,14 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private Function<PayloadTransfer, PayloadWrapper> payloadWrapperTransformer(Supplier<Date> currentDateProvider) {
-        return transfer ->
-                new PayloadWrapper(
-                        RandomUUID.extractUUID(transfer),
-                        transfer.getPrefix(),
-                        new Payload(transfer.getType(), transfer.getKey(), transfer.valueAsString()),
-                        transfer.getExpiry(),
-                        currentDateProvider.get(),
-                        RandomUUID.isExternalUUID(transfer)
-                );
+        return transfer -> PayloadWrapper.builder()
+                .id(RandomUUID.extractUUID(transfer))
+                .prefix(transfer.getPrefix())
+                .payload(Payload.of(transfer.getType(), transfer.getKey(), transfer.valueAsString()))
+                .expiry(transfer.getExpiry())
+                .lastModified(currentDateProvider.get())
+                .isExternalId(RandomUUID.isExternalUUID(transfer))
+                .build();
     }
 
     private void validateUUID(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
@@ -172,13 +171,13 @@ public class PostCacheHandler extends CacheHandler {
             for (PayloadWrapper payloadWrapper : payloadWrappers) {
                 payloadTransfers.add(wrapperToTransfer(payloadWrapper));
             }
-            RequestObject requestObject = new RequestObject(payloadTransfers);
+
             webClients.forEach((ip, webClient) -> webClient.post()
                     .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath())
                             .queryParam("secondaryCache", "yes").build())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .syncBody(requestObject)
-                    .exchange()
+                    .bodyValue(RequestObject.of(payloadTransfers))
+                    .exchangeToMono(Mono::just)
                     .transform(CircuitBreakerOperator.of(circuitBreaker))
                     .doOnError(throwable -> {
                         metricsRecorder.getSecondaryCacheWriteError().increment();

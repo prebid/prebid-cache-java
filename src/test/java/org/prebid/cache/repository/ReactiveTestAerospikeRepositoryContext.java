@@ -8,6 +8,7 @@ import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.policy.Policy;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.aerospike.AerospikePropertyConfiguration;
 import org.prebid.cache.repository.aerospike.AerospikeRepositoryImpl;
 import org.springframework.context.annotation.Bean;
@@ -15,12 +16,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 @Configuration
-
 public class ReactiveTestAerospikeRepositoryContext {
 
     @Bean
     @Primary
-    public ReactiveRepository createRepository() {
+    public ReactiveRepository<PayloadWrapper, String> createRepository() {
         return new AerospikeRepositoryImpl(aerospikePropertyConfiguration(), client(), eventLoops(), readPolicy());
     }
 
