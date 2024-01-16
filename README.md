@@ -28,20 +28,34 @@ $ git clone https://github.com/prebid/prebid-cache-java.git
 ```
 
 (2). Start Redis or Aerospike:
-
-(2.1) Redis
+If you have installed Redis or Aerospike locally, you may start them both (or separately, depends on your needs) via bash:
 ```bash
-$ nohup redis-server &
+$ nohup redis-server & sudo service aerospike start
+```
+Alternatively, you may start DB as Docker image. But before you should install [Docker Engine](https://docs.docker.com/engine/install/), if you doesn't have one.
+
+(2.1) Redis via Docker
+1. Pull [Redis docker image](https://hub.docker.com/_/redis) of an appropriate version
+```
+docker pull redis:<version>
+```
+2. Run Redis container
+   - the `<version>` should correspond to the pulled image version
+   - the `<host>` and `<port>` should correspond to the `spring.redis.host` and `spring.redis.port` properties values of the Prebid Cache
+   - the `<namespace>` should correspond to the spring.aerospike.namespace property value of the Prebid Cache
+```bash
+$ docker run -d --name redis -p <host>:<port>:6379 redis:<version>
+
+// Example (the host will be defined as localhost by default)
+$ docker run -d --name redis -p 6379:6379 redis:7.2.4
 ```
 
-(2.2) Aerospike
-
-1. Install Docker Engine https://docs.docker.com/engine/install/
-2. Pull Aerospike docker image of an appropriate version https://hub.docker.com/_/aerospike
+(2.2) Aerospike via Docker
+1. Pull [Aerospike docker image](https://hub.docker.com/_/aerospike) of an appropriate version
 ```bash
 docker pull aerospike:<version>
 ```
-3. Startup Aerospike container (the following instruction is enough for the Community Edition only)
+2. Run Aerospike container (the following instruction is enough for the Community Edition only)
      - the `<version>` should correspond to the pulled image version
      - the `<host>` and `<port>` should correspond to the `spring.aerospike.host` and `spring.aerospike.port` properties values of the Prebid Cache
      - the `<namespace>` should correspond to the spring.aerospike.namespace property value of the Prebid Cache
@@ -51,7 +65,8 @@ $ docker run -d --name aerospike -e "NAMESPACE=<namespace>" -p <host>:<port>:300
 // Example (the host will be defined as localhost by default)
 $ docker run -d --name aerospike -e "NAMESPACE=prebid_cache" -p 3000:3000 aerospike:ce-6.4.0.2_1
 ```
-4. Make sure that the Aerospike is up and running
+
+(2.3) Make sure that the Aerospike and/or Redis is up and running
 ```bash
 $ docker ps
 ```
