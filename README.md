@@ -24,29 +24,30 @@ This section describes how to download, install and run the application.
 (1). Clone the repo:
 
 ```bash
-$ git clone https://github.com/prebid/prebid-cache-java.git
+git clone https://github.com/prebid/prebid-cache-java.git
 ```
 
 (2). Start Redis or Aerospike:
 If you have installed [Redis](https://redis.io/docs/install/install-redis/) or [Aerospike](https://aerospike.com/docs/server/operations/install) locally, you may start them both (or separately, depends on your needs) via bash:
 ```bash
-$ sudo systemctl start redis.service & sudo systemctl start aerospike
+sudo systemctl start redis
+sudo systemctl start aerospike
 ```
-Alternatively, you may start DB as Docker image. But before you should install [Docker Engine](https://docs.docker.com/engine/install/), if you doesn't have one.
+Alternatively, you may start DB as Docker image. But before you should install [Docker Engine](https://docs.docker.com/engine/install/), if you don't have one.
 
 (2.1) Redis via Docker
 1. Pull [Redis docker image](https://hub.docker.com/_/redis) of an appropriate version
-```
+```bash
 docker pull redis:<version>
 ```
 2. Run Redis container
    - the `<version>` should correspond to the pulled image version
    - the `<host_port>` should correspond to the `spring.redis.port` property values of the Prebid Cache
 ```bash
-$ docker run -d --name redis -p -p <host_port>:<container_port> redis:<version>
+docker run -d --name redis -p <host_port>:<container_port> redis:<version>
 
 // Example (the host will be defined as localhost by default)
-$ docker run -d --name redis -p 6379:6379 redis:7.2.4
+docker run -d --name redis -p 6379:6379 redis:7.2.4
 ```
 
 (2.2) Aerospike via Docker
@@ -59,15 +60,15 @@ docker pull aerospike:<version>
      - the `<host_port>` should correspond to the `spring.aerospike.port` property values of the Prebid Cache
      - the `<namespace>` should correspond to the spring.aerospike.namespace property value of the Prebid Cache
 ```bash
-$ docker run -d --name aerospike -e "NAMESPACE=<namespace>" -p -p <host_port>:<container_port> aerospike:<version>
+docker run -d --name aerospike -e "NAMESPACE=<namespace>" -p <host_port>:<container_port> aerospike:<version>
 
 // Example (the host will be defined as localhost by default)
-$ docker run -d --name aerospike -e "NAMESPACE=prebid_cache" -p 3000:3000 aerospike:ce-6.4.0.2_1
+docker run -d --name aerospike -e "NAMESPACE=prebid_cache" -p 3000:3000 aerospike:ce-6.4.0.2_1
 ```
 
 (2.3) Make sure that the Aerospike and/or Redis is up and running
 ```bash
-$ docker ps
+docker ps
 ```
 
 (3). Start the Maven build
@@ -89,7 +90,7 @@ $ mvn clean package
 (4). Run Spring Boot JAR (_from project root_)
 
 ```bash
-$ java -jar target/prebid-cache.jar
+java -jar target/prebid-cache.jar
 ```
 
 ### _Spring Profiles_
@@ -100,7 +101,7 @@ This section shows examples of the various runtime environment configuration(s).
 
 _VM Options:_
 ```bash
-$ java -jar prebid-cache.jar -Dspring.profiles.active=manage,local -Dlog.dir=/app/prebid-cache-java/log/
+java -jar prebid-cache.jar -Dspring.profiles.active=manage,local -Dlog.dir=/app/prebid-cache-java/log/
 ```
 
 (2). Production with log4j and management endpoints disabled:
