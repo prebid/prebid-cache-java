@@ -9,8 +9,8 @@ import org.prebid.cache.exceptions.RequestParsingException;
 import org.prebid.cache.exceptions.ResourceNotFoundException;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
 import org.prebid.cache.log.ConditionalLogger;
-import org.prebid.cache.metrics.MetricsRecorder;
-import org.prebid.cache.metrics.MetricsRecorder.MetricsRecorderTimer;
+import org.prebid.cache.metrics.ErrorType;
+import org.prebid.cache.metrics.MetricsRecorder.RequestDurationRecorder;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -26,12 +26,10 @@ import java.util.concurrent.TimeoutException;
 abstract class CacheHandler extends MetricsHandler {
 
     private static final int UNKNOWN_SIZE_VALUE = 1;
-    ServiceType type;
+    RequestType type;
     static final String ID_KEY = "uuid";
     static final String CACHE_HOST_KEY = "ch";
     private static final String UUID_DUPLICATION = "UUID duplication.";
-
-    protected String metricTagPrefix;
 
     private final ConditionalLogger conditionalLogger;
     private final Double samplingRate;
@@ -41,89 +39,69 @@ abstract class CacheHandler extends MetricsHandler {
         this.conditionalLogger = new ConditionalLogger(log);
     }
 
-    protected enum PayloadType implements StringTypeConvertible {
-        JSON("json"),
-        XML("xml");
-
-        private final String text;
-
-        PayloadType(final String text) {
-            this.text = text;
-        }
-
-        @Override
-        public String toString() {
-            return text;
-        }
-    }
-
     <T> Mono<T> validateErrorResult(final Mono<T> mono) {
         return mono.doOnSuccess(v -> log.debug("{}: {}", type, v))
-                .onErrorMap(DuplicateKeyException.class, error -> {
-                    metricsRecorder.getExistingKeyError().increment();
-                    return new BadRequestException(UUID_DUPLICATION);
-                })
-                .onErrorMap(org.springframework.core.codec.DecodingException.class, error ->
-                        new RequestParsingException(error.toString()))
-                .onErrorMap(org.springframework.web.server.UnsupportedMediaTypeStatusException.class, error ->
-                        new UnsupportedMediaTypeException(error.toString()));
+            .onErrorMap(DuplicateKeyException.class, error -> {
+                metricsRecorder.incrementExistingKeyErrorCount();
+                return new BadRequestException(UUID_DUPLICATION);
+            })
+            .onErrorMap(org.springframework.core.codec.DecodingException.class, error ->
+                new RequestParsingException(error.toString()))
+            .onErrorMap(org.springframework.web.server.UnsupportedMediaTypeStatusException.class, error ->
+                new UnsupportedMediaTypeException(error.toString()));
     }
 
     Mono<ServerResponse> finalizeResult(final Mono<ServerResponse> mono,
                                         final ServerRequest request,
-                                        final MetricsRecorderTimer timerContext) {
-        // transform to error, if needed and send metrics
+                                        final RequestDurationRecorder durationRecorder) {
+
         return mono
-                .onErrorResume(throwable -> handleErrorMetrics(throwable, request))
-                .doOnEach(signal -> {
-                    if (timerContext != null)
-                        timerContext.stop();
-                });
+            .onErrorResume(throwable -> handleErrorMetrics(throwable, request))
+            .doOnEach(signal -> durationRecorder.stop());
     }
 
     private Mono<ServerResponse> handleErrorMetrics(final Throwable error, final ServerRequest request) {
         if (error instanceof RepositoryException) {
-            recordMetric(MetricsRecorder.MeasurementTag.ERROR_DB);
+            metricsRecorder.incrementErrorCount(type, ErrorType.DATABASE_ERROR);
         } else if (error instanceof ResourceNotFoundException) {
             conditionalLogger.info(
-                    error.getMessage()
-                            + ". Refererring URLs: " + request.headers().header(HttpHeaders.REFERER)
-                            + ". Request URI: " + request.uri(),
-                    samplingRate);
+                error.getMessage()
+                    + ". Refererring URLs: " + request.headers().header(HttpHeaders.REFERER)
+                    + ". Request URI: " + request.uri(),
+                samplingRate);
         } else if (error instanceof BadRequestException) {
             log.error(error.getMessage());
         } else if (error instanceof TimeoutException) {
-            metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_TIMEDOUT);
+            metricsRecorder.incrementErrorCount(type, ErrorType.TIMED_OUT);
         } else if (error instanceof DataBufferLimitException) {
-            final long contentLength = request.headers().contentLength().orElse(UNKNOWN_SIZE_VALUE);
+            final long contentLength = request.headers().contentLength()
+                .orElse(UNKNOWN_SIZE_VALUE);
+
             conditionalLogger.error(
-                    "Request length: `" + contentLength + "` exceeds maximum size limit",
-                    samplingRate);
+                "Request length: `" + contentLength + "` exceeds maximum size limit",
+                samplingRate);
         } else {
             log.error("Error occurred while processing the request: '{}', cause: '{}'",
-                    ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
+                ExceptionUtils.getMessage(error), ExceptionUtils.getMessage(error));
         }
 
         return builder.error(Mono.just(error), request)
-                .doOnEach(signal -> handleErrorStatusCodes(request, signal));
+            .doOnEach(signal -> incrementMetrics(request, signal));
     }
 
-    private void handleErrorStatusCodes(ServerRequest request, Signal<ServerResponse> signal) {
-        final var response = signal.get();
-        HttpMethod method = request.method();
+    private void incrementMetrics(ServerRequest request, Signal<ServerResponse> signal) {
+        final ServerResponse response = signal.get();
+        final HttpMethod method = request.method();
         if (method == null || signal.isOnError() || response == null) {
-            recordMetric(MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
-        } else if (response.statusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-            recordMetric(MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
-        } else if (response.statusCode() == HttpStatus.BAD_REQUEST) {
-            recordMetric(MetricsRecorder.MeasurementTag.ERROR_BAD_REQUEST);
-        } else if (response.statusCode() == HttpStatus.NOT_FOUND) {
-            recordMetric(MetricsRecorder.MeasurementTag.ERROR_MISSINGID);
+            metricsRecorder.incrementErrorCount(type, ErrorType.UNKNOWN);
+        } else {
+            if (response.statusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
+                metricsRecorder.incrementErrorCount(type, ErrorType.UNKNOWN);
+            } else if (response.statusCode() == HttpStatus.BAD_REQUEST) {
+                metricsRecorder.incrementErrorCount(type, ErrorType.BAD_REQUEST);
+            } else if (response.statusCode() == HttpStatus.NOT_FOUND) {
+                metricsRecorder.incrementErrorCount(type, ErrorType.MISSING_ID);
+            }
         }
     }
-
-    private void recordMetric(MetricsRecorder.MeasurementTag tag) {
-        metricsRecorder.markMeterForTag(this.metricTagPrefix, tag);
-    }
-
 }

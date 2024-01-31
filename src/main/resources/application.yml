@@ -36,14 +36,18 @@ management:
   graphite:
     metrics:
       export:
-        enabled: false
+        enabled: true
         host: localhost
         port: 2003
         protocol: plaintext
-        step: 1m
-        tags-as-prefix:
-          - prefix
-        prefix: prebid
+        step: 1s
+
+spring:
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 1000
+    password:
 
 # circuit breaker
 circuitbreaker:

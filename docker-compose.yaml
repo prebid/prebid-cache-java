@@ -1,0 +1,35 @@
+version: "3.9"
+services:
+    # Ui on localhost:3000, select graphite:80 in datasource
+    grafana:
+        image: grafana/grafana
+        restart: always
+        ports:
+            - "3000:3000"
+
+    # Ui on localhost:80
+    # Plaintext - localhost:2003
+    # Pickled - localhost:2004
+    graphite:
+        image: graphiteapp/graphite-statsd
+        restart: always
+        ports:
+            - "80:80"
+            - "2003-2004:2003-2004"
+            - "2023-2024:2023-2024"
+            - "8125:8125/udp"
+            - "8126:8126"
+        volumes:
+            - ~/volumes/pbc/graphite:/opt/graphite/storage
+
+    redis:
+        image: redis:latest
+        restart: always
+        ports:
+            - "6379:6379"
+        volumes:
+            - ~/volumes/pbc/redis:/root/redis
+            - ~/volumes/pbc/redis.conf:/usr/local/etc/redis/redis.conf
+        environment:
+            - REDIS_PORT=6379
+            - REDIS_DATABASES=16

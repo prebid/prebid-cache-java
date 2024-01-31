@@ -54,7 +54,7 @@ public class PostCacheHandler extends CacheHandler {
     private final CacheConfig config;
     private final Supplier<Date> currentDateProvider;
     private final Function<PayloadWrapper, Map<String, String>> payloadWrapperToMapTransformer = payload ->
-            ImmutableMap.of(UUID_KEY, payload.getId());
+        ImmutableMap.of(UUID_KEY, payload.getId());
     private final Map<String, WebClient> webClients = new HashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final CircuitBreaker circuitBreaker;
@@ -70,7 +70,7 @@ public class PostCacheHandler extends CacheHandler {
 
         super(samplingRate);
         this.metricsRecorder = metricsRecorder;
-        this.type = ServiceType.SAVE;
+        this.type = RequestType.SAVE;
         this.repository = repository;
         this.config = config;
         if (config.getSecondaryUris() != null) {
@@ -78,13 +78,12 @@ public class PostCacheHandler extends CacheHandler {
         }
         this.builder = builder;
         this.currentDateProvider = currentDateProvider;
-        this.metricTagPrefix = "write";
         this.circuitBreaker = webClientCircuitBreaker;
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
-        metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
-        final var timerContext = metricsRecorder.createRequestTimerForServiceType(type);
+        metricsRecorder.incrementRequestCount(type);
+        final var timerContext = metricsRecorder.createRequestTimer(type);
 
         String secondaryCache = request.queryParam(SECONDARY_CACHE_KEY).orElse(StringUtils.EMPTY);
 
@@ -92,46 +91,46 @@ public class PostCacheHandler extends CacheHandler {
         final var monoList = bodyMono.map(RequestObject::getPuts);
         final var flux = monoList.flatMapMany(Flux::fromIterable);
         final var payloadFlux = flux
-                .map(payload -> payload.toBuilder()
-                        .prefix(config.getPrefix())
-                        .expiry(adjustExpiry(payload.compareAndGetExpiry()))
-                        .build())
-                .map(payloadWrapperTransformer(currentDateProvider))
-                .handle(this::validateUUID)
-                .handle(this::validateExpiry)
-                .concatMap(repository::save)
-                .subscribeOn(Schedulers.parallel())
-                .collectList()
-                .doOnNext(payloadWrappers -> sendRequestToSecondaryPrebidCacheHosts(payloadWrappers, secondaryCache))
-                .flatMapMany(Flux::fromIterable)
-                .subscribeOn(Schedulers.parallel());
+            .map(payload -> payload.toBuilder()
+                .prefix(config.getPrefix())
+                .expiry(adjustExpiry(payload.compareAndGetExpiry()))
+                .build())
+            .map(payloadWrapperTransformer(currentDateProvider))
+            .handle(this::validateUUID)
+            .handle(this::validateExpiry)
+            .concatMap(repository::save)
+            .subscribeOn(Schedulers.parallel())
+            .collectList()
+            .doOnNext(payloadWrappers -> sendRequestToSecondaryPrebidCacheHosts(payloadWrappers, secondaryCache))
+            .flatMapMany(Flux::fromIterable)
+            .subscribeOn(Schedulers.parallel());
 
         final Mono<ServerResponse> responseMono = payloadFlux
-                .map(payloadWrapperToMapTransformer)
-                .collectList()
-                .transform(this::validateErrorResult)
-                .map(ResponseObject::new)
-                .flatMap(response -> {
-                    if (response.getResponses().isEmpty()) {
-                        return ErrorHandler.createNoElementsFound();
-                    } else {
-                        return builder.createResponseMono(request, MediaType.APPLICATION_JSON_UTF8, response);
-                    }
-                });
+            .map(payloadWrapperToMapTransformer)
+            .collectList()
+            .transform(this::validateErrorResult)
+            .map(ResponseObject::new)
+            .flatMap(response -> {
+                if (response.getResponses().isEmpty()) {
+                    return ErrorHandler.createNoElementsFound();
+                } else {
+                    return builder.createResponseMono(request, MediaType.APPLICATION_JSON_UTF8, response);
+                }
+            });
 
         return finalizeResult(responseMono, request, timerContext);
     }
 
     private Function<PayloadTransfer, PayloadWrapper> payloadWrapperTransformer(Supplier<Date> currentDateProvider) {
         return transfer ->
-                new PayloadWrapper(
-                        RandomUUID.extractUUID(transfer),
-                        transfer.getPrefix(),
-                        new Payload(transfer.getType(), transfer.getKey(), transfer.valueAsString()),
-                        transfer.getExpiry(),
-                        currentDateProvider.get(),
-                        RandomUUID.isExternalUUID(transfer)
-                );
+            new PayloadWrapper(
+                RandomUUID.extractUUID(transfer),
+                transfer.getPrefix(),
+                new Payload(transfer.getType(), transfer.getKey(), transfer.valueAsString()),
+                transfer.getExpiry(),
+                currentDateProvider.get(),
+                RandomUUID.isExternalUUID(transfer)
+            );
     }
 
     private void validateUUID(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
@@ -174,30 +173,34 @@ public class PostCacheHandler extends CacheHandler {
             }
             RequestObject requestObject = new RequestObject(payloadTransfers);
             webClients.forEach((ip, webClient) -> webClient.post()
-                    .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath())
-                            .queryParam("secondaryCache", "yes").build())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .syncBody(requestObject)
-                    .exchange()
-                    .transform(CircuitBreakerOperator.of(circuitBreaker))
-                    .doOnError(throwable -> {
-                        metricsRecorder.getSecondaryCacheWriteError().increment();
-                        log.info("Failed to send request: '{}', cause: '{}'",
-                                ExceptionUtils.getMessage(throwable), ExceptionUtils.getMessage(throwable));
-                    })
-                    .subscribe(clientResponse -> {
-                        if (clientResponse.statusCode() != HttpStatus.OK) {
-                            metricsRecorder.getSecondaryCacheWriteError().increment();
-                            log.debug(clientResponse.statusCode().toString());
-                            log.info("Failed to write to remote address : {}", ip);
-                        }
-                    }));
+                .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath())
+                    .queryParam("secondaryCache", "yes").build())
+                .contentType(MediaType.APPLICATION_JSON)
+                .syncBody(requestObject)
+                .exchange()
+                .transform(CircuitBreakerOperator.of(circuitBreaker))
+                .doOnError(throwable -> {
+                    metricsRecorder.incrementSecondaryCacheWriteErrorCount();
+                    log.info("Failed to send request: '{}', cause: '{}'",
+                        ExceptionUtils.getMessage(throwable), ExceptionUtils.getMessage(throwable));
+                })
+                .subscribe(clientResponse -> {
+                    if (clientResponse.statusCode() != HttpStatus.OK) {
+                        metricsRecorder.incrementSecondaryCacheWriteErrorCount();
+                        log.debug(clientResponse.statusCode().toString());
+                        log.info("Failed to write to remote address : {}", ip);
+                    }
+                }));
         }
     }
 
     private PayloadTransfer wrapperToTransfer(final PayloadWrapper wrapper) {
-        return PayloadTransfer.builder().type(wrapper.getPayload().getType())
-                .key(wrapper.getId()).value(wrapper.getPayload().getValue()).expiry(wrapper.getExpiry()).build();
+        return PayloadTransfer.builder()
+            .type(wrapper.getPayload().getType())
+            .key(wrapper.getId())
+            .value(wrapper.getPayload().getValue())
+            .expiry(wrapper.getExpiry())
+            .build();
     }
 
     private Mono<RequestObject> getRequestBodyMono(final ServerRequest request) {
@@ -208,12 +211,12 @@ public class PostCacheHandler extends CacheHandler {
                     requestObject = objectMapper.readValue(value, RequestObject.class);
                 } catch (IOException e) {
                     log.error("Exception occurred while deserialize request body: '{}', cause: '{}'",
-                            ExceptionUtils.getMessage(e), ExceptionUtils.getMessage(e));
+                        ExceptionUtils.getMessage(e), ExceptionUtils.getMessage(e));
                 }
                 return requestObject;
             }).doOnError(throwable ->
-                    Mono.error(new RequestBodyDeserializeException("Exception occurred while deserialize request body",
-                            throwable)));
+                Mono.error(new RequestBodyDeserializeException("Exception occurred while deserialize request body",
+                    throwable)));
         }
         return request.bodyToMono(RequestObject.class);
     }

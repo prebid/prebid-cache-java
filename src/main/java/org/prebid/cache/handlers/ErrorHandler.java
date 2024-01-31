@@ -38,7 +38,7 @@ public class ErrorHandler extends MetricsHandler {
     }
 
     public Mono<ServerResponse> invalidRequest(final ServerRequest request) {
-        metricsRecorder.getInvalidRequestMeter().increment();
+        metricsRecorder.incrementInvalidRequestCount();
         return builder.error(Mono.just(new ResourceNotFoundException(RESOURCE_NOT_FOUND_BAD_URL)), request);
     }
 }

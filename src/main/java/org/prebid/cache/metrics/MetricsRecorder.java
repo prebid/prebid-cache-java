@@ -1,53 +1,29 @@
 package org.prebid.cache.metrics;
 
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Timer;
-import lombok.Getter;
-import org.prebid.cache.handlers.ServiceType;
+import org.prebid.cache.handlers.PayloadType;
+import org.prebid.cache.handlers.RequestType;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class MetricsRecorder {
 
     private final MeterRegistry meterRegistry;
 
-    protected static final String PREFIX_PLACEHOLDER = "\\$\\{prefix\\}";
-
     public MetricsRecorder(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
     }
 
-    public enum MeasurementTag {
-        REQUEST_DURATION("pbc.${prefix}.request.duration"),
-        REQUEST("pbc.${prefix}.request"),
-        ERROR_UNKNOWN("pbc.${prefix}.err.unknown"),
-        ERROR_TIMEDOUT("pbc.${prefix}.err.timedOut"),
-        ERROR_MISSINGID("pbc.${prefix}.err.missingId"),
-        ERROR_BAD_REQUEST("pbc.${prefix}.err.badRequest"),
-        REQUEST_INVALID("pbc.request.invalid"),
-        JSON("pbc.${prefix}.json"),
-        XML("pbc.${prefix}.xml"),
-        ERROR_DB("pbc.${prefix}.err.db"),
-        ERROR_SECONDARY_WRITE("pbc.err.secondaryWrite"),
-        ERROR_EXISTINGID("pbc.err.existingId"),
-        PROXY_SUCCESS("pbc.proxy.success"),
-        PROXY_FAILURE("pbc.proxy.failure");
-
-        @Getter
-        private String tag;
-
-        MeasurementTag(final String tag) {
-            this.tag = tag;
-        }
-    }
-
-    public class MetricsRecorderTimer {
+    public class RequestDurationRecorder {
         private Timer timer;
         private Timer.Sample sample;
 
-        MetricsRecorderTimer(String measurementTag) {
-            timer = meterRegistry.timer(measurementTag);
+        RequestDurationRecorder(RequestType requestType) {
+            timer = meterRegistry.timer(MetricType.DURATION.value, MetricTag.REQUEST_TYPE.tag, requestType.value);
             sample = Timer.start(meterRegistry);
         }
 
@@ -56,44 +32,67 @@ public class MetricsRecorder {
         }
     }
 
-    public Counter getInvalidRequestMeter() {
-        return meterRegistry.counter(MeasurementTag.REQUEST_INVALID.getTag());
+    public void incrementInvalidRequestCount() {
+        final List<Tag> tags = List.of(
+            Tag.of(MetricTag.REQUEST_TYPE.tag, RequestType.UNKNOWN.value),
+            Tag.of(MetricTag.ERROR.tag, ErrorType.BAD_REQUEST.value));
+
+        meterRegistry.counter(MetricType.COUNT.value, tags).increment();
     }
 
-    public Counter getSecondaryCacheWriteError() {
-        return meterRegistry.counter(MeasurementTag.ERROR_SECONDARY_WRITE.getTag());
+    public void incrementSecondaryCacheWriteErrorCount() {
+        final List<Tag> tags = List.of(
+            Tag.of(MetricTag.REQUEST_TYPE.tag, RequestType.SAVE.value),
+            Tag.of(MetricTag.ERROR.tag, ErrorType.SECONDARY_WRITE.value));
+
+        meterRegistry.counter(MetricType.COUNT.value, tags).increment();
     }
 
-    public Counter getExistingKeyError() {
-        return meterRegistry.counter(MeasurementTag.ERROR_EXISTINGID.getTag());
+    public void incrementExistingKeyErrorCount() {
+        final List<Tag> tags = List.of(
+            Tag.of(MetricTag.REQUEST_TYPE.tag, RequestType.SAVE.value),
+            Tag.of(MetricTag.ERROR.tag, ErrorType.EXISTING_ID.value));
+
+        meterRegistry.counter(MetricType.COUNT.value, tags).increment();
     }
 
-    public Counter getProxySuccess() {
-        return meterRegistry.counter(MeasurementTag.PROXY_SUCCESS.getTag());
+    public void incrementProxySuccessCount() {
+        final List<Tag> tags = List.of(
+            Tag.of(MetricTag.REQUEST_TYPE.tag, RequestType.FETCH.value),
+            Tag.of(MetricTag.PROXY.tag, ProxyStatus.SUCCESS.status));
+
+        meterRegistry.counter(MetricType.COUNT.value, tags).increment();
     }
 
-    public Counter getProxyFailure() {
-        return meterRegistry.counter(MeasurementTag.PROXY_FAILURE.getTag());
+    public void incrementProxyFailureCount() {
+        final List<Tag> tags = List.of(
+            Tag.of(MetricTag.REQUEST_TYPE.tag, RequestType.FETCH.value),
+            Tag.of(MetricTag.PROXY.tag, ProxyStatus.FAILURE.status));
+
+        meterRegistry.counter(MetricType.COUNT.value, tags).increment();
     }
 
-    private Counter meterForTag(final String prefix, final MeasurementTag measurementTag) {
-        return meterRegistry.counter(measurementTag.getTag().replaceAll(PREFIX_PLACEHOLDER, prefix));
+    public void incrementErrorCount(RequestType requestType, ErrorType errorType) {
+        final List<Tag> tags = List.of(
+            Tag.of(MetricTag.REQUEST_TYPE.tag, requestType.value),
+            Tag.of(MetricTag.ERROR.tag, errorType.value));
+
+        meterRegistry.counter(MetricType.COUNT.value, tags).increment();
     }
 
-    public void markMeterForTag(final String prefix, final MeasurementTag measurementTag) {
-        meterForTag(prefix, measurementTag).increment();
+    public void incrementRequestCount(RequestType requestType) {
+        meterRegistry.counter(MetricType.COUNT.value, MetricTag.REQUEST_TYPE.tag, requestType.value).increment();
     }
 
-    public MetricsRecorderTimer createRequestTimerForServiceType(final ServiceType serviceType) {
-        if (serviceType.equals(ServiceType.FETCH)) {
-            return new MetricsRecorderTimer(
-                MeasurementTag.REQUEST_DURATION.getTag()
-                    .replaceAll(PREFIX_PLACEHOLDER, "read"));
-        } else if (serviceType.equals(ServiceType.SAVE)) {
-            return new MetricsRecorderTimer(
-                MeasurementTag.REQUEST_DURATION.getTag()
-                    .replaceAll(PREFIX_PLACEHOLDER, "write"));
-        }
-        return null;
+    public void incrementResponseCount(RequestType requestType, PayloadType payloadType) {
+        final List<Tag> tags = List.of(
+            Tag.of(MetricTag.REQUEST_TYPE.tag, requestType.value),
+            Tag.of(MetricTag.PAYLOAD_TYPE.tag, payloadType.type));
+
+        meterRegistry.counter(MetricType.COUNT.value, tags).increment();
+    }
+
+    public RequestDurationRecorder createRequestTimer(RequestType requestType) {
+        return new RequestDurationRecorder(requestType);
     }
 }
