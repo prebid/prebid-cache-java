@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.config.CircuitBreakerPropertyConfiguration;
 import org.prebid.cache.exceptions.DuplicateKeyException;
-import org.prebid.cache.helpers.CurrentDateProvider;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorderTest;
 import org.prebid.cache.model.Payload;
@@ -59,7 +58,6 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
     MetricsRecorderTest.class,
     MetricsRecorder.class,
     ApiConfig.class,
-    CurrentDateProvider.class,
     CircuitBreakerPropertyConfiguration.class
 })
 @EnableConfigurationProperties
@@ -94,7 +92,6 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 cacheConfig,
                 metricsRecorder,
                 builder,
-                currentDateProvider,
                 webClientCircuitBreaker,
                 samplingRate);
         verifyJacksonError(handler);
@@ -118,12 +115,12 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     void testVerifySave() {
         final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
         final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
-            , 1800L, new Date(100), true);
+            , 1800L, true);
         given(currentDateProvider.get()).willReturn(new Date(100));
         given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper));
 
         final var handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
-            currentDateProvider, webClientCircuitBreaker, samplingRate);
+            webClientCircuitBreaker, samplingRate);
 
         final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
             "prebid_");
@@ -148,7 +145,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     void testSecondaryCacheSuccess() {
         final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
         final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
-            , 1800L, new Date(100), true);
+            , 1800L, true);
         given(currentDateProvider.get()).willReturn(new Date(100));
         given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper));
 
@@ -156,7 +153,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
             .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}]}")));
 
         final var handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
-            currentDateProvider, webClientCircuitBreaker, samplingRate);
+            webClientCircuitBreaker, samplingRate);
 
         final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
             "prebid_");
@@ -191,7 +188,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
             cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(),
             false, Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
         final var handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
-            currentDateProvider, webClientCircuitBreaker, samplingRate);
+            webClientCircuitBreaker, samplingRate);
 
         final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
             "prebid_");
@@ -216,7 +213,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     void testUUIDDuplication() {
         final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
         final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
-            , 1800L, new Date(100), true);
+            , 1800L, true);
         given(currentDateProvider.get()).willReturn(new Date(100));
         given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper)).willReturn(Mono.error(new DuplicateKeyException("")));
 
@@ -225,7 +222,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
             5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(),
             Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
         final var handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
-            currentDateProvider, webClientCircuitBreaker, samplingRate);
+            webClientCircuitBreaker, samplingRate);
 
         final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
             "prebid_");

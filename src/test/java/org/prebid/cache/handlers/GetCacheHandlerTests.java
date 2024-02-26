@@ -31,7 +31,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
 import reactor.test.StepVerifier;
 
-import java.util.Date;
 import java.util.function.Consumer;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -42,7 +41,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
@@ -115,7 +113,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
     @Test
     void testVerifyFetch() {
         final var payload = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        final var payloadWrapper = new PayloadWrapper("12", "prebid_", payload, 1800L, new Date(), true);
+        final var payloadWrapper = new PayloadWrapper("12", "prebid_", payload, 1800L, true);
         given(repository.findById("prebid_a8db2208-d085-444c-9721-c1161d7f09ce")).willReturn(Mono.just(payloadWrapper));
 
         final var requestMono = MockServerRequest.builder()
