@@ -26,6 +26,7 @@ public abstract class PayloadWrapperResponseTests {
             {
               "creativeCode" : "<html></html>"
             }""";
+
     static PayloadWrapper jsonPayloadWrapper;
     static PayloadWrapper jsonUTF8PayloadWrapper;
     static PayloadWrapper xmlPayloadWrapper;
@@ -71,7 +72,6 @@ public abstract class PayloadWrapperResponseTests {
                 .prefix("prefix")
                 .payload(payload)
                 .expiry(200L)
-                .lastModified(new Date())
                 .isExternalId(false)
                 .build();
     }

@@ -12,6 +12,7 @@ import org.prebid.cache.config.CircuitBreakerPropertyConfiguration;
 import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorderTest;
+import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.model.RequestObject;
 import org.prebid.cache.repository.CacheConfig;
@@ -111,11 +112,8 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testVerifySave() {
-        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
-            , 1800L, true);
         given(currentDateProvider.get()).willReturn(new Date(100));
-        given(repository.save(PAYLOAD_WRAPPER)).willReturn(Mono.just(payloadWrapper));
+        given(repository.save(PAYLOAD_WRAPPER)).willReturn(Mono.just(PAYLOAD_WRAPPER));
 
         final PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
                 webClientCircuitBreaker, samplingRate);
@@ -139,9 +137,6 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testSecondaryCacheSuccess() {
-        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
-            , 1800L, true);
         given(currentDateProvider.get()).willReturn(new Date(100));
         given(repository.save(PAYLOAD_WRAPPER)).willReturn(Mono.just(PAYLOAD_WRAPPER));
 
@@ -203,9 +198,6 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testUUIDDuplication() {
-        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
-            , 1800L, true);
         given(currentDateProvider.get()).willReturn(new Date(100));
         given(repository.save(PAYLOAD_WRAPPER))
                 .willReturn(Mono.just(PAYLOAD_WRAPPER))

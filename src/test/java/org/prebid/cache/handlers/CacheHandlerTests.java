@@ -28,7 +28,6 @@ abstract class CacheHandlerTests {
             .prefix("prebid_")
             .payload(Payload.of("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", ""))
             .expiry(1800L)
-            .lastModified(new Date(100))
             .isExternalId(true)
             .build();
 

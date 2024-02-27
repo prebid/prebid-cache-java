@@ -115,9 +115,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testVerifyFetch() {
-        final var payload = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        final var payloadWrapper = new PayloadWrapper("12", "prebid_", payload, 1800L, true);
-        given(repository.findById("prebid_a8db2208-d085-444c-9721-c1161d7f09ce")).willReturn(Mono.just(payloadWrapper));
+        given(repository.findById("prebid_a8db2208-d085-444c-9721-c1161d7f09ce")).willReturn(Mono.just(PAYLOAD_WRAPPER));
 
         final var requestMono = MockServerRequest.builder()
             .method(HttpMethod.GET)
