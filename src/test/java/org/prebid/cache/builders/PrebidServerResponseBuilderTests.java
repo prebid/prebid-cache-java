@@ -23,6 +23,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
 import reactor.test.StepVerifier;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.function.Consumer;
 
@@ -205,7 +206,7 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
             }
 
             final var payload = new Payload("json", "1234567890", payloadValue);
-            return new PayloadWrapper("", "prefix", payload, 200L, new Date(), false);
+            return new PayloadWrapper("", "prefix", payload, 200L, false);
         }
     }
 }

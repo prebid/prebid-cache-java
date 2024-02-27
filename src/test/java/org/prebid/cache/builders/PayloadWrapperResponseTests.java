@@ -1,21 +1,17 @@
 package org.prebid.cache.builders;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
-import lombok.val;
-import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-
-import java.util.Date;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
 @SpringBootTest
-public abstract class PayloadWrapperResponseTests
-{
+public abstract class PayloadWrapperResponseTests {
     static PayloadWrapper jsonPayloadWrapper;
     static PayloadWrapper jsonUTF8PayloadWrapper;
     static PayloadWrapper xmlPayloadWrapper;
@@ -72,6 +68,6 @@ public abstract class PayloadWrapperResponseTests
         }
 
         final var payload = new Payload("json", "1234567890", payloadValue);
-        return new PayloadWrapper("","prefix", payload, 200L, new Date(), false);
+        return new PayloadWrapper("", "prefix", payload, 200L, false);
     }
 }
