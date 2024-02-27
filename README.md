@@ -9,7 +9,7 @@ Project configuration is managed through the use of YAML configuration (see reso
 ### _Requirements_
 This section covers the mandatory pre-requisites needed to be able to run the application.
 
-* Windows, Linux, AWS, GCP or MacOS
+* Windows, Linux, AWS, GCP or macOS
 * JDK 8+
 * Maven
 * Git
@@ -19,7 +19,7 @@ This section covers the mandatory pre-requisites needed to be able to run the ap
 ### _Quick Install_
 This section describes how to download, install and run the application.
 
-###### A. Using Maven on MacOS (recommended installation method)
+###### A. Using Maven on macOS (recommended installation method)
 
 (1). Clone the repo:
 
@@ -33,7 +33,8 @@ If you have installed [Redis](https://redis.io/docs/install/install-redis/) or [
 sudo systemctl start redis
 sudo systemctl start aerospike
 ```
-Alternatively, you may start DB as Docker image. But before you should install [Docker Engine](https://docs.docker.com/engine/install/), if you don't have one.
+Alternatively, you may start DB as Docker image.
+You should install [Docker Engine](https://docs.docker.com/engine/install/) if you don't have one.
 
 (2.1) Redis via Docker
 1. Pull [Redis docker image](https://hub.docker.com/_/redis) of an appropriate version
@@ -46,7 +47,7 @@ docker pull redis:<version>
 ```bash
 docker run -d --name redis -p <host_port>:<container_port> redis:<version>
 
-// Example (the host will be defined as localhost by default)
+# Example (the host will be defined as localhost by default)
 docker run -d --name redis -p 6379:6379 redis:7.2.4
 ```
 
@@ -62,7 +63,7 @@ docker pull aerospike:<version>
 ```bash
 docker run -d --name aerospike -e "NAMESPACE=<namespace>" -p <host_port>:<container_port> aerospike:<version>
 
-// Example (the host will be defined as localhost by default)
+# Example (the host will be defined as localhost by default)
 docker run -d --name aerospike -e "NAMESPACE=prebid_cache" -p 3000:3000 aerospike:ce-6.4.0.2_1
 ```
 
@@ -74,8 +75,8 @@ docker ps
 (3). Start the Maven build
 
 ```bash
-$ cd prebid-cache-java
-$ mvn clean package
+cd prebid-cache-java
+mvn clean package
 ...
 [INFO] Layout: JAR
 [INFO] ------------------------------------------------------------------------
@@ -108,7 +109,7 @@ java -jar prebid-cache.jar -Dspring.profiles.active=manage,local -Dlog.dir=/app/
 
 _VM Options:_
 ```bash
-$ java -jar prebid-cache.jar -Dspring.profiles.active=prod -Dlog.dir=/app/prebid-cache-java/log/
+java -jar prebid-cache.jar -Dspring.profiles.active=prod -Dlog.dir=/app/prebid-cache-java/log/
 ```
 
 ### _Cache Configuration_
@@ -195,7 +196,6 @@ A configuration object should be passed into the constructor of your custom repo
        this.config = config;
    }   
  }
-
  ```
 
  Here is an example definition of a custom configuration property class.  It is important to replace _'custom'_ with the correct cache implementation name (e.g. redis, memcached, aerospike, etc...).  If Spring already provides a predefined configuration property prefix, please use that instead. 
@@ -212,7 +212,6 @@ public class CustomPropertyConfiguration
     private String host;
     private int port;
 }
-
 ```
 
 ### _Metrics_
@@ -353,29 +352,29 @@ https://github.com/spring-projects/spring-boot/issues/12188
 
 To launch the JAR from the command line (UNIX/Linux):   
 ```bash
-$ ./prebid-cache.jar
+./prebid-cache.jar
 ```
 
 For security reasons, it is recommended to run the service as a non-root user:
 ```bash
-$ sudo useradd prebid-cache
-$ sudo passwd prebid-cache
-$ sudo chown prebid-cache:prebid-cache prebid-cache.jar
-$ sudo chmod 500 prebid-cache.jar
+sudo useradd prebid-cache
+sudo passwd prebid-cache
+sudo chown prebid-cache:prebid-cache prebid-cache.jar
+sudo chmod 500 prebid-cache.jar
 ```
 
 ###### B. System V Init
 
 Symbolic link JAR to init.d:
 ```bash
-$ sudo ln -s /app/prebid-cache.jar /etc/init.d/prebid-cache
+sudo ln -s /app/prebid-cache.jar /etc/init.d/prebid-cache
 ```
 
 ```bash
-$ sudo service prebid-cache start   # start service
-$ sudo service prebid-cache status  # check status
-$ sudo service prebid-cache stop    # stop service
-$ sudo service prebid-cache restart # restart service
+sudo service prebid-cache start   # start service
+sudo service prebid-cache status  # check status
+sudo service prebid-cache stop    # stop service
+sudo service prebid-cache restart # restart service
 ```
 
 Following these steps will allow for:
@@ -386,7 +385,7 @@ Following these steps will allow for:
 ###### C. Systemd
 
 /etc/systemd/system/prebid-cache.service:
-```bash
+```text
 [Unit]
 Description=Prebid Cache Service
 After=syslog.target
@@ -398,13 +397,12 @@ SuccessExitStatus=143
 
 [Install]
 WantedBy=multi-user.target
-
 ```
 Now you can manage this service with systemctl:
 ```bash
-$ systemctl start prebid-cache.service  # start service
-$ systemctl stop prebid-cache.service   # stop service
-$ systemctl status prebid-cache.service # check status
+systemctl start prebid-cache.service  # start service
+systemctl stop prebid-cache.service   # stop service
+systemctl status prebid-cache.service # check status
 ```
 For more details please refer to man pages for systemctl.
 
@@ -415,38 +413,39 @@ This section describes how to run the app in an Elastic Beanstalk environment wi
 
 (1). Go to the project root:
 ```bash
-$ cd prebid-cache-java
+cd prebid-cache-java
 ```
 
 (2). Update codebase :
 ```bash
-$ git pull
+git pull
 ```
 
 (3). Rebuild sources with Maven
 ```bash
-$ mvn clean gplus:execute package
+mvn clean gplus:execute package
 ```
 
 (4). Create folder in work directory:
 ```bash
-$ mkdir aws-prebid-cache
+mkdir aws-prebid-cache
 ```
 
 (5). Copy jar file from prebid-cache-java/target to created directory:
 ```bash
-$ cp prebid-cache-java/target/prebid-cache.jar aws-prebid-cache
+cp prebid-cache-java/target/prebid-cache.jar aws-prebid-cache
 ```
 
 (6). Create Procfile in aws-prebid-cache directory:
 ```bash 
-$ sudo nano Procfile 
+sudo nano Procfile
+
 web: java -jar -Dspring.profiles.active=aws prebid-cache.jar
 ```
 
 (7). Zip aws-prebid-cache directory
 ```bash
-$ zip -r eb-prebid-cache-new.zip eb-prebid-cache-new
+zip -r eb-prebid-cache-new.zip eb-prebid-cache-new
 ```
 Artifact is ready for deploy to Elastic Beanstalk.
 For more information, see https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/java-se-platform.html.
@@ -526,17 +525,17 @@ For using the latest version of prebid cache, perform next steps:
 
 (1). Go to the project root:
 ```bash
-$ cd prebid-cache-java
+cd prebid-cache-java
 ```
 
 (2). Update codebase:
 ```bash
-$ git pull
+git pull
 ```
 
 (3). Rebuild sources with Maven
 ```bash
-$ mvn clean gplus:execute package
+mvn clean gplus:execute package
 ```
 
 If there are any questions, issues, or concerns, please submit them to https://github.com/prebid/prebid-cache-java/issues/.
