@@ -6,14 +6,13 @@ import org.prebid.cache.model.PayloadWrapper;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 
-import java.util.Date;
-
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
 @SpringBootTest
 public abstract class PayloadWrapperResponseTests {
+
     static final String XML_RESPONSE = """
             <?xml version="1.0"?>
             <xml>
@@ -27,7 +26,6 @@ public abstract class PayloadWrapperResponseTests {
             {
               "creativeCode" : "<html></html>"
             }""";
-
     static PayloadWrapper jsonPayloadWrapper;
     static PayloadWrapper jsonUTF8PayloadWrapper;
     static PayloadWrapper xmlPayloadWrapper;
@@ -67,10 +65,11 @@ public abstract class PayloadWrapperResponseTests {
             payloadValue = XML_RESPONSE;
         }
 
+        final var payload = Payload.of("json", "1234567890", payloadValue);
         return PayloadWrapper.builder()
                 .id("")
                 .prefix("prefix")
-                .payload(Payload.of("json", "1234567890", payloadValue))
+                .payload(payload)
                 .expiry(200L)
                 .lastModified(new Date())
                 .isExternalId(false)

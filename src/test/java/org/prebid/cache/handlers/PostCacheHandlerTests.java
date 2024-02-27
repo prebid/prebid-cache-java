@@ -10,7 +10,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.config.CircuitBreakerPropertyConfiguration;
 import org.prebid.cache.exceptions.DuplicateKeyException;
-import org.prebid.cache.helpers.CurrentDateProvider;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorderTest;
 import org.prebid.cache.model.PayloadWrapper;
@@ -57,7 +56,6 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
     MetricsRecorderTest.class,
     MetricsRecorder.class,
     ApiConfig.class,
-    CurrentDateProvider.class,
     CircuitBreakerPropertyConfiguration.class
 })
 @EnableConfigurationProperties
@@ -92,7 +90,6 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 cacheConfig,
                 metricsRecorder,
                 builder,
-                currentDateProvider,
                 webClientCircuitBreaker,
                 samplingRate);
         verifyJacksonError(handler);
@@ -114,11 +111,14 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testVerifySave() {
+        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
+            , 1800L, true);
         given(currentDateProvider.get()).willReturn(new Date(100));
-        given(repository.save(PAYLOAD_WRAPPER)).willReturn(Mono.just(PAYLOAD_WRAPPER));
+        given(repository.save(PAYLOAD_WRAPPER)).willReturn(Mono.just(payloadWrapper));
 
         final PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
-                currentDateProvider, webClientCircuitBreaker, samplingRate);
+                webClientCircuitBreaker, samplingRate);
 
         final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final MockServerRequest requestMono = MockServerRequest.builder()
@@ -139,6 +139,9 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testSecondaryCacheSuccess() {
+        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
+            , 1800L, true);
         given(currentDateProvider.get()).willReturn(new Date(100));
         given(repository.save(PAYLOAD_WRAPPER)).willReturn(Mono.just(PAYLOAD_WRAPPER));
 
@@ -146,7 +149,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}]}")));
 
         final PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
-                currentDateProvider, webClientCircuitBreaker, samplingRate);
+                webClientCircuitBreaker, samplingRate);
 
         final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final MockServerRequest requestMono = MockServerRequest.builder()
@@ -174,12 +177,12 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     @Test
     void testExternalUUIDInvalid() {
         //given
-        final CacheConfig cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(),
-                cacheConfig.getTimeoutMs(),
-                cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(),
-                false, Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
-        final PostCacheHandler handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
-                currentDateProvider, webClientCircuitBreaker, samplingRate);
+        final var cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(),
+            cacheConfig.getTimeoutMs(),
+            cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(),
+            false, Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
+        final var handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
+            webClientCircuitBreaker, samplingRate);
 
         final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final MockServerRequest requestMono = MockServerRequest.builder()
@@ -200,6 +203,9 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testUUIDDuplication() {
+        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
+        final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
+            , 1800L, true);
         given(currentDateProvider.get()).willReturn(new Date(100));
         given(repository.save(PAYLOAD_WRAPPER))
                 .willReturn(Mono.just(PAYLOAD_WRAPPER))
@@ -210,7 +216,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(),
                 Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
         final PostCacheHandler handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
-                currentDateProvider, webClientCircuitBreaker, samplingRate);
+                webClientCircuitBreaker, samplingRate);
 
         final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final MockServerRequest requestMono = MockServerRequest.builder()

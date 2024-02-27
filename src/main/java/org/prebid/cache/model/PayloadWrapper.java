@@ -4,8 +4,6 @@ import lombok.Builder;
 import lombok.Value;
 import org.prebid.cache.exceptions.PayloadWrapperPropertyException;
 
-import java.util.Date;
-
 @Value
 @Builder
 public class PayloadWrapper {
@@ -14,7 +12,6 @@ public class PayloadWrapper {
     Payload payload;
 
     Long expiry;
-    Date lastModified;
 
     transient boolean isExternalId;
 

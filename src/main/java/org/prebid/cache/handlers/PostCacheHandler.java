@@ -36,12 +36,10 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 @Component
 @Slf4j
@@ -52,7 +50,6 @@ public class PostCacheHandler extends CacheHandler {
 
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
-    private final Supplier<Date> currentDateProvider;
     private final Function<PayloadWrapper, Map<String, String>> payloadWrapperToMapTransformer = payload ->
             ImmutableMap.of(UUID_KEY, payload.getId());
     private final Map<String, WebClient> webClients = new HashMap<>();
@@ -64,7 +61,6 @@ public class PostCacheHandler extends CacheHandler {
                             final CacheConfig config,
                             final MetricsRecorder metricsRecorder,
                             final PrebidServerResponseBuilder builder,
-                            final Supplier<Date> currentDateProvider,
                             final CircuitBreaker webClientCircuitBreaker,
                             @Value("${sampling.rate:0.01}") final Double samplingRate) {
 
@@ -77,7 +73,6 @@ public class PostCacheHandler extends CacheHandler {
             config.getSecondaryUris().forEach(ip -> webClients.put(ip, WebClient.create(ip)));
         }
         this.builder = builder;
-        this.currentDateProvider = currentDateProvider;
         this.metricTagPrefix = "write";
         this.circuitBreaker = webClientCircuitBreaker;
     }
@@ -96,7 +91,7 @@ public class PostCacheHandler extends CacheHandler {
                         .prefix(config.getPrefix())
                         .expiry(adjustExpiry(payload.compareAndGetExpiry()))
                         .build())
-                .map(payloadWrapperTransformer(currentDateProvider))
+                .map(payloadWrapperTransformer())
                 .handle(this::validateUUID)
                 .handle(this::validateExpiry)
                 .concatMap(repository::save)
@@ -122,13 +117,12 @@ public class PostCacheHandler extends CacheHandler {
         return finalizeResult(responseMono, request, timerContext);
     }
 
-    private Function<PayloadTransfer, PayloadWrapper> payloadWrapperTransformer(Supplier<Date> currentDateProvider) {
+    private Function<PayloadTransfer, PayloadWrapper> payloadWrapperTransformer() {
         return transfer -> PayloadWrapper.builder()
                 .id(RandomUUID.extractUUID(transfer))
                 .prefix(transfer.getPrefix())
                 .payload(Payload.of(transfer.getType(), transfer.getKey(), transfer.valueAsString()))
                 .expiry(transfer.getExpiry())
-                .lastModified(currentDateProvider.get())
                 .isExternalId(RandomUUID.isExternalUUID(transfer))
                 .build();
     }
@@ -217,4 +211,3 @@ public class PostCacheHandler extends CacheHandler {
         return request.bodyToMono(RequestObject.class);
     }
 }
-

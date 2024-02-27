@@ -23,7 +23,6 @@ import reactor.core.publisher.Signal;
 import reactor.test.StepVerifier;
 
 import java.util.Collections;
-import java.util.Date;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -165,12 +164,12 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests {
                 payloadValue = XML_RESPONSE;
             }
 
+            final var payload = Payload.of("json", "1234567890", payloadValue);
             return PayloadWrapper.builder()
                     .id("")
                     .prefix("prefix")
-                    .payload(Payload.of("json", "1234567890", payloadValue))
+                    .payload(payload)
                     .expiry(200L)
-                    .lastModified(new Date())
                     .isExternalId(false)
                     .build();
         }
