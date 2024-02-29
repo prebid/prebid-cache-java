@@ -6,8 +6,7 @@ spring.main.banner-mode: "off"
 api.path: /cache
 server.port: 8080
 server.compression.enabled: true
-#server.compression.min-response-size: 1
-#server.compression.mime-types: application/json,application/xml
+server.max-http-request-header-size: 16KB
 
 # cors
 cors:
@@ -135,4 +134,3 @@ management.endpoint.env.enabled: false
 management.endpoint.configprops.enabled: false
 logging.level.root: warn
 logging.config: classpath:log4j2-prod.xml
-
