@@ -46,7 +46,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
         <maven-clean-plugin.version>3.2.0</maven-clean-plugin.version>
-        <maven-surefire-plugin.version>3.2.1</maven-surefire-plugin.version>
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
         <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <maven-release-plugin.version>3.0.0-M5</maven-release-plugin.version>
         <rest-maven-plugin.version>0.1.4</rest-maven-plugin.version>
@@ -62,7 +62,8 @@
         <reflections.version>0.10.2</reflections.version>
         <aerospike-client.version>6.2.0</aerospike-client.version>
         <reactor-extra.version>3.5.1</reactor-extra.version>
-        <wiremock.version>3.4.2</wiremock.version>
+        <!-- Wiremock 3.4.0+ has incompatibility with the mockserver client (do we really need both?) -->
+        <wiremock.version>3.3.1</wiremock.version>
         <checkstyle-plugin.version>3.3.0</checkstyle-plugin.version>
         <checkstyle.version>10.12.1</checkstyle.version>
         <jacoco-plugin.version>0.8.10</jacoco-plugin.version>
@@ -72,13 +73,14 @@
         <javax.validation-api>2.0.1.Final</javax.validation-api>
 
         <!-- Functional Tests -->
-        <kotest.version>5.5.5</kotest.version>
-        <kotlin.version>1.9.20</kotlin.version>
-        <testcontainers.version>1.17.6</testcontainers.version>
-        <mockserver-client.version>5.13.2</mockserver-client.version>
-        <ktor.version>2.2.4</ktor.version>
-        <jackson-kotlin-module.version>2.14.2</jackson-kotlin-module.version>
-        <docker-maven-plugin.version>0.39.1</docker-maven-plugin.version>
+        <kotest.version>5.8.0</kotest.version>
+        <kotlin.version>1.9.22</kotlin.version>
+        <kotlinx-coroutines-core-jvm.version>1.8.0</kotlinx-coroutines-core-jvm.version>
+        <testcontainers.version>1.19.6</testcontainers.version>
+        <mockserver-client.version>5.15.0</mockserver-client.version>
+        <ktor.version>2.3.8</ktor.version>
+        <jackson-kotlin-module.version>2.16.1</jackson-kotlin-module.version>
+        <docker-maven-plugin.version>0.44.0</docker-maven-plugin.version>
     </properties>
 
     <dependencies>
@@ -236,7 +238,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-core-jvm</artifactId>
-            <version>1.6.4</version>
+            <version>${kotlinx-coroutines-core-jvm.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
