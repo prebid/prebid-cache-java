@@ -11,6 +11,7 @@ import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.routers.ApiConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.reactive.function.server.MockServerRequest;
@@ -22,7 +23,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.Signal;
 import reactor.test.StepVerifier;
 
-import java.util.Collections;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,20 +56,21 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests {
 
         mono.doOnEach(consumer).subscribe();
         StepVerifier.create(mono)
-                    .expectSubscription()
-                    .expectNextMatches(t -> true)
-                    .expectComplete()
-                    .verify();
+                .expectSubscription()
+                .expectNextMatches(t -> true)
+                .expectComplete()
+                .verify();
     }
 
-    private void verifyServerResponse(MediaType mediaType) {
-        final var request = MockServerRequest.builder().build();
+    private void verifyServerResponse(MediaType mediaType, HttpHeaders requestHeaders, HttpHeaders expectedHeaders) {
+        final var request = MockServerRequest.builder().headers(requestHeaders).build();
         final Consumer<Signal<ServerResponse>> consumer = signal -> {
             assertTrue(signal.isOnComplete());
 
             final ServerResponse response = signal.get();
             assertEquals(200, response.statusCode().value());
-            assertTrue(response.headers().containsValue(Collections.singletonList(mediaType.toString())));
+            assertEquals(response.headers().getContentType(), expectedHeaders.getContentType());
+            assertEquals(response.headers().getConnection(), expectedHeaders.getConnection());
         };
 
         subscribeAndVerify(createResponseMono(request, mediaType), consumer);
@@ -99,16 +100,36 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests {
 
     @Test
     void verifyXmlServerResponse() {
-        verifyServerResponse(APPLICATION_XML);
+        final HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.add(HttpHeaders.CONNECTION, "keep-alive");
+
+        final HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add(HttpHeaders.CONNECTION, "keep-alive");
+        responseHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_XML.toString());
+
+        verifyServerResponse(APPLICATION_XML, requestHeaders, responseHeaders);
     }
 
     @Test
     void verifyJsonServerResponse() {
-        verifyServerResponse(APPLICATION_JSON_UTF8);
+        final HttpHeaders requestHeaders = new HttpHeaders();
+        requestHeaders.add(HttpHeaders.CONNECTION, "close");
+
+        final HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add(HttpHeaders.CONNECTION, "close");
+        responseHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON_UTF8.toString());
+
+        verifyServerResponse(APPLICATION_JSON_UTF8, requestHeaders, responseHeaders);
     }
 
     @Test
-    void verifyJsonUTF8ServerResponse() { verifyServerResponse(APPLICATION_JSON); }
+    void verifyJsonUTF8ServerResponse() {
+        final HttpHeaders requestHeaders = new HttpHeaders();
+
+        final HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON.toString());
+        verifyServerResponse(APPLICATION_JSON, requestHeaders, responseHeaders);
+    }
 
     @Test
     void verifyNotFound() { verifyErrorResponse(HttpStatus.NOT_FOUND); }

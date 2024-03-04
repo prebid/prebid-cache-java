@@ -18,6 +18,7 @@ import reactor.core.publisher.Mono;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
+import java.util.List;
 import java.util.function.Predicate;
 
 import static org.springframework.web.reactive.function.BodyInserters.fromValue;
@@ -26,8 +27,10 @@ import static org.springframework.web.reactive.function.server.ServerResponse.st
 @Component
 @Slf4j
 public class PrebidServerResponseBuilder {
+
     private static final String HEADER_CONNECTION_KEEPALIVE = "keep-alive";
     private static final String HEADER_CONNECTION_CLOSE = "close";
+
     private final ApiConfig apiConfig;
 
     @Autowired
@@ -48,13 +51,13 @@ public class PrebidServerResponseBuilder {
     }
 
     private ServerResponse.BodyBuilder ok(final ServerRequest request, final MediaType mediaType) {
-        ServerResponse.BodyBuilder builder =
-                ServerResponse.ok()
-                        .contentType(mediaType)
-                        .header(HttpHeaders.DATE, ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME))
-                        .varyBy(HttpHeaders.ACCEPT_ENCODING)
-                        .cacheControl(CacheControl.noCache());
-        builder = applyHeaders(builder, request);
+        final String now = ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME);
+        ServerResponse.BodyBuilder builder = ServerResponse.ok()
+                                                     .contentType(mediaType)
+                                                     .header(HttpHeaders.DATE, now)
+                                                     .varyBy(HttpHeaders.ACCEPT_ENCODING)
+                                                     .cacheControl(CacheControl.noCache());
+        applyHeaders(builder, request);
         return builder;
     }
 
@@ -87,26 +90,21 @@ public class PrebidServerResponseBuilder {
 
     private static ServerResponse.BodyBuilder applyHeaders(final ServerResponse.BodyBuilder builder,
                                                            final ServerRequest request) {
-        if (isConnectionKeepAlive(request))
+
+        final List<String> connectionHeaders = request.headers().header(HttpHeaders.CONNECTION);
+        if (hasConnectionValue(connectionHeaders, HEADER_CONNECTION_KEEPALIVE)) {
             builder.header(HttpHeaders.CONNECTION, HEADER_CONNECTION_KEEPALIVE);
-        if (isConnectionClose(request))
+        }
+        if (hasConnectionValue(connectionHeaders, HEADER_CONNECTION_CLOSE)) {
             builder.header(HttpHeaders.CONNECTION, HEADER_CONNECTION_CLOSE);
+        }
         return builder;
     }
 
-    private static boolean isConnectionKeepAlive(final ServerRequest request) {
-        return request.headers()
-                .header(HttpHeaders.CONNECTION)
-                .stream()
-                .map(String::toLowerCase)
-                .allMatch(Predicate.isEqual(PrebidServerResponseBuilder.HEADER_CONNECTION_KEEPALIVE));
+    private static boolean hasConnectionValue(List<String> connectionHeaders, String value) {
+        return !connectionHeaders.isEmpty() && connectionHeaders.stream()
+                                                       .map(String::toLowerCase)
+                                                       .allMatch(Predicate.isEqual(value));
     }
 
-    private static boolean isConnectionClose(final ServerRequest request) {
-        return request.headers()
-                .header(HttpHeaders.CONNECTION)
-                .stream()
-                .map(String::toLowerCase)
-                .allMatch(Predicate.isEqual(PrebidServerResponseBuilder.HEADER_CONNECTION_CLOSE));
-    }
 }
