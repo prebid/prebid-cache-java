@@ -1,8 +1,9 @@
 package org.prebid.cache.functional.testcontainers.container
 
 import org.testcontainers.containers.MockServerContainer
+import org.testcontainers.utility.DockerImageName
 
-class WebCacheContainer(mockServerImageVersion: String) : MockServerContainer(mockServerImageVersion) {
+class WebCacheContainer(dockerImageName: DockerImageName) : MockServerContainer(dockerImageName) {
 
     fun getContainerHost(): String = networkAliases.first()
 
