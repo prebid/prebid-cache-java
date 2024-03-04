@@ -34,14 +34,13 @@ import static org.springframework.http.MediaType.APPLICATION_XML;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes={PrebidServerResponseBuilder.class, ApiConfig.class})
 @SpringBootTest
-class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
-{
+class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests {
+
     @Autowired
     PrebidServerResponseBuilder builder;
 
     private Mono<ServerResponse> createResponseMono(final ServerRequest request,
-                                                    final MediaType mediaType)
-    {
+                                                    final MediaType mediaType) {
         if (isJson(mediaType)) {
             return builder.createResponseMono(request, mediaType, jsonPayloadWrapper);
         } else if (isJsonUTF8(mediaType)) {
@@ -77,7 +76,7 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
     }
 
     private void verifyErrorResponse(HttpStatus status) {
-        final var request = MockServerRequest.builder().build();
+        final MockServerRequest request = MockServerRequest.builder().build();
         final Consumer<Signal<ServerResponse>> consumer =
                 signal -> assertEquals(status.value(), signal.get().statusCode().value());
 
@@ -121,8 +120,7 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
     void verifyRepoError() { verifyErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR); }
 
     @SpringBootTest
-    public abstract static class PayloadTests
-    {
+    public abstract static class PayloadTests {
         protected static PayloadWrapper jsonPayloadWrapper;
         protected static PayloadWrapper jsonUTF8PayloadWrapper;
         protected static PayloadWrapper xmlPayloadWrapper;
@@ -146,22 +144,6 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
             return mediaType.equals(APPLICATION_JSON_UTF8);
         }
 
-        private static String xmlResponse() {
-            return "<?xml version=\"1.0\"?>\n" +
-                    "<xml>\n" +
-                    "    <creativeCode>\n" +
-                    "        <![CDATA[      <html>\n" +
-                    "    </html>      ]]>\n" +
-                    "</creativeCode>\n" +
-                    "</xml>\n";
-        }
-
-        private static String jsonResponse() {
-            return "{\n" +
-                    "  \"creativeCode\" : \"<html></html>\"\n" +
-                    "}";
-        }
-
         private static PayloadWrapper createJsonPayloadWrapper() {
             return createPayloadWrapper(APPLICATION_JSON);
         }
@@ -177,13 +159,19 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests
         private static PayloadWrapper createPayloadWrapper(MediaType mediaType) {
             String payloadValue = null;
             if (isJson(mediaType) || isJsonUTF8(mediaType)) {
-                payloadValue = jsonResponse();
+                payloadValue = JSON_RESPONSE;
             } else if (isXml(mediaType)) {
-                payloadValue = xmlResponse();
+                payloadValue = XML_RESPONSE;
             }
 
-            final var payload = new Payload("json", "1234567890", payloadValue);
-            return new PayloadWrapper("", "prefix", payload, 200L, false);
+            final var payload = Payload.of("json", "1234567890", payloadValue);
+            return PayloadWrapper.builder()
+                    .id("")
+                    .prefix("prefix")
+                    .payload(payload)
+                    .expiry(200L)
+                    .isExternalId(false)
+                    .build();
         }
     }
 }

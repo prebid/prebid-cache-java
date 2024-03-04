@@ -35,7 +35,7 @@ public class MetricsRecorder {
         PROXY_FAILURE("pbc.proxy.failure");
 
         @Getter
-        private String tag;
+        private final String tag;
 
         MeasurementTag(final String tag) {
             this.tag = tag;
@@ -43,8 +43,8 @@ public class MetricsRecorder {
     }
 
     public class MetricsRecorderTimer {
-        private Timer timer;
-        private Timer.Sample sample;
+        private final Timer timer;
+        private final Timer.Sample sample;
 
         MetricsRecorderTimer(String measurementTag) {
             timer = meterRegistry.timer(measurementTag);

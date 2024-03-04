@@ -2,13 +2,11 @@ package org.prebid.cache.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
-import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import org.prebid.cache.helpers.Json;
 
 @Value
 @Builder(toBuilder = true)
-@RequiredArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PayloadTransfer {
     String type;

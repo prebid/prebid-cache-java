@@ -12,6 +12,21 @@ import static org.springframework.http.MediaType.APPLICATION_XML;
 
 @SpringBootTest
 public abstract class PayloadWrapperResponseTests {
+
+    static final String XML_RESPONSE = """
+            <?xml version="1.0"?>
+            <xml>
+                <creativeCode>
+                    <![CDATA[      <html>
+                </html>      ]]>
+            </creativeCode>
+            </xml>
+            """;
+    static final String JSON_RESPONSE = """
+            {
+              "creativeCode" : "<html></html>"
+            }""";
+
     static PayloadWrapper jsonPayloadWrapper;
     static PayloadWrapper jsonUTF8PayloadWrapper;
     static PayloadWrapper xmlPayloadWrapper;
@@ -33,22 +48,6 @@ public abstract class PayloadWrapperResponseTests {
         return mediaType.equals(APPLICATION_JSON_UTF8);
     }
 
-    private static String xmlResponse() {
-        return "<?xml version=\"1.0\"?>\n" +
-                "<xml>\n" +
-                "    <creativeCode>\n" +
-                "        <![CDATA[      <html>\n" +
-                "    </html>      ]]>\n" +
-                "</creativeCode>\n" +
-                "</xml>\n";
-    }
-
-    private static String jsonResponse() {
-        return "{\n" +
-                "  \"creativeCode\" : \"<html></html>\"\n" +
-                "}";
-    }
-
     private static PayloadWrapper createJsonPayloadWrapper() {
         return createPayloadWrapper(APPLICATION_JSON);
     }
@@ -62,12 +61,18 @@ public abstract class PayloadWrapperResponseTests {
     private static PayloadWrapper createPayloadWrapper(MediaType mediaType) {
         String payloadValue = null;
         if (isJson(mediaType) || isJsonUTF8(mediaType)) {
-            payloadValue = jsonResponse();
+            payloadValue = JSON_RESPONSE;
         } else if (isXml(mediaType)) {
-            payloadValue = xmlResponse();
+            payloadValue = XML_RESPONSE;
         }
 
-        final var payload = new Payload("json", "1234567890", payloadValue);
-        return new PayloadWrapper("", "prefix", payload, 200L, false);
+        final var payload = Payload.of("json", "1234567890", payloadValue);
+        return PayloadWrapper.builder()
+                .id("")
+                .prefix("prefix")
+                .payload(payload)
+                .expiry(200L)
+                .isExternalId(false)
+                .build();
     }
 }

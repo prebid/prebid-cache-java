@@ -58,9 +58,7 @@ public class RedisConfigurationValidator implements Condition {
 
     @Value(staticConstructor = "of")
     private static class ValidationResult {
-
         boolean defined;
-
         boolean valid;
     }
 }

@@ -10,7 +10,6 @@ import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.config.CircuitBreakerPropertyConfiguration;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorderTest;
-import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
@@ -110,11 +109,13 @@ class GetCacheHandlerTests extends CacheHandlerTests {
         verifyRepositoryError(handler);
     }
 
+    private static Consumer<ServerResponse> assertNotFoundStatusCode() {
+        return response -> assertEquals(response.statusCode().value(), 404);
+    }
+
     @Test
     void testVerifyFetch() {
-        final var payload = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        final var payloadWrapper = new PayloadWrapper("12", "prebid_", payload, 1800L, true);
-        given(repository.findById("prebid_a8db2208-d085-444c-9721-c1161d7f09ce")).willReturn(Mono.just(payloadWrapper));
+        given(repository.findById("prebid_a8db2208-d085-444c-9721-c1161d7f09ce")).willReturn(Mono.just(PAYLOAD_WRAPPER));
 
         final var requestMono = MockServerRequest.builder()
             .method(HttpMethod.GET)
@@ -125,21 +126,21 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
         responseMono.doOnEach(assertSignalStatusCode(200)).subscribe();
         StepVerifier.create(responseMono)
-            .expectSubscription()
-            .expectNextMatches(t -> true)
-            .expectComplete()
-            .verify();
+                .expectSubscription()
+                .expectNextMatches(t -> true)
+                .expectComplete()
+                .verify();
     }
 
     @Test
     void testVerifyFetchWithCacheHostParam() {
         serverMock.stubFor(get(urlPathEqualTo("/cache"))
-            .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=utf-8")
-                .withBody("{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}")));
+                .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=utf-8")
+                        .withBody("{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}")));
 
         final var requestMono = MockServerRequest.builder()
-            .method(HttpMethod.GET)
-            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .method(HttpMethod.GET)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
             .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
             .queryParam("ch", "localhost:8080")
             .build();
@@ -154,8 +155,8 @@ class GetCacheHandlerTests extends CacheHandlerTests {
             .verify();
 
         verify(getRequestedFor(urlPathEqualTo("/cache"))
-            .withQueryParam("uuid", equalTo("a8db2208-d085-444c-9721-c1161d7f09ce"))
-            .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .withQueryParam("uuid", equalTo("a8db2208-d085-444c-9721-c1161d7f09ce"))
+                .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase(MediaType.APPLICATION_JSON_UTF8_VALUE))
         );
     }
 
@@ -171,7 +172,7 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
         responseMono.doOnEach(assertSignalStatusCode(404)).subscribe();
         StepVerifier.create(responseMono)
-            .consumeNextWith(assertStatusCode(404))
+                .consumeNextWith(assertNotFoundStatusCode())
             .expectComplete()
             .verify();
     }
@@ -185,8 +186,8 @@ class GetCacheHandlerTests extends CacheHandlerTests {
                 .withBody("{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}")));
 
         final var requestMono = MockServerRequest.builder()
-            .method(HttpMethod.GET)
-            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .method(HttpMethod.GET)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
             .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
             .queryParam("ch", "localhost:8080")
             .build();
@@ -195,19 +196,15 @@ class GetCacheHandlerTests extends CacheHandlerTests {
 
         responseMono.doOnEach(assertSignalStatusCode(400)).subscribe();
         StepVerifier.create(responseMono)
-            .expectSubscription()
-            .expectNextMatches(t -> true)
-            .expectComplete()
-            .verify();
+                .expectSubscription()
+                .expectNextMatches(t -> true)
+                .expectComplete()
+                .verify();
 
         verify(getRequestedFor(urlPathEqualTo("/cache"))
-            .withQueryParam("uuid", equalTo("a8db2208-d085-444c-9721-c1161d7f09ce"))
-            .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase(MediaType.APPLICATION_JSON_UTF8_VALUE))
+                .withQueryParam("uuid", equalTo("a8db2208-d085-444c-9721-c1161d7f09ce"))
+                .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase(MediaType.APPLICATION_JSON_UTF8_VALUE))
         );
-    }
-
-    private static Consumer<ServerResponse> assertStatusCode(int statusCode) {
-        return response -> assertEquals(response.statusCode().value(), statusCode);
     }
 
     private static Consumer<Signal<ServerResponse>> assertSignalStatusCode(int statusCode) {

@@ -1,7 +1,7 @@
 package org.prebid.cache.handlers;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import com.google.common.collect.ImmutableList;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,7 +13,6 @@ import org.prebid.cache.exceptions.DuplicateKeyException;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorderTest;
 import org.prebid.cache.model.Payload;
-import org.prebid.cache.model.PayloadTransfer;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.model.RequestObject;
 import org.prebid.cache.repository.CacheConfig;
@@ -113,69 +112,59 @@ class PostCacheHandlerTests extends CacheHandlerTests {
 
     @Test
     void testVerifySave() {
-        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
-            , 1800L, true);
         given(currentDateProvider.get()).willReturn(new Date(100));
-        given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper));
+        given(repository.save(PAYLOAD_WRAPPER)).willReturn(Mono.just(PAYLOAD_WRAPPER));
 
-        final var handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
-            webClientCircuitBreaker, samplingRate);
+        final PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
+                webClientCircuitBreaker, samplingRate);
 
-        final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
-            "prebid_");
-        final var request = Mono.just(new RequestObject(ImmutableList.of(payload)));
-        final var requestMono = MockServerRequest.builder()
-            .method(HttpMethod.POST)
-            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
-            .body(request);
+        final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
+        final MockServerRequest requestMono = MockServerRequest.builder()
+                .method(HttpMethod.POST)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .body(request);
 
-        final var responseMono = handler.save(requestMono);
+        final Mono<ServerResponse> responseMono = handler.save(requestMono);
 
         final Consumer<ServerResponse> consumer =
-            serverResponse -> assertEquals(200, serverResponse.statusCode().value());
+                serverResponse -> assertEquals(200, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
-            .consumeNextWith(consumer)
-            .expectComplete()
-            .verify();
+                .consumeNextWith(consumer)
+                .expectComplete()
+                .verify();
     }
 
     @Test
     void testSecondaryCacheSuccess() {
-        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
-            , 1800L, true);
         given(currentDateProvider.get()).willReturn(new Date(100));
-        given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper));
+        given(repository.save(PAYLOAD_WRAPPER)).willReturn(Mono.just(PAYLOAD_WRAPPER));
 
         serverMock.stubFor(post(urlPathEqualTo("/cache"))
-            .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}]}")));
+                .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}]}")));
 
-        final var handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
-            webClientCircuitBreaker, samplingRate);
+        final PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
+                webClientCircuitBreaker, samplingRate);
 
-        final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
-            "prebid_");
-        final var request = Mono.just(new RequestObject(ImmutableList.of(payload)));
-        final var requestMono = MockServerRequest.builder()
-            .method(HttpMethod.POST)
-            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
-            .body(request);
+        final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
+        final MockServerRequest requestMono = MockServerRequest.builder()
+                .method(HttpMethod.POST)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .body(request);
 
-        final var responseMono = handler.save(requestMono);
+        final Mono<ServerResponse> responseMono = handler.save(requestMono);
 
         final Consumer<ServerResponse> consumer =
-            serverResponse -> assertEquals(200, serverResponse.statusCode().value());
+                serverResponse -> assertEquals(200, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
-            .consumeNextWith(consumer)
-            .expectComplete()
-            .verify();
+                .consumeNextWith(consumer)
+                .expectComplete()
+                .verify();
 
-        final var requestPatternBuilder = postRequestedFor(urlPathEqualTo("/cache"))
-            .withQueryParam("secondaryCache", equalTo("yes"))
-            .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase("application/json"));
+        final RequestPatternBuilder requestPatternBuilder = postRequestedFor(urlPathEqualTo("/cache"))
+                .withQueryParam("secondaryCache", equalTo("yes"))
+                .withHeader(HttpHeaders.CONTENT_TYPE, equalToIgnoreCase("application/json"));
 
         awaitAndVerify(requestPatternBuilder, 5000);
     }
@@ -190,59 +179,54 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         final var handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
             webClientCircuitBreaker, samplingRate);
 
-        final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
-            "prebid_");
-        final var request = Mono.just(new RequestObject(ImmutableList.of(payload)));
-        final var requestMono = MockServerRequest.builder()
-            .method(HttpMethod.POST)
-            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
-            .body(request);
+        final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
+        final MockServerRequest requestMono = MockServerRequest.builder()
+                .method(HttpMethod.POST)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .body(request);
 
-        final var responseMono = handler.save(requestMono);
+        final Mono<ServerResponse> responseMono = handler.save(requestMono);
 
         final Consumer<ServerResponse> consumer =
-            serverResponse -> assertEquals(400, serverResponse.statusCode().value());
+                serverResponse -> assertEquals(400, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
-            .consumeNextWith(consumer)
-            .expectComplete()
-            .verify();
+                .consumeNextWith(consumer)
+                .expectComplete()
+                .verify();
     }
 
     @Test
     void testUUIDDuplication() {
-        final var payloadInner = new Payload("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "");
-        final var payloadWrapper = new PayloadWrapper("2be04ba5-8f9b-4a1e-8100-d573c40312f8", "prebid_", payloadInner
-            , 1800L, true);
         given(currentDateProvider.get()).willReturn(new Date(100));
-        given(repository.save(payloadWrapper)).willReturn(Mono.just(payloadWrapper)).willReturn(Mono.error(new DuplicateKeyException("")));
+        given(repository.save(PAYLOAD_WRAPPER))
+                .willReturn(Mono.just(PAYLOAD_WRAPPER))
+                .willReturn(Mono.error(new DuplicateKeyException("")));
 
-        final var cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(),
-            cacheConfig.getTimeoutMs(),
-            5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(),
-            Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
-        final var handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
-            webClientCircuitBreaker, samplingRate);
+        final CacheConfig cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(),
+                cacheConfig.getTimeoutMs(),
+                5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(),
+                Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
+        final PostCacheHandler handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
+                webClientCircuitBreaker, samplingRate);
 
-        final var payload = new PayloadTransfer("json", "2be04ba5-8f9b-4a1e-8100-d573c40312f8", "", 1800L, null,
-            "prebid_");
-        final var request = Mono.just(new RequestObject(ImmutableList.of(payload)));
-        final var requestMono = MockServerRequest.builder()
-            .method(HttpMethod.POST)
-            .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
-            .body(request);
+        final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
+        final MockServerRequest requestMono = MockServerRequest.builder()
+                .method(HttpMethod.POST)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .body(request);
 
-        final var responseMono = handler.save(requestMono);
+        final Mono<ServerResponse> responseMono = handler.save(requestMono);
 
         final Consumer<ServerResponse> consumer =
-            serverResponse -> assertEquals(200, serverResponse.statusCode().value());
+                serverResponse -> assertEquals(200, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMono)
-            .consumeNextWith(consumer)
-            .expectComplete()
-            .verify();
+                .consumeNextWith(consumer)
+                .expectComplete()
+                .verify();
 
-        final var responseMonoSecond = handler.save(requestMono);
+        final Mono<ServerResponse> responseMonoSecond = handler.save(requestMono);
 
         final Consumer<ServerResponse> consumerSecond = serverResponse ->
             assertEquals(400, serverResponse.statusCode().value());

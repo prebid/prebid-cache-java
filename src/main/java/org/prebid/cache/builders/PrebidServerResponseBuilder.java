@@ -20,7 +20,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.function.Predicate;
 
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
+import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 import static org.springframework.web.reactive.function.server.ServerResponse.status;
 
 @Component
@@ -38,13 +38,13 @@ public class PrebidServerResponseBuilder {
     public Mono<ServerResponse> createResponseMono(final ServerRequest request,
                                                    final MediaType mediaType,
                                                    final PayloadWrapper wrapper) {
-        return ok(request, mediaType).body(fromObject(wrapper.getPayload().getValue()));
+        return ok(request, mediaType).body(fromValue(wrapper.getPayload().getValue()));
     }
 
     public Mono<ServerResponse> createResponseMono(final ServerRequest request,
                                                    final MediaType mediaType,
                                                    final ResponseObject response) {
-        return ok(request, mediaType).body(fromObject(response));
+        return ok(request, mediaType).body(fromValue(response));
     }
 
     private ServerResponse.BodyBuilder ok(final ServerRequest request, final MediaType mediaType) {
@@ -63,13 +63,14 @@ public class PrebidServerResponseBuilder {
         return monoError.transform(ThrowableTranslator::translate)
                 .flatMap(translation ->
                         addHeaders(status(translation.getHttpStatus()), request)
-                                .body(Mono.just(new ErrorResponse(
-                                                translation.getHttpStatus().getReasonPhrase(),
-                                                translation.getHttpStatus().value(),
-                                                apiConfig.getPath(),
-                                                translation.getErrorMessage(),
-                                                new Date()
-                                        )),
+                                .body(Mono.just(
+                                        ErrorResponse.builder()
+                                                .error(translation.getHttpStatus().getReasonPhrase())
+                                                .status(translation.getHttpStatus().value())
+                                                .path(apiConfig.getPath())
+                                                .message(translation.getErrorMessage())
+                                                .timestamp(new Date())
+                                                .build()),
                                         ErrorResponse.class)
                 );
     }
