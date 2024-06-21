@@ -1,4 +1,4 @@
-package org.prebid.cache.handlers;
+package org.prebid.cache.handlers.cache;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -8,6 +8,8 @@ import org.prebid.cache.exceptions.RepositoryException;
 import org.prebid.cache.exceptions.RequestParsingException;
 import org.prebid.cache.exceptions.ResourceNotFoundException;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
+import org.prebid.cache.handlers.MetricsHandler;
+import org.prebid.cache.handlers.ServiceType;
 import org.prebid.cache.log.ConditionalLogger;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder.MetricsRecorderTimer;
@@ -41,21 +43,6 @@ abstract class CacheHandler extends MetricsHandler {
         this.conditionalLogger = new ConditionalLogger(log);
     }
 
-    protected enum PayloadType implements StringTypeConvertible {
-        JSON("json"),
-        XML("xml");
-
-        private final String text;
-
-        PayloadType(final String text) {
-            this.text = text;
-        }
-
-        @Override
-        public String toString() {
-            return text;
-        }
-    }
 
     <T> Mono<T> validateErrorResult(final Mono<T> mono) {
         return mono.doOnSuccess(v -> log.debug("{}: {}", type, v))

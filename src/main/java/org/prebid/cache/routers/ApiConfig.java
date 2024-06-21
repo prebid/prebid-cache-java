@@ -12,5 +12,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "api")
 public class ApiConfig {
-    private String path;
+
+    private String cachePath;
+
+    private String moduleStoragePath;
+
+    // workaround for supporting transition period of deprecated path property
+    public void setPath(String path) {
+        cachePath = path;
+    }
 }

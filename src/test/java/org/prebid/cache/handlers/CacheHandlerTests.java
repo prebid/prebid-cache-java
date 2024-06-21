@@ -2,13 +2,13 @@ package org.prebid.cache.handlers;
 
 import org.prebid.cache.exceptions.RequestParsingException;
 import org.prebid.cache.exceptions.RepositoryException;
+import org.prebid.cache.handlers.cache.CacheHandler;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadTransfer;
 import org.prebid.cache.model.PayloadWrapper;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.Date;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
