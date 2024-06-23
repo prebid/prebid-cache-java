@@ -79,11 +79,21 @@ management.endpoint.metrics.cache.time-to-live: 5s
 management.endpoint.env.cache.time-to-live: 5s
 management.endpoint.configprops.cache.time-to-live: 5s
 
+
 # undertow
 server.undertow.buffer-size: 16384
 server.undertow.direct-buffers: true
 api:
   module-storage-path: /module-storage
+  api-key: API_KEY
+module:
+  storage:
+    redis:
+      application1:
+        port: 6379
+        host: localhost
+        password:
+        timeout: 99999
 ---
 spring.config.activate.on-profile: manage
 management.health.defaults.enabled: true

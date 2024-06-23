@@ -11,6 +11,7 @@ import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
 import org.prebid.cache.exceptions.RequestBodyDeserializeException;
+import org.prebid.cache.exceptions.UnauthorizedAccessException;
 import org.prebid.cache.handlers.ErrorHandler;
 import org.prebid.cache.handlers.ServiceType;
 import org.prebid.cache.helpers.RandomUUID;
@@ -49,6 +50,7 @@ public class PostCacheHandler extends CacheHandler {
 
     private static final String UUID_KEY = "uuid";
     private static final String SECONDARY_CACHE_KEY = "secondaryCache";
+    private static final String MODULE_STORAGE_PREFIX = "module.";
 
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
@@ -96,6 +98,7 @@ public class PostCacheHandler extends CacheHandler {
                 .map(payloadWrapperTransformer())
                 .handle(this::validateUUID)
                 .handle(this::validateExpiry)
+                .handle(this::validateCacheKey)
                 .concatMap(repository::save)
                 .subscribeOn(Schedulers.parallel())
                 .collectList()
@@ -144,6 +147,15 @@ public class PostCacheHandler extends CacheHandler {
     private void validateExpiry(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
         if (payload.getExpiry() == null) {
             sink.error(new ExpiryOutOfRangeException("Invalid Expiry [NULL]."));
+        }
+
+        sink.next(payload);
+    }
+
+    private void validateCacheKey(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
+        final String id = payload.getId();
+        if (StringUtils.startsWithIgnoreCase(id, MODULE_STORAGE_PREFIX)) {
+            sink.error(new UnauthorizedAccessException("Unauthorized access to entity: [" + id + "]."));
         }
 
         sink.next(payload);
@@ -211,9 +223,5 @@ public class PostCacheHandler extends CacheHandler {
                             throwable)));
         }
         return request.bodyToMono(RequestObject.class);
-    }
-
-    private static boolean isModuleCacheRequest(final String key) {
-        return key != null && key.split("\\.")[0].equals("module");
     }
 }
