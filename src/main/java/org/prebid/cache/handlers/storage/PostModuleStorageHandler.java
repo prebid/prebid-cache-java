@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.RequestParsingException;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
 import org.prebid.cache.model.ModulePayload;
@@ -31,6 +32,7 @@ public class PostModuleStorageHandler {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final ModuleCompositeRepository moduleRepository;
+    private final PrebidServerResponseBuilder responseBuilder;
     private final ApiConfig apiConfig;
 
     public Mono<ServerResponse> save(final ServerRequest request) {
@@ -47,7 +49,8 @@ public class PostModuleStorageHandler {
                 .onErrorMap(JsonProcessingException.class, error -> new RequestParsingException(error.toString()))
                 .onErrorMap(UnsupportedMediaTypeStatusException.class,
                         error -> new UnsupportedMediaTypeException(error.toString()))
-                .flatMap(ignored -> ServerResponse.noContent().build());
+                .flatMap(ignored -> ServerResponse.noContent().build())
+                .onErrorResume(error -> responseBuilder.error(Mono.just(error), request));
     }
 
     private Mono<ModulePayload> getRequestBodyMono(final ServerRequest request) {

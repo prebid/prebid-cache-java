@@ -1,6 +1,7 @@
 package org.prebid.cache.handlers.storage;
 
 import lombok.RequiredArgsConstructor;
+import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.handlers.ErrorHandler;
 import org.prebid.cache.repository.redis.module.storage.ModuleCompositeRepository;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ public class GetModuleStorageHandler {
     private static final String APPLICATION = "application";
 
     private final ModuleCompositeRepository moduleRepository;
+    private final PrebidServerResponseBuilder responseBuilder;
 
     public Mono<ServerResponse> fetch(final ServerRequest request) {
         final String key = request.queryParam(KEY).orElse(null);
@@ -29,6 +31,7 @@ public class GetModuleStorageHandler {
 
         return moduleRepository.findById(application, key)
                 .flatMap(value -> ServerResponse.ok().body(fromValue(value.getPayload())))
-                .switchIfEmpty(ErrorHandler.createResourceNotFound(key));
+                .switchIfEmpty(ErrorHandler.createResourceNotFound(key))
+                .onErrorResume(error -> responseBuilder.error(Mono.just(error), request));
     }
 }
