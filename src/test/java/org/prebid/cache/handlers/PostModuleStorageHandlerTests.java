@@ -1,6 +1,7 @@
 package org.prebid.cache.handlers;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
+import jakarta.validation.Validator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.Collections;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(SpringExtension.class)
@@ -46,6 +50,9 @@ class PostModuleStorageHandlerTests {
     @MockBean
     ModuleCompositeRepository moduleCompositeRepository;
 
+    @MockBean
+    Validator validator;
+
     @Value("${sampling.rate:2.0}")
     Double samplingRate;
 
@@ -55,7 +62,7 @@ class PostModuleStorageHandlerTests {
 
     @BeforeEach
     public void setup() {
-        handler = new PostModuleStorageHandler(moduleCompositeRepository, responseBuilder, apiConfig);
+        handler = new PostModuleStorageHandler(validator, moduleCompositeRepository, responseBuilder, apiConfig);
         serverMock = new WireMockServer(8080);
         serverMock.start();
     }
@@ -67,6 +74,8 @@ class PostModuleStorageHandlerTests {
 
     @Test
     void testVerifySave() {
+        given(validator.validate(any())).willReturn(Collections.emptySet());
+
         final var payload = ModulePayload.builder()
                 .key("key")
                 .type(PayloadType.TEXT)
@@ -100,6 +109,8 @@ class PostModuleStorageHandlerTests {
 
     @Test
     void testVerifyApiKeyAuthorization() {
+        given(validator.validate(any())).willReturn(Collections.emptySet());
+
         final var payload = ModulePayload.builder()
                 .key("key")
                 .type(PayloadType.TEXT)
@@ -107,16 +118,6 @@ class PostModuleStorageHandlerTests {
                 .value("value")
                 .ttlseconds(999)
                 .build();
-
-        final var payloadWrapper = PayloadWrapper.builder()
-                .id("key")
-                .prefix("")
-                .payload(Payload.of("text", "key", "value"))
-                .expiry(999L)
-                .build();
-
-        given(moduleCompositeRepository.save("application", payloadWrapper))
-                .willReturn(Mono.just(payloadWrapper));
 
         final var serverRequest = MockServerRequest.builder()
                 .method(HttpMethod.GET)
