@@ -53,9 +53,6 @@ class PostModuleStorageHandlerTests {
     @MockBean
     Validator validator;
 
-    @Value("${sampling.rate:2.0}")
-    Double samplingRate;
-
     PostModuleStorageHandler handler;
 
     WireMockServer serverMock;
