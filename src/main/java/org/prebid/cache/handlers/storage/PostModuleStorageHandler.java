@@ -1,27 +1,27 @@
 package org.prebid.cache.handlers.storage;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
-import org.prebid.cache.exceptions.RequestParsingException;
-import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
+import org.prebid.cache.exceptions.BadRequestException;
 import org.prebid.cache.model.ModulePayload;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.redis.module.storage.ModuleCompositeRepository;
 import org.prebid.cache.routers.ApiConfig;
-import org.springframework.core.codec.DecodingException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
-import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
+
+import java.util.stream.Collectors;
+
 
 @Slf4j
 @Component
@@ -30,7 +30,7 @@ public class PostModuleStorageHandler {
 
     private final static String API_KEY_HEADER = "x-pbc-api-key";
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final Validator validator;
     private final ModuleCompositeRepository moduleRepository;
     private final PrebidServerResponseBuilder responseBuilder;
     private final ApiConfig apiConfig;
@@ -40,32 +40,30 @@ public class PostModuleStorageHandler {
             return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        return getRequestBodyMono(request)
+        return request.body(BodyExtractors.toMono(ModulePayload.class))
+                .handle(this::validateModulePayload)
                 .flatMap(modulePayload -> moduleRepository.save(
                         modulePayload.getApplication(),
                         mapToPayloadWrapper(modulePayload)))
                 .subscribeOn(Schedulers.parallel())
-                .onErrorMap(DecodingException.class, error -> new RequestParsingException(error.toString()))
-                .onErrorMap(JsonProcessingException.class, error -> new RequestParsingException(error.toString()))
-                .onErrorMap(UnsupportedMediaTypeStatusException.class,
-                        error -> new UnsupportedMediaTypeException(error.toString()))
                 .flatMap(ignored -> ServerResponse.noContent().build())
                 .onErrorResume(error -> responseBuilder.error(Mono.just(error), request));
     }
 
-    private Mono<ModulePayload> getRequestBodyMono(final ServerRequest request) {
-        return request.body(BodyExtractors.toMono(String.class))
-                .handle((value, sink) -> {
-                    try {
-                        sink.next(objectMapper.readValue(value, ModulePayload.class));
-                    } catch (JsonProcessingException e) {
-                        sink.error(e);
-                    }
-                });
-    }
-
     private boolean isApiKeyValid(final ServerRequest request) {
         return StringUtils.equals(request.headers().firstHeader(API_KEY_HEADER), apiConfig.getApiKey());
+    }
+
+    private void validateModulePayload(final ModulePayload payload, final SynchronousSink<ModulePayload> sink) {
+        final var result = validator.validate(payload);
+        if (result.isEmpty()) {
+            sink.next(payload);
+        } else {
+            sink.error(new BadRequestException(
+                    result.stream()
+                            .map(violation -> violation.getPropertyPath() + " " + violation.getMessage())
+                            .collect(Collectors.joining(", "))));
+        }
     }
 
     private static PayloadWrapper mapToPayloadWrapper(final ModulePayload payload) {

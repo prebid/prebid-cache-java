@@ -25,7 +25,7 @@ import reactor.core.publisher.Signal;
 import java.util.concurrent.TimeoutException;
 
 @Slf4j
-abstract class CacheHandler extends MetricsHandler {
+public abstract class CacheHandler extends MetricsHandler {
 
     private static final int UNKNOWN_SIZE_VALUE = 1;
     ServiceType type;
@@ -44,7 +44,7 @@ abstract class CacheHandler extends MetricsHandler {
     }
 
 
-    <T> Mono<T> validateErrorResult(final Mono<T> mono) {
+    public <T> Mono<T> validateErrorResult(final Mono<T> mono) {
         return mono.doOnSuccess(v -> log.debug("{}: {}", type, v))
                 .onErrorMap(DuplicateKeyException.class, error -> {
                     metricsRecorder.getExistingKeyError().increment();
