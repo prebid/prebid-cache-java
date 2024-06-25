@@ -36,13 +36,6 @@ logging.level.root: info
 logging.config: classpath:log4j2-console.xml
 sampling.rate: 0.01
 
-spring:
-  redis:
-    port: 6379
-    host: localhost
-    password:
-    timeout: 99999
-
 # metrics
 management:
   graphite:
