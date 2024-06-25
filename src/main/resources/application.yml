@@ -4,6 +4,8 @@ info.app.description: @project.description@
 info.app.version: @project.version@
 spring.main.banner-mode: "off"
 api.cache-path: /cache
+api.module-storage-path: /module-storage
+api.api-key: API_KEY
 server.port: 8080
 server.compression.enabled: true
 server.max-http-request-header-size: 16KB
@@ -18,12 +20,16 @@ cors:
 
 # cache
 cache:
-  prefix:
+  prefix: prebid_
   expiry_sec: 300
   timeout_ms: 300
   clients_cache_duration: 86400
   clients_cache_size: 1000
   host_param_protocol: https
+
+module:
+  storage:
+    redis: {}
 
 # logging
 logging.level.root: info
@@ -79,21 +85,10 @@ management.endpoint.metrics.cache.time-to-live: 5s
 management.endpoint.env.cache.time-to-live: 5s
 management.endpoint.configprops.cache.time-to-live: 5s
 
-
 # undertow
 server.undertow.buffer-size: 16384
 server.undertow.direct-buffers: true
-api:
-  module-storage-path: /module-storage
-  api-key: API_KEY
-module:
-  storage:
-    redis:
-      application1:
-        port: 6379
-        host: localhost
-        password:
-        timeout: 99999
+
 ---
 spring.config.activate.on-profile: manage
 management.health.defaults.enabled: true
@@ -119,6 +114,17 @@ management:
     metrics:
       export:
         enabled: false
+spring:
+  aerospike:
+    port: 3000
+    host: localhost
+    cores: 4
+    password:
+    first_backoff: 300
+    max_backoff: 1000
+    max_retry: 3
+    namespace: "prebid_cache"
+    prevent_UUID_duplication: true
 
 ---
 # dev
