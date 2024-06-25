@@ -92,7 +92,7 @@ class PostModuleStorageHandlerTests {
                 .willReturn(Mono.just(payloadWrapper));
 
         final var serverRequest = MockServerRequest.builder()
-                .method(HttpMethod.GET)
+                .method(HttpMethod.POST)
                 .header("x-pbc-api-key", apiConfig.getApiKey())
                 .body(Mono.just(payload));
 
@@ -117,7 +117,7 @@ class PostModuleStorageHandlerTests {
                 .build();
 
         final var serverRequest = MockServerRequest.builder()
-                .method(HttpMethod.GET)
+                .method(HttpMethod.POST)
                 .body(Mono.just(payload));
 
         final var responseMono = handler.save(serverRequest);

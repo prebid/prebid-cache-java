@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PostModuleStorageHandler {
 
-    private final static String API_KEY_HEADER = "x-pbc-api-key";
+    private static final String API_KEY_HEADER = "x-pbc-api-key";
 
     private final Validator validator;
     private final ModuleCompositeRepository moduleRepository;
