@@ -43,7 +43,6 @@ public abstract class CacheHandler extends MetricsHandler {
         this.conditionalLogger = new ConditionalLogger(log);
     }
 
-
     public <T> Mono<T> validateErrorResult(final Mono<T> mono) {
         return mono.doOnSuccess(v -> log.debug("{}: {}", type, v))
                 .onErrorMap(DuplicateKeyException.class, error -> {
