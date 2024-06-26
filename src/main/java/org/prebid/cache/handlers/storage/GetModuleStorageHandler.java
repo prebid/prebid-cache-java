@@ -21,8 +21,8 @@ public class GetModuleStorageHandler {
 
     private static final String API_KEY_HEADER = "x-pbc-api-key";
 
-    private static final String KEY = "key";
-    private static final String APPLICATION = "application";
+    private static final String KEY = "k";
+    private static final String APPLICATION = "a";
 
     private final ModuleCompositeRepository moduleRepository;
     private final PrebidServerResponseBuilder responseBuilder;

@@ -89,8 +89,8 @@ public class GetModuleStorageHandlerTests {
         final var serverRequest = MockServerRequest.builder()
                 .method(HttpMethod.POST)
                 .header("x-pbc-api-key", apiConfig.getApiKey())
-                .queryParam("key", "key")
-                .queryParam("application", "application")
+                .queryParam("k", "key")
+                .queryParam("a", "application")
                 .build();
 
         final var responseMono = handler.fetch(serverRequest);
