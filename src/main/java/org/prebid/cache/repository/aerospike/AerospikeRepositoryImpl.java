@@ -9,6 +9,7 @@ import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.policy.Policy;
 import com.aerospike.client.policy.RecordExistsAction;
 import com.aerospike.client.policy.WritePolicy;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -23,7 +24,6 @@ import org.prebid.cache.repository.ReactiveRepository;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
-import javax.validation.constraints.NotNull;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;

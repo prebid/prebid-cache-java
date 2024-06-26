@@ -1,4 +1,4 @@
-package org.prebid.cache.handlers;
+package org.prebid.cache.handlers.cache;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
@@ -9,6 +9,9 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
+import org.prebid.cache.handlers.ErrorHandler;
+import org.prebid.cache.handlers.PayloadType;
+import org.prebid.cache.handlers.ServiceType;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder.MetricsRecorderTimer;
 import org.prebid.cache.model.PayloadWrapper;
@@ -66,10 +69,10 @@ public class GetCacheHandler extends CacheHandler {
 
     private static Map<String, WebClient> createClientsCache(final int ttl, final int size) {
         return Caffeine.newBuilder()
-            .expireAfterWrite(ttl, TimeUnit.SECONDS)
-            .maximumSize(size)
-            .<String, WebClient>build()
-            .asMap();
+                .expireAfterWrite(ttl, TimeUnit.SECONDS)
+                .maximumSize(size)
+                .<String, WebClient>build()
+                .asMap();
     }
 
     public Mono<ServerResponse> fetch(ServerRequest request) {
@@ -91,8 +94,8 @@ public class GetCacheHandler extends CacheHandler {
 
         final var responseMono =
                 StringUtils.containsIgnoreCase(cacheUrl, config.getAllowedProxyHost())
-                    ? processProxyRequest(request, id, cacheUrl)
-                    : processRequest(request, id);
+                        ? processProxyRequest(request, id, cacheUrl)
+                        : processRequest(request, id);
 
         return finalizeResult(responseMono, request, timerContext);
     }
@@ -101,10 +104,10 @@ public class GetCacheHandler extends CacheHandler {
         final var cacheHostParam = request.queryParam(CACHE_HOST_KEY).orElse(null);
         if (StringUtils.isNotBlank(cacheHostParam)) {
             return new URIBuilder()
-                .setHost(cacheHostParam)
-                .setPath(apiConfig.getPath())
-                .setScheme(config.getHostParamProtocol())
-                .toString();
+                    .setHost(cacheHostParam)
+                    .setPath(apiConfig.getCachePath())
+                    .setScheme(config.getHostParamProtocol())
+                    .toString();
         }
 
         return null;
@@ -145,8 +148,8 @@ public class GetCacheHandler extends CacheHandler {
 
     private static Mono<ServerResponse> fromClientResponse(final ClientResponse clientResponse) {
         return ServerResponse.status(clientResponse.statusCode())
-            .headers(headerConsumer -> clientResponse.headers().asHttpHeaders().forEach(headerConsumer::addAll))
-            .body(clientResponse.bodyToMono(String.class), String.class);
+                .headers(headerConsumer -> clientResponse.headers().asHttpHeaders().forEach(headerConsumer::addAll))
+                .body(clientResponse.bodyToMono(String.class), String.class);
     }
 
     private Mono<ServerResponse> processRequest(final ServerRequest request, final String keyIdParam) {

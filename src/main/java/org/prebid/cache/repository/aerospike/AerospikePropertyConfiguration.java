@@ -9,6 +9,7 @@ import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.policy.Policy;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.validation.constraints.NotNull;
 import java.util.Arrays;
 
 import static java.util.Objects.requireNonNull;

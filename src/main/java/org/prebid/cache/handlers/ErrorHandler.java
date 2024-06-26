@@ -25,15 +25,15 @@ public class ErrorHandler extends MetricsHandler {
         this.builder = builder;
     }
 
-    static Mono<ServerResponse> createResourceNotFound(String uuid) {
+    public static Mono<ServerResponse> createResourceNotFound(String uuid) {
         return Mono.error(new ResourceNotFoundException(String.format(RESOURCE_NOT_FOUND, uuid)));
     }
 
-    static Mono<ServerResponse> createInvalidParameters() {
+    public static Mono<ServerResponse> createInvalidParameters() {
         return Mono.error(new BadRequestException(INVALID_PARAMETERS));
     }
 
-    static Mono<ServerResponse> createNoElementsFound() {
+    public static Mono<ServerResponse> createNoElementsFound() {
         return Mono.error(new BadRequestException(NO_ELEMENTS_FOUND));
     }
 
