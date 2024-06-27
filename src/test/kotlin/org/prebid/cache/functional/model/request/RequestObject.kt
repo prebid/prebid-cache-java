@@ -11,5 +11,8 @@ data class RequestObject(var puts: List<PayloadTransfer>) {
 
         fun getDefaultXmlRequestObject(): RequestObject =
             RequestObject(puts = listOf(PayloadTransfer.getDefaultXmlPayloadTransfer()))
+
+        fun getDefaultTextRequestObject(): RequestObject =
+            RequestObject(puts = listOf(PayloadTransfer.getDefaultTextPayloadTransfer()))
     }
 }

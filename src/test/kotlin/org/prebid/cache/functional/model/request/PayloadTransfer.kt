@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL
 import org.prebid.cache.functional.mapper.objectMapper
 import org.prebid.cache.functional.model.request.MediaType.JSON
+import org.prebid.cache.functional.model.request.MediaType.TEXT
 import org.prebid.cache.functional.model.request.MediaType.XML
+import org.prebid.cache.functional.util.getRandomString
 
 @JsonInclude(NON_NULL)
 data class PayloadTransfer(
@@ -14,6 +16,7 @@ data class PayloadTransfer(
     var expiry: Long? = null,
     var ttlseconds: Long? = null,
     var prefix: String? = null,
+    var application: String? = null,
 
     //Fields not affected on PBC
     var timestamp: Long? = null,
@@ -23,18 +26,18 @@ data class PayloadTransfer(
 ) {
 
     companion object {
+        private const val DEFAULT_EXPIRY = 300L
+
+        private fun getDefaultPayloadTransfer(type: MediaType, value: String): PayloadTransfer =
+            PayloadTransfer(type = type, value = value, expiry = DEFAULT_EXPIRY, ttlseconds = 3000L)
+
         fun getDefaultJsonPayloadTransfer(): PayloadTransfer =
-            PayloadTransfer(
-                type = JSON,
-                value = objectMapper.writeValueAsString(TransferValue.getDefaultJsonValue()),
-                expiry = 300
-            )
+            getDefaultPayloadTransfer(JSON, objectMapper.writeValueAsString(TransferValue.getDefaultJsonValue()))
 
         fun getDefaultXmlPayloadTransfer(): PayloadTransfer =
-            PayloadTransfer(
-                type = XML,
-                value = objectMapper.writeValueAsString(TransferValue.getDefaultXmlValue()),
-                expiry = 300
-            )
+            getDefaultPayloadTransfer(XML, objectMapper.writeValueAsString(TransferValue.getDefaultXmlValue()))
+
+        fun getDefaultTextPayloadTransfer(): PayloadTransfer =
+            getDefaultPayloadTransfer(TEXT, getRandomString())
     }
 }

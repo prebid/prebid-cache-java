@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonValue
 
 enum class MediaType {
 
-    JSON, XML, UNSUPPORTED;
+    JSON, XML, TEXT, UNSUPPORTED;
 
     @JsonValue
     fun getValue(): String = name.lowercase()
