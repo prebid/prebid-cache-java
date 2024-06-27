@@ -13,6 +13,9 @@ class PrebidCacheContainerConfig(private val redisHost: String, private val aero
     fun getBaseAerospikeConfig(allowExternalUuid: String, aerospikeNamespace: String = NAMESPACE): Map<String, String> =
         getBaseConfig(allowExternalUuid) + getAerospikeConfig(aerospikeNamespace)
 
+    fun getBaseModuleStorageConfig(applicationName: String, apiKey: String): Map<String, String> =
+        getBaseConfig("true") + getModuleStorageRedisConfig(apiKey, applicationName) + getRedisConfig()
+
     fun getCacheExpiryConfig(minExpiry: String = "15", maxExpiry: String = "28800"): Map<String, String> =
         mapOf(
             "cache.min.expiry" to minExpiry,
@@ -57,10 +60,21 @@ class PrebidCacheContainerConfig(private val redisHost: String, private val aero
             "spring.aerospike.namespace" to aerospikeNamespace
         )
 
+    private fun getModuleStorageRedisConfig(
+        apiKey: String,
+        applicationName: String,
+        timeoutMs: Long = 9999L
+    ): Map<String, String> =
+        mapOf(
+            "api.api-key" to apiKey,
+            "module.storage.redis.${applicationName}.port" to RedisContainer.PORT.toString(),
+            "module.storage.redis.${applicationName}.host" to redisHost,
+            "module.storage.redis.${applicationName}.timeout" to timeoutMs.toString(),
+        )
+
     private fun getBaseConfig(allowExternalUuid: String): Map<String, String> =
         getCachePrefixConfig() + getCacheExpiryConfig() + getAllowExternalUuidConfig(allowExternalUuid) +
                 getCacheTimeoutConfig("2500")
-
 
     private fun getCachePrefixConfig(): Map<String, String> = mapOf("cache.prefix" to "prebid_")
 
