@@ -90,7 +90,7 @@ class ModuleStorageSpec : ShouldSpec({
         savedPayload.application?.should(beNull())
     }
 
-    should("throw an exception when request have nonexistent PBC application name") {
+    should("throw an exception when post request have nonexistent PBC application name") {
         //given: default text payload with nonexistent application name
         val payloadKey = getRandomString()
         val randomApplication = getRandomString()
@@ -100,7 +100,8 @@ class ModuleStorageSpec : ShouldSpec({
         }
 
         // when: POST module-storage endpoint is called
-        val exception = shouldThrowExactly<ApiException> { cacheApi.postModuleStorageCache(payloadTransfer, apiKey) }
+        val exception = shouldThrowExactly<ApiException> {
+            cacheApi.postModuleStorageCache(payloadTransfer, apiKey) }
 
         // then: Not found exception is thrown
         assertSoftly {
@@ -110,7 +111,7 @@ class ModuleStorageSpec : ShouldSpec({
         }
     }
 
-    should("throw an exception when request have null application name") {
+    should("throw an exception when post request have null application name") {
         //given: default text payload with null application name
         val payloadKey = getRandomString()
         val payloadTransfer = PayloadTransfer.getDefaultTextPayloadTransfer().apply {
@@ -129,7 +130,7 @@ class ModuleStorageSpec : ShouldSpec({
         }
     }
 
-    should("throw an exception when request have empty application name") {
+    should("throw an exception when post request have empty application name") {
         //given: default text payload with empty application name
         val payloadKey = getRandomString()
         val payloadTransfer = PayloadTransfer.getDefaultTextPayloadTransfer().apply {
@@ -148,7 +149,7 @@ class ModuleStorageSpec : ShouldSpec({
         }
     }
 
-    should("throw an exception when request have null key name") {
+    should("throw an exception when post request have null key name") {
         //given: default text payload with empty payloadKey
         val payloadTransfer = PayloadTransfer.getDefaultTextPayloadTransfer().apply {
             key = null
@@ -166,7 +167,7 @@ class ModuleStorageSpec : ShouldSpec({
         }
     }
 
-    should("throw an exception when request have empty key name") {
+    should("throw an exception when post request have empty key name") {
         //given: default text payload with empty payloadKey
         val payloadTransfer = PayloadTransfer.getDefaultTextPayloadTransfer().apply {
             key = ""
@@ -184,7 +185,7 @@ class ModuleStorageSpec : ShouldSpec({
         }
     }
 
-    should("throw an exception when request have invalid PBC apiKey") {
+    should("throw an exception when post request have invalid PBC apiKey") {
         //given: default text payload with application
         val payloadKey = getRandomString()
         val payloadTransfer = PayloadTransfer.getDefaultTextPayloadTransfer().apply {
