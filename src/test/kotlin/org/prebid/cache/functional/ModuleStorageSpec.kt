@@ -56,6 +56,7 @@ class ModuleStorageSpec : ShouldSpec({
         val payloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply {
             key = payloadKey
             application = applicationName
+            ttlseconds = 400L
         }
 
         // when: POST module-storage endpoint is called
@@ -76,6 +77,7 @@ class ModuleStorageSpec : ShouldSpec({
         val payloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply {
             key = payloadKey
             application = applicationName
+            ttlseconds = 300L
         }
 
         // when: POST module-storage endpoint is called
