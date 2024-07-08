@@ -40,6 +40,7 @@ public class PostModuleStorageHandler {
         }
 
         return request.body(BodyExtractors.toMono(ModulePayload.class))
+                .switchIfEmpty(Mono.error(new BadRequestException("Empty body")))
                 .handle(this::validateModulePayload)
                 .flatMap(modulePayload -> moduleRepository.save(
                         modulePayload.getApplication(),
