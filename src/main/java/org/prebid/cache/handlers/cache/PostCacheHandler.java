@@ -11,7 +11,6 @@ import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
 import org.prebid.cache.exceptions.RequestBodyDeserializeException;
-import org.prebid.cache.exceptions.UnauthorizedAccessException;
 import org.prebid.cache.handlers.ErrorHandler;
 import org.prebid.cache.handlers.ServiceType;
 import org.prebid.cache.helpers.RandomUUID;
@@ -50,7 +49,6 @@ public class PostCacheHandler extends CacheHandler {
 
     private static final String UUID_KEY = "uuid";
     private static final String SECONDARY_CACHE_KEY = "secondaryCache";
-    private static final String MODULE_STORAGE_PREFIX = "module.";
 
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
