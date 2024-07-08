@@ -1,13 +1,12 @@
 package org.prebid.cache.builders;
 
 import com.google.common.net.HttpHeaders;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.prebid.cache.model.ErrorResponse;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.model.ResponseObject;
-import org.prebid.cache.routers.ApiConfig;
 import org.prebid.cache.translators.ThrowableTranslator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -24,19 +23,13 @@ import java.util.function.Predicate;
 import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 import static org.springframework.web.reactive.function.server.ServerResponse.status;
 
-@Component
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class PrebidServerResponseBuilder {
 
     private static final String HEADER_CONNECTION_KEEPALIVE = "keep-alive";
     private static final String HEADER_CONNECTION_CLOSE = "close";
-
-    private final ApiConfig apiConfig;
-
-    @Autowired
-    public PrebidServerResponseBuilder(final ApiConfig apiConfig) {
-        this.apiConfig = apiConfig;
-    }
 
     public Mono<ServerResponse> createResponseMono(final ServerRequest request,
                                                    final MediaType mediaType,
@@ -70,7 +63,7 @@ public class PrebidServerResponseBuilder {
                                         ErrorResponse.builder()
                                                 .error(translation.getHttpStatus().getReasonPhrase())
                                                 .status(translation.getHttpStatus().value())
-                                                .path(apiConfig.getCachePath())
+                                                .path(request.path())
                                                 .message(translation.getErrorMessage())
                                                 .timestamp(new Date())
                                                 .build()),

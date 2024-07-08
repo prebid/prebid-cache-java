@@ -17,7 +17,6 @@ import org.prebid.cache.functional.util.getRandomLong
 import org.prebid.cache.functional.util.getRandomString
 import org.prebid.cache.functional.util.getRandomUuid
 import org.springframework.http.HttpStatus.BAD_REQUEST
-import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.HttpStatus.UNSUPPORTED_MEDIA_TYPE
 
 class GeneralCacheSpec : ShouldSpec({
