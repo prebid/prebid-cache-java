@@ -70,7 +70,7 @@ public class PrebidServerResponseBuilder {
                                         ErrorResponse.builder()
                                                 .error(translation.getHttpStatus().getReasonPhrase())
                                                 .status(translation.getHttpStatus().value())
-                                                .path(apiConfig.getCachePath())
+                                                .path(request.path())
                                                 .message(translation.getErrorMessage())
                                                 .timestamp(new Date())
                                                 .build()),
