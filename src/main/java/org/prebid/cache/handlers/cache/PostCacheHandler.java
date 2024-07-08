@@ -98,7 +98,6 @@ public class PostCacheHandler extends CacheHandler {
                 .map(payloadWrapperTransformer())
                 .handle(this::validateUUID)
                 .handle(this::validateExpiry)
-                .handle(this::validateCacheKey)
                 .concatMap(repository::save)
                 .subscribeOn(Schedulers.parallel())
                 .collectList()
@@ -147,15 +146,6 @@ public class PostCacheHandler extends CacheHandler {
     private void validateExpiry(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
         if (payload.getExpiry() == null) {
             sink.error(new ExpiryOutOfRangeException("Invalid Expiry [NULL]."));
-        }
-
-        sink.next(payload);
-    }
-
-    private void validateCacheKey(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
-        final String id = payload.getId();
-        if (StringUtils.startsWithIgnoreCase(id, MODULE_STORAGE_PREFIX)) {
-            sink.error(new UnauthorizedAccessException("Unauthorized access to entity: [" + id + "]."));
         }
 
         sink.next(payload);
