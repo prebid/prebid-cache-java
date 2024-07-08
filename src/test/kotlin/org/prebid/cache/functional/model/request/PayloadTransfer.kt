@@ -27,12 +27,17 @@ data class PayloadTransfer(
 
     companion object {
         private const val DEFAULT_EXPIRY = 300L
+        private const val DEFAULT_TTL_SECONDS = 3000L
 
         private fun getDefaultPayloadTransfer(type: MediaType, value: String): PayloadTransfer =
-            PayloadTransfer(type = type, value = value, expiry = DEFAULT_EXPIRY, ttlseconds = 3000L)
+            PayloadTransfer(type = type, value = value, expiry = DEFAULT_EXPIRY, ttlseconds = DEFAULT_TTL_SECONDS)
 
         fun getDefaultJsonPayloadTransfer(): PayloadTransfer =
-            getDefaultPayloadTransfer(JSON, objectMapper.writeValueAsString(TransferValue.getDefaultJsonValue()))
+            PayloadTransfer(
+                type = JSON,
+                value = objectMapper.writeValueAsString(TransferValue.getDefaultJsonValue()),
+                expiry = 300
+            )
 
         fun getDefaultXmlPayloadTransfer(): PayloadTransfer =
             getDefaultPayloadTransfer(XML, objectMapper.writeValueAsString(TransferValue.getDefaultXmlValue()))
