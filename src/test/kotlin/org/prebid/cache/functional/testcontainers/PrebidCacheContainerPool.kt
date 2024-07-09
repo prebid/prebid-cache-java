@@ -29,6 +29,6 @@ class PrebidCacheContainerPool(private val containerImageName: String) {
     }
 
     companion object {
-        private val MAX_CONTAINER_COUNT: Int = System.getProperty("max.containers.count")?.toInt() ?: 3
+        private val MAX_CONTAINER_COUNT: Int = System.getProperty("max.containers.count")?.toInt() ?: 4
     }
 }

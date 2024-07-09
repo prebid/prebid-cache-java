@@ -1,4 +1,4 @@
-package org.prebid.cache.handlers;
+package org.prebid.cache.handlers.cache;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
@@ -11,6 +11,8 @@ import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
 import org.prebid.cache.exceptions.RequestBodyDeserializeException;
+import org.prebid.cache.handlers.ErrorHandler;
+import org.prebid.cache.handlers.ServiceType;
 import org.prebid.cache.helpers.RandomUUID;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.model.Payload;

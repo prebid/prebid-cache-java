@@ -6,6 +6,7 @@ import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
 import org.prebid.cache.exceptions.RequestParsingException;
 import org.prebid.cache.exceptions.ResourceNotFoundException;
+import org.prebid.cache.exceptions.UnauthorizedAccessException;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.http.HttpStatus;
@@ -29,10 +30,10 @@ public class ThrowableTranslator {
     private HttpStatus getStatus(final Throwable error) {
         if (error instanceof ErrorResponse) {
             return Optional.of((ErrorResponse) error)
-                .map(ErrorResponse::getStatusCode)
-                .map(HttpStatusCode::value)
-                .map(HttpStatus::resolve)
-                .orElse(HttpStatus.INTERNAL_SERVER_ERROR);
+                    .map(ErrorResponse::getStatusCode)
+                    .map(HttpStatusCode::value)
+                    .map(HttpStatus::resolve)
+                    .orElse(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         if (error instanceof BadRequestException
@@ -45,6 +46,8 @@ public class ThrowableTranslator {
             return HttpStatus.NOT_FOUND;
         } else if (error instanceof UnsupportedMediaTypeException) {
             return HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+        } else if (error instanceof UnauthorizedAccessException) {
+            return HttpStatus.UNAUTHORIZED;
         } else {
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.config.CircuitBreakerPropertyConfiguration;
+import org.prebid.cache.handlers.cache.GetCacheHandler;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorderTest;
 import org.prebid.cache.model.PayloadWrapper;
