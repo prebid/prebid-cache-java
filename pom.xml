@@ -76,7 +76,7 @@
         <kotest.version>5.8.0</kotest.version>
         <kotlin.version>1.9.22</kotlin.version>
         <kotlinx-coroutines-core-jvm.version>1.8.0</kotlinx-coroutines-core-jvm.version>
-        <testcontainers.version>1.19.8</testcontainers.version>
+        <testcontainers.version>1.20.0</testcontainers.version>
         <mockserver-client.version>5.15.0</mockserver-client.version>
         <ktor.version>2.3.8</ktor.version>
         <jackson-kotlin-module.version>2.16.1</jackson-kotlin-module.version>
