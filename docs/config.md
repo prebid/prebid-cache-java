@@ -9,8 +9,9 @@ The next sections describes how to set up project configuration.
 
 ## Application properties
 
-### Server
+### Cache 
 - `cache.allowed_proxy_host` - set the allowed proxy host for request with `ch` parameter.
 
 
-[//]: # (TODO: Add all server config proprties)
+### Storage
+- `storage.default-ttl-seconds` - set the default ttl for the data
