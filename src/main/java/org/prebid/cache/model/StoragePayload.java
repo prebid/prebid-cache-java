@@ -9,7 +9,7 @@ import org.prebid.cache.handlers.PayloadType;
 
 @Value
 @Builder
-public class ModulePayload {
+public class StoragePayload {
 
     @NotEmpty
     public String key;

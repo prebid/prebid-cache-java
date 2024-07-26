@@ -9,7 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.config.StorageConfig;
 import org.prebid.cache.handlers.storage.PostStorageHandler;
-import org.prebid.cache.model.ModulePayload;
+import org.prebid.cache.model.StoragePayload;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.redis.module.storage.ModuleCompositeRepository;
@@ -78,7 +78,7 @@ class PostStorageHandlerTests {
     void testVerifySave() {
         given(validator.validate(any())).willReturn(Collections.emptySet());
 
-        final var payload = ModulePayload.builder()
+        final var payload = StoragePayload.builder()
                 .key("key")
                 .type(PayloadType.TEXT)
                 .application("application")
@@ -113,7 +113,7 @@ class PostStorageHandlerTests {
     void testVerifyApiKeyAuthorization() {
         given(validator.validate(any())).willReturn(Collections.emptySet());
 
-        final var payload = ModulePayload.builder()
+        final var payload = StoragePayload.builder()
                 .key("key")
                 .type(PayloadType.TEXT)
                 .application("application")

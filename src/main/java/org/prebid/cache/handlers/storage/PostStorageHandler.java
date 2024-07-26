@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.config.StorageConfig;
 import org.prebid.cache.exceptions.BadRequestException;
-import org.prebid.cache.model.ModulePayload;
+import org.prebid.cache.model.StoragePayload;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.redis.module.storage.ModuleCompositeRepository;
@@ -42,12 +42,12 @@ public class PostStorageHandler {
             return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        return request.body(BodyExtractors.toMono(ModulePayload.class))
+        return request.body(BodyExtractors.toMono(StoragePayload.class))
                 .switchIfEmpty(Mono.error(new BadRequestException("Empty body")))
                 .handle(this::validateModulePayload)
-                .flatMap(modulePayload -> moduleRepository.save(
-                        modulePayload.getApplication(),
-                        mapToPayloadWrapper(modulePayload)))
+                .flatMap(storagePayload -> moduleRepository.save(
+                        storagePayload.getApplication(),
+                        mapToPayloadWrapper(storagePayload)))
                 .subscribeOn(Schedulers.parallel())
                 .flatMap(ignored -> ServerResponse.noContent().build())
                 .onErrorResume(error -> responseBuilder.error(Mono.just(error), request));
@@ -57,7 +57,7 @@ public class PostStorageHandler {
         return StringUtils.equals(request.headers().firstHeader(API_KEY_HEADER), apiConfig.getApiKey());
     }
 
-    private void validateModulePayload(final ModulePayload payload, final SynchronousSink<ModulePayload> sink) {
+    private void validateModulePayload(final StoragePayload payload, final SynchronousSink<StoragePayload> sink) {
         final var result = validator.validate(payload);
         if (result.isEmpty()) {
             sink.next(payload);
@@ -69,7 +69,7 @@ public class PostStorageHandler {
         }
     }
 
-    private PayloadWrapper mapToPayloadWrapper(final ModulePayload payload) {
+    private PayloadWrapper mapToPayloadWrapper(final StoragePayload payload) {
         final long ttlSeconds = Optional.ofNullable(payload.getTtlseconds())
                 .map(Integer::longValue)
                 .orElse(storageConfig.getDefaultTtlSeconds());
