@@ -23,7 +23,6 @@ public class ModulePayload {
     @NotEmpty
     public String application;
 
-    @NotNull
     @Min(0)
     public Integer ttlseconds;
 }

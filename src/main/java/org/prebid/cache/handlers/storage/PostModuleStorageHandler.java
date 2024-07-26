@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
+import org.prebid.cache.config.ModuleStorageConfig;
 import org.prebid.cache.exceptions.BadRequestException;
 import org.prebid.cache.model.ModulePayload;
 import org.prebid.cache.model.Payload;
@@ -20,6 +21,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -33,6 +35,7 @@ public class PostModuleStorageHandler {
     private final ModuleCompositeRepository moduleRepository;
     private final PrebidServerResponseBuilder responseBuilder;
     private final ApiConfig apiConfig;
+    private final ModuleStorageConfig moduleStorageConfig;
 
     public Mono<ServerResponse> save(final ServerRequest request) {
         if (!isApiKeyValid(request)) {
@@ -66,11 +69,15 @@ public class PostModuleStorageHandler {
         }
     }
 
-    private static PayloadWrapper mapToPayloadWrapper(final ModulePayload payload) {
+    private PayloadWrapper mapToPayloadWrapper(final ModulePayload payload) {
+        final long ttlSeconds = Optional.ofNullable(payload.getTtlseconds())
+                .map(Integer::longValue)
+                .orElse(moduleStorageConfig.getDefaultTtlSeconds());
+
         return PayloadWrapper.builder()
                 .id(payload.getKey())
                 .prefix(StringUtils.EMPTY)
-                .expiry(payload.getTtlseconds().longValue())
+                .expiry(ttlSeconds)
                 .payload(Payload.of(payload.getType().toString(), payload.getKey(), payload.getValue()))
                 .build();
     }
