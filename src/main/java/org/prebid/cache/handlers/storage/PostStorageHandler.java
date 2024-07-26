@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
-import org.prebid.cache.config.ModuleStorageConfig;
+import org.prebid.cache.config.StorageConfig;
 import org.prebid.cache.exceptions.BadRequestException;
 import org.prebid.cache.model.ModulePayload;
 import org.prebid.cache.model.Payload;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PostModuleStorageHandler {
+public class PostStorageHandler {
 
     private static final String API_KEY_HEADER = "x-pbc-api-key";
 
@@ -35,7 +35,7 @@ public class PostModuleStorageHandler {
     private final ModuleCompositeRepository moduleRepository;
     private final PrebidServerResponseBuilder responseBuilder;
     private final ApiConfig apiConfig;
-    private final ModuleStorageConfig moduleStorageConfig;
+    private final StorageConfig storageConfig;
 
     public Mono<ServerResponse> save(final ServerRequest request) {
         if (!isApiKeyValid(request)) {
@@ -72,7 +72,7 @@ public class PostModuleStorageHandler {
     private PayloadWrapper mapToPayloadWrapper(final ModulePayload payload) {
         final long ttlSeconds = Optional.ofNullable(payload.getTtlseconds())
                 .map(Integer::longValue)
-                .orElse(moduleStorageConfig.getDefaultTtlSeconds());
+                .orElse(storageConfig.getDefaultTtlSeconds());
 
         return PayloadWrapper.builder()
                 .id(payload.getKey())

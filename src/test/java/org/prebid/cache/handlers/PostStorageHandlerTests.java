@@ -7,14 +7,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
-import org.prebid.cache.handlers.storage.PostModuleStorageHandler;
+import org.prebid.cache.config.StorageConfig;
+import org.prebid.cache.handlers.storage.PostStorageHandler;
 import org.prebid.cache.model.ModulePayload;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.redis.module.storage.ModuleCompositeRepository;
 import org.prebid.cache.routers.ApiConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -33,13 +33,13 @@ import static org.mockito.BDDMockito.given;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-        PostModuleStorageHandler.class,
+        PostStorageHandler.class,
         PrebidServerResponseBuilder.class,
         ApiConfig.class
 })
 @EnableConfigurationProperties
 @SpringBootTest
-class PostModuleStorageHandlerTests {
+class PostStorageHandlerTests {
 
     @Autowired
     ApiConfig apiConfig;
@@ -53,13 +53,18 @@ class PostModuleStorageHandlerTests {
     @MockBean
     Validator validator;
 
-    PostModuleStorageHandler handler;
+    PostStorageHandler handler;
 
     WireMockServer serverMock;
 
     @BeforeEach
     public void setup() {
-        handler = new PostModuleStorageHandler(validator, moduleCompositeRepository, responseBuilder, apiConfig);
+        handler = new PostStorageHandler(
+                validator,
+                moduleCompositeRepository,
+                responseBuilder,
+                apiConfig,
+                new StorageConfig(9999L));
         serverMock = new WireMockServer(8080);
         serverMock.start();
     }

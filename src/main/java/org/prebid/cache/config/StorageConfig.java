@@ -12,8 +12,8 @@ import org.springframework.validation.annotation.Validated;
 @AllArgsConstructor
 @Configuration
 @Validated
-@ConfigurationProperties(prefix = "module.storage")
-public class ModuleStorageConfig {
+@ConfigurationProperties(prefix = "storage")
+public class StorageConfig {
 
     Long defaultTtlSeconds;
 }

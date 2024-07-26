@@ -6,7 +6,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
-import org.prebid.cache.handlers.storage.GetModuleStorageHandler;
+import org.prebid.cache.handlers.storage.GetStorageHandler;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.redis.module.storage.ModuleCompositeRepository;
@@ -27,13 +27,13 @@ import static org.mockito.BDDMockito.given;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-        GetModuleStorageHandler.class,
+        GetStorageHandler.class,
         PrebidServerResponseBuilder.class,
         ApiConfig.class
 })
 @EnableConfigurationProperties
 @SpringBootTest
-public class GetModuleStorageHandlerTests {
+public class GetStorageHandlerTests {
 
     @Autowired
     ApiConfig apiConfig;
@@ -44,13 +44,13 @@ public class GetModuleStorageHandlerTests {
     @MockBean
     ModuleCompositeRepository moduleCompositeRepository;
 
-    GetModuleStorageHandler handler;
+    GetStorageHandler handler;
 
     WireMockServer serverMock;
 
     @BeforeEach
     public void setup() {
-        handler = new GetModuleStorageHandler(moduleCompositeRepository, responseBuilder, apiConfig);
+        handler = new GetStorageHandler(moduleCompositeRepository, responseBuilder, apiConfig);
         serverMock = new WireMockServer(8080);
         serverMock.start();
     }
