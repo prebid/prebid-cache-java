@@ -33,9 +33,9 @@ import static org.mockito.BDDMockito.given;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-        PostStorageHandler.class,
         PrebidServerResponseBuilder.class,
-        ApiConfig.class
+        ApiConfig.class,
+        StorageConfig.class,
 })
 @EnableConfigurationProperties
 @SpringBootTest
