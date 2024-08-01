@@ -30,20 +30,20 @@ class PrebidCacheApi(prebidCacheHost: String, prebidCachePort: Int) {
     suspend fun postCache(requestObject: RequestObject, secondaryCache: String? = null): ResponseObject =
         post(CACHE_ENDPOINT, requestObject, mapOf(SECONDARY_CACHE_QUERY_PARAMETER to secondaryCache)).body()
 
-    suspend fun getModuleStorageCache(
+    suspend fun getStorageCache(
         payloadTransferKey: String?,
         application: String?,
         apiKey: String?
     ): PayloadTransfer =
         get(
-            MODULE_STORAGE_ENDPOINT,
+            STORAGE_ENDPOINT,
             mapOf(KEY_PARAMETER to payloadTransferKey, APPLICATION_PARAMETER to application),
             mapOf(API_KEY_PARAMETER to apiKey)
         ).body()
 
-    suspend fun postModuleStorageCache(requestObject: PayloadTransfer, apiKey: String? = null): Boolean =
+    suspend fun postStorageCache(requestObject: PayloadTransfer, apiKey: String? = null): Boolean =
         post(
-            MODULE_STORAGE_ENDPOINT,
+            STORAGE_ENDPOINT,
             requestObject,
             headers = mapOf(API_KEY_PARAMETER to apiKey)
         ).status == HttpStatusCode.NoContent
@@ -102,7 +102,7 @@ class PrebidCacheApi(prebidCacheHost: String, prebidCachePort: Int) {
         private const val PROXY_CACHE_HOST_QUERY_PARAMETER = "ch"
         private const val SECONDARY_CACHE_QUERY_PARAMETER = "secondaryCache"
 
-        private const val MODULE_STORAGE_ENDPOINT = "/module-storage"
+        private const val STORAGE_ENDPOINT = "/storage"
         private const val API_KEY_PARAMETER = "x-pbc-api-key"
         private const val KEY_PARAMETER = "k"
         private const val APPLICATION_PARAMETER = "a"

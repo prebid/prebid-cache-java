@@ -67,9 +67,10 @@ class PrebidCacheContainerConfig(private val redisHost: String, private val aero
     ): Map<String, String> =
         mapOf(
             "api.api-key" to apiKey,
-            "module.storage.redis.${applicationName}.port" to RedisContainer.PORT.toString(),
-            "module.storage.redis.${applicationName}.host" to redisHost,
-            "module.storage.redis.${applicationName}.timeout" to timeoutMs.toString(),
+            "storage.redis.${applicationName}.port" to RedisContainer.PORT.toString(),
+            "storage.redis.${applicationName}.host" to redisHost,
+            "storage.redis.${applicationName}.timeout" to timeoutMs.toString(),
+            "storage.default-ttl-seconds" to 1000L.toString()
         )
 
     private fun getBaseConfig(allowExternalUuid: String): Map<String, String> =
