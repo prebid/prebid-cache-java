@@ -63,10 +63,12 @@ class PrebidCacheContainerConfig(private val redisHost: String, private val aero
     private fun getModuleStorageRedisConfig(
         apiKey: String,
         applicationName: String,
-        timeoutMs: Long = 9999L
+        timeoutMs: Long = 9999L,
+        endpoint: String = "/storage"
     ): Map<String, String> =
         mapOf(
             "api.api-key" to apiKey,
+            "api.storage-path" to endpoint,
             "storage.redis.${applicationName}.port" to RedisContainer.PORT.toString(),
             "storage.redis.${applicationName}.host" to redisHost,
             "storage.redis.${applicationName}.timeout" to timeoutMs.toString(),
