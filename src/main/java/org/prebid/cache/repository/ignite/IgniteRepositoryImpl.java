@@ -27,13 +27,12 @@ public class IgniteRepositoryImpl implements ReactiveRepository<PayloadWrapper, 
 
     @Override
     public Mono<PayloadWrapper> save(PayloadWrapper wrapper) {
-
         ExpiryPolicy expiryPolicy;
         String normalizedId;
 
         try {
-            expiryPolicy = new CreatedExpiryPolicy(new Duration(TimeUnit.SECONDS, wrapper.getExpiry()));
             normalizedId = wrapper.getNormalizedId();
+            expiryPolicy = new CreatedExpiryPolicy(new Duration(TimeUnit.SECONDS, wrapper.getExpiry()));
         } catch (PayloadWrapperPropertyException e) {
             log.error("Exception occurred while extracting normalized id from payload: '{}', cause: '{}'",
                     ExceptionUtils.getMessage(e), ExceptionUtils.getMessage(e));

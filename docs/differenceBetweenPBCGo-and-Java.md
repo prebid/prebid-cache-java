@@ -52,5 +52,5 @@ and not the other for an interim period. This page tracks known differences that
 - PBC-Go for `JSON` value uses an array with JSON content and additional parameters;
 
 2) PBC-Java has different implementations of cache storage with PBC-Go:
-- PBC-Java has ability to store data in `Aerospike` and `Redis`;
-- PBC-Go has ability to store data in `Cassandra` , `Memcache`, `Aerospike`;
+- PBC-Java has ability to store data in `Aerospike`, `Redis`, `Apache Ignite`;
+- PBC-Go has ability to store data in `Cassandra` , `Memcache`, `Aerospike`, `Apache Ignite`;
