@@ -34,8 +34,7 @@ import static org.mockito.BDDMockito.given;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         PrebidServerResponseBuilder.class,
-        ApiConfig.class,
-        StorageConfig.class,
+        ApiConfig.class
 })
 @EnableConfigurationProperties
 @SpringBootTest
@@ -46,6 +45,9 @@ class PostStorageHandlerTests {
 
     @Autowired
     PrebidServerResponseBuilder responseBuilder;
+
+    @MockBean
+    StorageConfig storageConfig;
 
     @MockBean
     ModuleCompositeRepository moduleCompositeRepository;
@@ -64,7 +66,7 @@ class PostStorageHandlerTests {
                 moduleCompositeRepository,
                 responseBuilder,
                 apiConfig,
-                new StorageConfig(9999L));
+                storageConfig);
         serverMock = new WireMockServer(8080);
         serverMock.start();
     }
@@ -84,6 +86,41 @@ class PostStorageHandlerTests {
                 .application("application")
                 .value("value")
                 .ttlseconds(999)
+                .build();
+
+        final var payloadWrapper = PayloadWrapper.builder()
+                .id("key")
+                .prefix("")
+                .payload(Payload.of("text", "key", "value"))
+                .expiry(999L)
+                .build();
+
+        given(moduleCompositeRepository.save("application", payloadWrapper))
+                .willReturn(Mono.just(payloadWrapper));
+
+        final var serverRequest = MockServerRequest.builder()
+                .method(HttpMethod.POST)
+                .header("x-pbc-api-key", apiConfig.getApiKey())
+                .body(Mono.just(payload));
+
+        final var responseMono = handler.save(serverRequest);
+
+        StepVerifier.create(responseMono)
+                .consumeNextWith(serverResponse -> assertEquals(204, serverResponse.statusCode().value()))
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    void testVerifyDefaultTtl() {
+        given(validator.validate(any())).willReturn(Collections.emptySet());
+        given(storageConfig.getDefaultTtlSeconds()).willReturn(999L);
+
+        final var payload = StoragePayload.builder()
+                .key("key")
+                .type(PayloadType.TEXT)
+                .application("application")
+                .value("value")
                 .build();
 
         final var payloadWrapper = PayloadWrapper.builder()
