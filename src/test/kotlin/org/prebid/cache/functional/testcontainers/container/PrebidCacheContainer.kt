@@ -10,7 +10,7 @@ class PrebidCacheContainer(imageName: String, config: Map<String, String>) :
         withNetwork(ContainerDependencies.network)
         withExposedPorts(PORT, DEBUG_PORT)
         withFixedExposedPorts()
-        withDebug()
+        withJavaToolOptions()
         withConfig(config)
     }
 
@@ -26,10 +26,37 @@ class PrebidCacheContainer(imageName: String, config: Map<String, String>) :
         }
     }
 
-    private fun withDebug(): PrebidCacheContainer = withEnv(
-        "JAVA_TOOL_OPTIONS",
-        "-agentlib:jdwp=transport=dt_socket,address=*:$DEBUG_PORT,server=y,suspend=n"
-    )
+    private fun withJavaToolOptions(): PrebidCacheContainer {
+        val debugOptions = "-agentlib:jdwp=transport=dt_socket,address=*:$DEBUG_PORT,server=y,suspend=n"
+        val opensOptions = listOf(
+            "--add-opens=java.base/jdk.internal.access=ALL-UNNAMED",
+            "--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED",
+            "--add-opens=java.base/sun.nio.ch=ALL-UNNAMED",
+            "--add-opens=java.base/sun.util.calendar=ALL-UNNAMED",
+            "--add-opens=java.management/com.sun.jmx.mbeanserver=ALL-UNNAMED",
+            "--add-opens=jdk.internal.jvmstat/sun.jvmstat.monitor=ALL-UNNAMED",
+            "--add-opens=java.base/sun.reflect.generics.reflectiveObjects=ALL-UNNAMED",
+            "--add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED",
+            "--add-opens=java.base/java.io=ALL-UNNAMED",
+            "--add-opens=java.base/java.nio=ALL-UNNAMED",
+            "--add-opens=java.base/java.net=ALL-UNNAMED",
+            "--add-opens=java.base/java.util=ALL-UNNAMED",
+            "--add-opens=java.base/java.util.concurrent=ALL-UNNAMED",
+            "--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED",
+            "--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang.invoke=ALL-UNNAMED",
+            "--add-opens=java.base/java.math=ALL-UNNAMED",
+            "--add-opens=java.sql/java.sql=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+            "--add-opens=java.base/java.time=ALL-UNNAMED",
+            "--add-opens=java.base/java.text=ALL-UNNAMED",
+            "--add-opens=java.management/sun.management=ALL-UNNAMED",
+            "--add-opens=java.desktop/java.awt.font=ALL-UNNAMED"
+        ).joinToString(" ")
+
+        return withEnv("JAVA_TOOL_OPTIONS", "$debugOptions $opensOptions")
+    }
 
     private fun normalizeProperties(config: Map<String, String>): Map<String, String> =
         config.mapKeys { normalizeProperty(it.key) }

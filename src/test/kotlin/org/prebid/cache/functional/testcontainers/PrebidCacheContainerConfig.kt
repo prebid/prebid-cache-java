@@ -2,16 +2,23 @@ package org.prebid.cache.functional.testcontainers
 
 import org.prebid.cache.functional.testcontainers.container.AerospikeContainer
 import org.prebid.cache.functional.testcontainers.container.AerospikeContainer.Companion.NAMESPACE
+import org.prebid.cache.functional.testcontainers.container.ApacheIgniteContainer
+import org.prebid.cache.functional.testcontainers.container.ApacheIgniteContainer.Companion.CACHE_NAME
 import org.prebid.cache.functional.testcontainers.container.RedisContainer
 import org.prebid.cache.functional.testcontainers.container.WebCacheContainer.Companion.WEB_CACHE_PATH
 
-class PrebidCacheContainerConfig(private val redisHost: String, private val aerospikeHost: String) {
+class PrebidCacheContainerConfig(private val redisHost: String,
+                                 private val aerospikeHost: String,
+                                 private val apacheIgniteHost: String) {
 
     fun getBaseRedisConfig(allowExternalUuid: String): Map<String, String> =
         getBaseConfig(allowExternalUuid) + getRedisConfig()
 
     fun getBaseAerospikeConfig(allowExternalUuid: String, aerospikeNamespace: String = NAMESPACE): Map<String, String> =
         getBaseConfig(allowExternalUuid) + getAerospikeConfig(aerospikeNamespace)
+
+    fun getBaseApacheIgniteConfig(allowExternalUuid: String, ingineCacheName: String = CACHE_NAME): Map<String, String> =
+        getBaseConfig(allowExternalUuid) + getApacheIgniteConfig(ingineCacheName)
 
     fun getBaseModuleStorageConfig(applicationName: String, apiKey: String): Map<String, String> =
         getBaseConfig("true") + getModuleStorageRedisConfig(apiKey, applicationName) + getRedisConfig()
@@ -46,6 +53,13 @@ class PrebidCacheContainerConfig(private val redisHost: String, private val aero
             "spring.redis.port" to RedisContainer.PORT.toString(),
             "spring.redis.host" to redisHost,
             "spring.redis.timeout" to "300"
+        )
+
+    private fun getApacheIgniteConfig(cacheName: String): Map<String, String> =
+        mapOf(
+            "spring.ignite.port" to ApacheIgniteContainer.PORT.toString(),
+            "spring.ignite.host" to apacheIgniteHost,
+            "spring.ignite.cache-name" to cacheName
         )
 
     private fun getAerospikeConfig(aerospikeNamespace: String): Map<String, String> =
