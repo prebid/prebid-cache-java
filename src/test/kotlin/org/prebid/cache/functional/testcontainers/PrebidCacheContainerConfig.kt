@@ -59,8 +59,7 @@ class PrebidCacheContainerConfig(private val redisHost: String,
         mapOf(
             "spring.ignite.port" to ApacheIgniteContainer.PORT.toString(),
             "spring.ignite.host" to apacheIgniteHost,
-            "spring.ignite.cache-name" to cacheName,
-            "spring.ignite.timeout" to "300"
+            "spring.ignite.cache-name" to cacheName
         )
 
     private fun getAerospikeConfig(aerospikeNamespace: String): Map<String, String> =

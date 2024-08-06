@@ -7,10 +7,13 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.ktor.client.statement.bodyAsText
 import java.util.UUID
 import org.prebid.cache.functional.BaseSpec.Companion.prebidCacheConfig
+import org.prebid.cache.functional.mapper.objectMapper
 import org.prebid.cache.functional.model.request.PayloadTransfer
 import org.prebid.cache.functional.model.request.RequestObject
+import org.prebid.cache.functional.model.request.TransferValue
 import org.prebid.cache.functional.model.response.ResponseObject
 import org.prebid.cache.functional.service.ApiException
 import org.prebid.cache.functional.testcontainers.ContainerDependencies
@@ -37,6 +40,29 @@ class ApacheIgniteCacheSpec : ShouldSpec({
         }
     }
 
+    should("throw an exception when cache is absent in Apache ignite repository due to expiration") {
+        // given: Prebid Cache with set min and max expiry as 0
+        val config = prebidCacheConfig.getBaseApacheIgniteConfig("false") +
+                prebidCacheConfig.getCacheExpiryConfig("0", "0")
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(config)
+
+        // and: Request object
+        val requestObject = RequestObject.getDefaultJsonRequestObject()
+
+        // when: POST cache endpoint is called
+        val responseObject = prebidCacheApi.postCache(requestObject)
+
+        // then: Internal Server Error exception is thrown
+        val exception = shouldThrowExactly<ApiException> { prebidCacheApi.getCache(responseObject.responses[0].uuid) }
+        assertSoftly {
+            exception.statusCode shouldBe NOT_FOUND.value()
+            exception.responseBody shouldContain "\"message\":\"Resource Not Found: uuid prebid_${responseObject.responses[0].uuid}"
+        }
+
+        // cleanup
+        ContainerDependencies.prebidCacheContainerPool.stopPrebidCacheContainer(config)
+    }
+
     should("rethrow an exception from Apache ignite cache server when such happens") {
         // given: Prebid Cache with not matched to Apache ignite server namespace
         val config = prebidCacheConfig.getBaseApacheIgniteConfig("true", getRandomString())
@@ -51,7 +77,7 @@ class ApacheIgniteCacheSpec : ShouldSpec({
         // then: Internal Server Error exception is thrown
         assertSoftly {
             exception.statusCode shouldBe INTERNAL_SERVER_ERROR.value()
-            exception.responseBody shouldContain " Ignite failed to process request [3]: Cache does not exist"
+            exception.responseBody shouldContain Regex("""Ignite failed to process request \[\d+]: Cache does not exist""")
         }
 
         // cleanup
@@ -128,5 +154,41 @@ class ApacheIgniteCacheSpec : ShouldSpec({
         val responseUuidList = listOf(responseObject.responses[0].uuid, responseObject.responses[1].uuid)
         responseUuidList shouldContain requestObject.puts[0].key
         responseUuidList shouldContain requestObject.puts[1].key
+    }
+
+    should("shouldn't update existing cache record when request with already existing UUID is send") {
+        // given: Prebid Cache with allow_external_UUID=true property
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseApacheIgniteConfig("true"))
+
+        // and: First request object
+        val uuid = getRandomUuid()
+        val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = uuid }
+        val requestObject = RequestObject.of(xmlPayloadTransfer)
+        val requestTransferValue = objectMapper.readValue(requestObject.puts[0].value, TransferValue::class.java)
+
+        // and: First request object is saved to Aerospike cache
+        prebidCacheApi.postCache(requestObject)
+
+        // and: Second request object with already existing UUID is prepared
+        val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply { key = uuid }
+        val secondRequestObject = RequestObject.of(jsonPayloadTransfer)
+
+        // when: POST cache endpoint is called for the second time
+        val responseObject = prebidCacheApi.postCache(secondRequestObject)
+
+        // then: UUID from request is returned
+        responseObject.responses.isEmpty() shouldBe false
+        responseObject.responses.size shouldBe 1
+        responseObject.responses[0].uuid shouldBe secondRequestObject.puts[0].key
+
+        // and: Cache record was updated in Aerospike with a second request object payload
+        val getCacheResponse = prebidCacheApi.getCache(responseObject.responses[0].uuid)
+        val responseTransferValue = objectMapper.readValue(getCacheResponse.bodyAsText(), TransferValue::class.java)
+
+        assertSoftly {
+            responseTransferValue.adm shouldBe requestTransferValue.adm
+            responseTransferValue.width shouldBe requestTransferValue.width
+            responseTransferValue.height shouldBe requestTransferValue.height
+        }
     }
 })
