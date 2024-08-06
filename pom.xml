@@ -54,7 +54,7 @@
         <lettuce-core.version>6.2.4.RELEASE</lettuce-core.version>
         <gson.version>2.10.1</gson.version>
         <guava.version>32.0.0-jre</guava.version>
-        <caffeine.version>3.1.6</caffeine.version>
+        <caffeine.version>3.1.8</caffeine.version>
         <disruptor.version>3.4.4</disruptor.version>
         <lombok.version>1.18.30</lombok.version>
         <metrics-graphite.version>4.2.17</metrics-graphite.version>
@@ -76,7 +76,7 @@
         <kotest.version>5.8.0</kotest.version>
         <kotlin.version>1.9.22</kotlin.version>
         <kotlinx-coroutines-core-jvm.version>1.8.0</kotlinx-coroutines-core-jvm.version>
-        <testcontainers.version>1.19.8</testcontainers.version>
+        <testcontainers.version>1.20.0</testcontainers.version>
         <mockserver-client.version>5.15.0</mockserver-client.version>
         <ktor.version>2.3.8</ktor.version>
         <jackson-kotlin-module.version>2.16.1</jackson-kotlin-module.version>
