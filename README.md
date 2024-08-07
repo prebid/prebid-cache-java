@@ -27,11 +27,12 @@ This section describes how to download, install and run the application.
 git clone https://github.com/prebid/prebid-cache-java.git
 ```
 
-(2). Start Redis or Aerospike:
-If you have installed [Redis](https://redis.io/docs/install/install-redis/) or [Aerospike](https://aerospike.com/docs/server/operations/install) locally, you may start them both (or separately, depends on your needs) via bash:
+(2). Start Repo Locally:
+If you have installed [Redis](https://redis.io/docs/install/install-redis/) or [Aerospike](https://aerospike.com/docs/server/operations/install) or [Apache Ignite](https://ignite.apache.org/docs/latest/installation/deb-rpm) locally, you may start them both (or separately, depends on your needs) via bash:
 ```bash
 sudo systemctl start redis
 sudo systemctl start aerospike
+sudo systemctl start apache-ignite
 ```
 Alternatively, you may start DB as Docker image.
 You should install [Docker Engine](https://docs.docker.com/engine/install/) if you don't have one.
@@ -67,7 +68,29 @@ docker run -d --name aerospike -e "NAMESPACE=<namespace>" -p <host_port>:<contai
 docker run -d --name aerospike -e "NAMESPACE=prebid_cache" -p 3000:3000 aerospike:ce-6.4.0.2_1
 ```
 
-(2.3) Make sure that the Aerospike and/or Redis is up and running
+(2.3) Apache Ignite via Docker
+1. Pull [Apache Ignite docker image](https://ignite.apache.org/docs/latest/installation/installing-using-docker) of an appropriate version
+```bash
+docker pull apacheignite/ignite:<version>
+```
+2. Run Apache Ignite container
+    - the `<version>` should correspond to the pulled image version
+    - the `OPTION_LIBS=ignite-rest-http` corresponds to the library that enables REST API access to the server (i.e. to create a cache inside Apache Ignite)
+    - the `-p 10800:10800` exposes the default port `10800` that will be a connection port for the Prebid Cache 
+    - the host will be the `localhost`
+```bash
+docker run -d \
+  --name apache-ignite                                 
+  -e "OPTION_LIBS=ignite-rest-http" \
+  -p 8080:8080 -p 10800:10800 -p 11211:11211 -p 47100:47100 -p 47500:47500 \
+  apacheignite/ignite:<version>
+```
+3. Create a cache via Rest Api
+```bash
+GET http://localhost:10800/ignite?cmd=getorcreate&cacheName=<cacheName>
+```
+
+(2.4) Make sure that the Aerospike, Redis and/or Apache Ignite is up and running
 ```bash
 docker ps
 ```
@@ -112,8 +135,37 @@ _VM Options:_
 java -jar prebid-cache.jar -Dspring.profiles.active=prod -Dlog.dir=/app/prebid-cache-java/log/
 ```
 
+_Note_
+The `Apache Ignite` requires additional VM parameters to be added to support Java 17+
+```bash
+--add-opens=java.base/jdk.internal.access=ALL-UNNAMED
+--add-opens=java.base/jdk.internal.misc=ALL-UNNAMED
+--add-opens=java.base/sun.nio.ch=ALL-UNNAMED
+--add-opens=java.base/sun.util.calendar=ALL-UNNAMED
+--add-opens=java.management/com.sun.jmx.mbeanserver=ALL-UNNAMED
+--add-opens=jdk.internal.jvmstat/sun.jvmstat.monitor=ALL-UNNAMED
+--add-opens=java.base/sun.reflect.generics.reflectiveObjects=ALL-UNNAMED
+--add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED
+--add-opens=java.base/java.io=ALL-UNNAMED
+--add-opens=java.base/java.nio=ALL-UNNAMED
+--add-opens=java.base/java.net=ALL-UNNAMED
+--add-opens=java.base/java.util=ALL-UNNAMED
+--add-opens=java.base/java.util.concurrent=ALL-UNNAMED
+--add-opens=java.base/java.util.concurrent.locks=ALL-UNNAMED
+--add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED
+--add-opens=java.base/java.lang=ALL-UNNAMED
+--add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+--add-opens=java.base/java.math=ALL-UNNAMED
+--add-opens=java.sql/java.sql=ALL-UNNAMED
+--add-opens=java.base/java.lang.reflect=ALL-UNNAMED
+--add-opens=java.base/java.time=ALL-UNNAMED
+--add-opens=java.base/java.text=ALL-UNNAMED
+--add-opens=java.management/sun.management=ALL-UNNAMED
+--add-opens java.desktop/java.awt.font=ALL-UNNAMED
+```
+
 ### _Cache Configuration_
-Prebid cache uses Aerospike as a default cache implementation but also supports Redis. For switching from Aerospike 
+Prebid cache uses Aerospike as a default cache implementation but also supports Redis and Apache Ignite. For switching from Aerospike 
 to Redis replace next:
 
 _application.yml:_
@@ -125,7 +177,13 @@ with
 
 ```yaml
  spring.redis.host: value
-```  
+```
+
+or
+
+```yaml
+ spring.ignite.host: value
+```
 
 For configuring single redis node, please use next properties:
 
@@ -137,11 +195,20 @@ For configuring single redis node, please use next properties:
      port: value
 ```  
 
+or
+```yaml
+ spring:
+  ignite:
+    host: host
+    port: port
+    cache-name: cacheName
+```
+
 
 
 It is possible to override the default YAML configuration by supplying a custom configuration.  See example scenario(s) below.
 
-###### Cluster config for Redis and Aerospike
+###### Cluster config for Redis, Aerospike and Apache Ignite
 
 Redis cluster settings
 _application-default.yml:_
@@ -159,6 +226,12 @@ Aerospike cluster settings
 _application-default.yml:_
 ```yaml
 spring.aerospike.host: aerospike_host_1:port,aerospike_host_2:port,aerospike_host_3:port 
+```  
+
+Apache Ignite cluster settings
+_application-default.yml:_
+```yaml
+spring.ignite.host: ignite_host_1:port,ignite_host_2:port,ignite_host_3:port 
 ```  
 
 ### _Optional:  Bring Your Own (BYO) Cache Implementation_

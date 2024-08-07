@@ -5,6 +5,7 @@ import com.aerospike.client.async.EventLoops;
 import com.aerospike.client.policy.Policy;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.lettuce.core.api.reactive.RedisStringReactiveCommands;
+import org.apache.ignite.client.ClientCache;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.CircuitBreakerSecuredReactiveRepository;
@@ -12,6 +13,7 @@ import org.prebid.cache.repository.ReactiveRepository;
 import org.prebid.cache.repository.TimeOutCapableReactiveRepository;
 import org.prebid.cache.repository.aerospike.AerospikePropertyConfiguration;
 import org.prebid.cache.repository.aerospike.AerospikeRepositoryImpl;
+import org.prebid.cache.repository.ignite.IgniteRepositoryImpl;
 import org.prebid.cache.repository.redis.RedisRepositoryImpl;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -39,6 +41,12 @@ public class RepositoryConfig {
                                                                    Policy policy) {
 
         return new AerospikeRepositoryImpl(configuration, client, eventLoops, policy);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "spring.ignite", name = {"host"})
+    ReactiveRepository<PayloadWrapper, String> igniteRepository(ClientCache<String, String> igniteCache) {
+        return new IgniteRepositoryImpl(igniteCache);
     }
 
     @Bean

@@ -9,7 +9,8 @@ abstract class BaseSpec {
     companion object {
         val prebidCacheConfig = PrebidCacheContainerConfig(
             ContainerDependencies.redisContainer.getContainerHost(),
-            ContainerDependencies.aerospikeContainer.getContainerHost()
+            ContainerDependencies.aerospikeContainer.getContainerHost(),
+            ContainerDependencies.apacheIgniteContainer.getContainerHost(),
         )
 
         fun getPrebidCacheApi(config: Map<String, String> = prebidCacheConfig.getBaseRedisConfig("false")): PrebidCacheApi {
