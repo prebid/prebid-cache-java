@@ -4,7 +4,7 @@ info.app.description: @project.description@
 info.app.version: @project.version@
 spring.main.banner-mode: "off"
 api.cache-path: /cache
-api.module-storage-path: /module-storage
+api.storage-path: /storage
 api.api-key: API_KEY
 server.port: 8080
 server.compression.enabled: true
@@ -27,9 +27,9 @@ cache:
   clients_cache_size: 1000
   host_param_protocol: https
 
-module:
-  storage:
-    redis: {}
+storage:
+  redis: {}
+  default-ttl-seconds: 300
 
 # logging
 logging.level.root: info

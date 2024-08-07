@@ -17,7 +17,7 @@ import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
 @Component
 @RequiredArgsConstructor
-public class GetModuleStorageHandler {
+public class GetStorageHandler {
 
     private static final String API_KEY_HEADER = "x-pbc-api-key";
 

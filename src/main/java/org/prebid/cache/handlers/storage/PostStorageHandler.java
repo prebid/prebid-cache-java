@@ -5,8 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
+import org.prebid.cache.config.StorageConfig;
 import org.prebid.cache.exceptions.BadRequestException;
-import org.prebid.cache.model.ModulePayload;
+import org.prebid.cache.model.StoragePayload;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.redis.module.storage.ModuleCompositeRepository;
@@ -20,12 +21,13 @@ import reactor.core.publisher.Mono;
 import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PostModuleStorageHandler {
+public class PostStorageHandler {
 
     private static final String API_KEY_HEADER = "x-pbc-api-key";
 
@@ -33,18 +35,19 @@ public class PostModuleStorageHandler {
     private final ModuleCompositeRepository moduleRepository;
     private final PrebidServerResponseBuilder responseBuilder;
     private final ApiConfig apiConfig;
+    private final StorageConfig storageConfig;
 
     public Mono<ServerResponse> save(final ServerRequest request) {
         if (!isApiKeyValid(request)) {
             return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        return request.body(BodyExtractors.toMono(ModulePayload.class))
+        return request.body(BodyExtractors.toMono(StoragePayload.class))
                 .switchIfEmpty(Mono.error(new BadRequestException("Empty body")))
                 .handle(this::validateModulePayload)
-                .flatMap(modulePayload -> moduleRepository.save(
-                        modulePayload.getApplication(),
-                        mapToPayloadWrapper(modulePayload)))
+                .flatMap(storagePayload -> moduleRepository.save(
+                        storagePayload.getApplication(),
+                        mapToPayloadWrapper(storagePayload)))
                 .subscribeOn(Schedulers.parallel())
                 .flatMap(ignored -> ServerResponse.noContent().build())
                 .onErrorResume(error -> responseBuilder.error(Mono.just(error), request));
@@ -54,7 +57,7 @@ public class PostModuleStorageHandler {
         return StringUtils.equals(request.headers().firstHeader(API_KEY_HEADER), apiConfig.getApiKey());
     }
 
-    private void validateModulePayload(final ModulePayload payload, final SynchronousSink<ModulePayload> sink) {
+    private void validateModulePayload(final StoragePayload payload, final SynchronousSink<StoragePayload> sink) {
         final var result = validator.validate(payload);
         if (result.isEmpty()) {
             sink.next(payload);
@@ -66,11 +69,15 @@ public class PostModuleStorageHandler {
         }
     }
 
-    private static PayloadWrapper mapToPayloadWrapper(final ModulePayload payload) {
+    private PayloadWrapper mapToPayloadWrapper(final StoragePayload payload) {
+        final long ttlSeconds = Optional.ofNullable(payload.getTtlseconds())
+                .map(Integer::longValue)
+                .orElse(storageConfig.getDefaultTtlSeconds());
+
         return PayloadWrapper.builder()
                 .id(payload.getKey())
                 .prefix(StringUtils.EMPTY)
-                .expiry(payload.getTtlseconds().longValue())
+                .expiry(ttlSeconds)
                 .payload(Payload.of(payload.getType().toString(), payload.getKey(), payload.getValue()))
                 .build();
     }

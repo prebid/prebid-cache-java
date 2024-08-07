@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Data
 @Component
-@ConfigurationProperties(prefix = "module.storage")
+@ConfigurationProperties(prefix = "storage")
 public class ModuleCompositeRedisConfigurationProperties {
 
     private Map<String, RedisConfigurationProperties> redis;

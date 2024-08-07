@@ -16,8 +16,9 @@ import org.prebid.cache.functional.util.getRandomString
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.UNAUTHORIZED
+import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 
-class ModuleStorageSpec : ShouldSpec({
+class StorageSpec : ShouldSpec({
 
     lateinit var apiKey: String
     lateinit var applicationName: String
@@ -39,10 +40,10 @@ class ModuleStorageSpec : ShouldSpec({
         }
 
         // when: POST module-storage endpoint is called
-        cacheApi.postModuleStorageCache(payloadTransfer, apiKey)
+        cacheApi.postStorageCache(payloadTransfer, apiKey)
 
         // then: recorded payload should contain the same type and value
-        val savedPayload = cacheApi.getModuleStorageCache(payloadKey, applicationName, apiKey)
+        val savedPayload = cacheApi.getStorageCache(payloadKey, applicationName, apiKey)
         savedPayload.type shouldBe payloadTransfer.type
         savedPayload.value shouldBe payloadTransfer.value
 
@@ -60,10 +61,10 @@ class ModuleStorageSpec : ShouldSpec({
         }
 
         // when: POST module-storage endpoint is called
-        cacheApi.postModuleStorageCache(payloadTransfer, apiKey)
+        cacheApi.postStorageCache(payloadTransfer, apiKey)
 
         // then: recorded payload should contain the same type and value
-        val savedPayload = cacheApi.getModuleStorageCache(payloadKey, applicationName, apiKey)
+        val savedPayload = cacheApi.getStorageCache(payloadKey, applicationName, apiKey)
         savedPayload.type shouldBe payloadTransfer.type
         savedPayload.value shouldBe payloadTransfer.value
 
@@ -81,10 +82,10 @@ class ModuleStorageSpec : ShouldSpec({
         }
 
         // when: POST module-storage endpoint is called
-        cacheApi.postModuleStorageCache(payloadTransfer, apiKey)
+        cacheApi.postStorageCache(payloadTransfer, apiKey)
 
         // then: recorded payload should contain the same type and value
-        val savedPayload = cacheApi.getModuleStorageCache(payloadKey, applicationName, apiKey)
+        val savedPayload = cacheApi.getStorageCache(payloadKey, applicationName, apiKey)
         savedPayload.type shouldBe payloadTransfer.type
         savedPayload.value shouldBe payloadTransfer.value
 
@@ -103,12 +104,12 @@ class ModuleStorageSpec : ShouldSpec({
 
         // when: POST module-storage endpoint is called
         val exception = shouldThrowExactly<ApiException> {
-            cacheApi.postModuleStorageCache(payloadTransfer, apiKey) }
+            cacheApi.postStorageCache(payloadTransfer, apiKey) }
 
         // then: Not found exception is thrown
         assertSoftly {
             exception.statusCode shouldBe NOT_FOUND.value()
-            exception.responseBody shouldContain "\"path\":\"/module-storage\""
+            exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "\"message\":\"Invalid application: ${randomApplication}\""
         }
     }
@@ -122,12 +123,12 @@ class ModuleStorageSpec : ShouldSpec({
         }
 
         // when: POST module-storage endpoint is called
-        val exception = shouldThrowExactly<ApiException> { cacheApi.postModuleStorageCache(payloadTransfer, apiKey) }
+        val exception = shouldThrowExactly<ApiException> { cacheApi.postStorageCache(payloadTransfer, apiKey) }
 
         // then: Bad request exception is thrown
         assertSoftly {
             exception.statusCode shouldBe BAD_REQUEST.value()
-            exception.responseBody shouldContain "\"path\":\"/module-storage\""
+            exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "application must not be empty"
         }
     }
@@ -141,12 +142,12 @@ class ModuleStorageSpec : ShouldSpec({
         }
 
         // when: POST module-storage endpoint is called
-        val exception = shouldThrowExactly<ApiException> { cacheApi.postModuleStorageCache(payloadTransfer, apiKey) }
+        val exception = shouldThrowExactly<ApiException> { cacheApi.postStorageCache(payloadTransfer, apiKey) }
 
         // then: Bad request exception is thrown
         assertSoftly {
             exception.statusCode shouldBe BAD_REQUEST.value()
-            exception.responseBody shouldContain "\"path\":\"/module-storage\""
+            exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "application must not be empty"
         }
     }
@@ -159,12 +160,12 @@ class ModuleStorageSpec : ShouldSpec({
         }
 
         // when: POST module-storage endpoint is called
-        val exception = shouldThrowExactly<ApiException> { cacheApi.postModuleStorageCache(payloadTransfer, apiKey) }
+        val exception = shouldThrowExactly<ApiException> { cacheApi.postStorageCache(payloadTransfer, apiKey) }
 
         // then: Bad request exception is thrown
         assertSoftly {
             exception.statusCode shouldBe BAD_REQUEST.value()
-            exception.responseBody shouldContain "\"path\":\"/module-storage\""
+            exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "key must not be empty"
         }
     }
@@ -177,12 +178,12 @@ class ModuleStorageSpec : ShouldSpec({
         }
 
         // when: POST module-storage endpoint is called
-        val exception = shouldThrowExactly<ApiException> { cacheApi.postModuleStorageCache(payloadTransfer, apiKey) }
+        val exception = shouldThrowExactly<ApiException> { cacheApi.postStorageCache(payloadTransfer, apiKey) }
 
         // then: Bad request exception is thrown
         assertSoftly {
             exception.statusCode shouldBe BAD_REQUEST.value()
-            exception.responseBody shouldContain "\"path\":\"/module-storage\""
+            exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "key must not be empty"
         }
     }
@@ -197,7 +198,7 @@ class ModuleStorageSpec : ShouldSpec({
 
         // when: POST module-storage endpoint is called
         val exception =
-            shouldThrowExactly<ApiException> { cacheApi.postModuleStorageCache(payloadTransfer, getRandomString()) }
+            shouldThrowExactly<ApiException> { cacheApi.postStorageCache(payloadTransfer, getRandomString()) }
 
         // then: Not found exception is thrown
         assertSoftly {
@@ -214,17 +215,17 @@ class ModuleStorageSpec : ShouldSpec({
         }
 
         // and: POST module-storage endpoint is called
-        cacheApi.postModuleStorageCache(payloadTransfer, apiKey)
+        cacheApi.postStorageCache(payloadTransfer, apiKey)
 
         // when: GET module-storage endpoint is called with invalid data
         val exception = shouldThrowExactly<ApiException> {
-            cacheApi.getModuleStorageCache(getRandomString(), applicationName, apiKey)
+            cacheApi.getStorageCache(getRandomString(), applicationName, apiKey)
         }
 
         // then: Not found exception is thrown
         assertSoftly {
             exception.statusCode shouldBe NOT_FOUND.value()
-            exception.responseBody shouldContain "\"path\":\"/module-storage\""
+            exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "Invalid application or key"
         }
     }
@@ -238,20 +239,20 @@ class ModuleStorageSpec : ShouldSpec({
         }
 
         // and: POST module-storage endpoint is called
-        cacheApi.postModuleStorageCache(payloadTransfer, apiKey)
+        cacheApi.postStorageCache(payloadTransfer, apiKey)
 
         //and: random application name
         val randomApplication = getRandomString()
 
         // when: GET module-storage endpoint is called with invalid data
         val exception = shouldThrowExactly<ApiException> {
-            cacheApi.getModuleStorageCache(payloadKey, randomApplication, apiKey)
+            cacheApi.getStorageCache(payloadKey, randomApplication, apiKey)
         }
 
         // then: Not found exception is thrown
         assertSoftly {
             exception.statusCode shouldBe NOT_FOUND.value()
-            exception.responseBody shouldContain "\"path\":\"/module-storage\""
+            exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "\"message\":\"Invalid application: ${randomApplication}\""
         }
     }
@@ -265,11 +266,11 @@ class ModuleStorageSpec : ShouldSpec({
         }
 
         // and: POST module-storage endpoint is called
-        cacheApi.postModuleStorageCache(payloadTransfer, apiKey)
+        cacheApi.postStorageCache(payloadTransfer, apiKey)
 
         // when: GET module-storage endpoint is called with invalid data
         val exception = shouldThrowExactly<ApiException> {
-            cacheApi.getModuleStorageCache(payloadKey, applicationName, getRandomString())
+            cacheApi.getStorageCache(payloadKey, applicationName, getRandomString())
         }
 
         // then: Not found exception is thrown
@@ -277,5 +278,47 @@ class ModuleStorageSpec : ShouldSpec({
             exception.statusCode shouldBe UNAUTHORIZED.value()
             exception.responseBody should beEmpty()
         }
+    }
+
+    should("throw an exception when ttlsecond is zero") {
+        //given: default json payload with application
+        val payloadKey = getRandomString()
+        val payloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply {
+            key = payloadKey
+            application = applicationName
+            ttlseconds = 0
+        }
+
+        // when: POST module-storage endpoint is called
+        val exception = shouldThrowExactly<ApiException> {
+            cacheApi.postStorageCache(payloadTransfer, apiKey) }
+
+        // then: Expire time exception is thrown
+        assertSoftly {
+            exception.statusCode shouldBe INTERNAL_SERVER_ERROR.value()
+            exception.responseBody shouldContain "\"path\":\"/storage\""
+            exception.responseBody shouldContain "\"message\":\"ERR invalid expire time in setex"
+        }
+    }
+
+    should("not throw an exception when ttlsecond is null and config ttlseconds are present") {
+        //given: default json payload with application
+        val payloadKey = getRandomString()
+        val payloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply {
+            key = payloadKey
+            application = applicationName
+            ttlseconds = null
+        }
+
+        // when: POST module-storage endpoint is called
+        cacheApi.postStorageCache(payloadTransfer, apiKey)
+
+        // then: recorded payload should contain the same type and value
+        val savedPayload = cacheApi.getStorageCache(payloadKey, applicationName, apiKey)
+        savedPayload.type shouldBe payloadTransfer.type
+        savedPayload.value shouldBe payloadTransfer.value
+
+        // and: shouldn't contain information about application
+        savedPayload.application?.should(beNull())
     }
 })

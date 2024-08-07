@@ -9,7 +9,7 @@ import org.prebid.cache.handlers.PayloadType;
 
 @Value
 @Builder
-public class ModulePayload {
+public class StoragePayload {
 
     @NotEmpty
     public String key;
@@ -23,7 +23,6 @@ public class ModulePayload {
     @NotEmpty
     public String application;
 
-    @NotNull
     @Min(0)
     public Integer ttlseconds;
 }

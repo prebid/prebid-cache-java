@@ -4,8 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.prebid.cache.handlers.ErrorHandler;
 import org.prebid.cache.handlers.cache.GetCacheHandler;
 import org.prebid.cache.handlers.cache.PostCacheHandler;
-import org.prebid.cache.handlers.storage.GetModuleStorageHandler;
-import org.prebid.cache.handlers.storage.PostModuleStorageHandler;
+import org.prebid.cache.handlers.storage.GetStorageHandler;
+import org.prebid.cache.handlers.storage.PostStorageHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -28,8 +28,8 @@ public class ApiRouter {
     @Bean
     RouterFunction<?> doRoute(final GetCacheHandler getCacheHandler,
                               final PostCacheHandler postCacheHandler,
-                              final GetModuleStorageHandler getModuleStorageHandler,
-                              final PostModuleStorageHandler postModuleStorageHandler,
+                              final GetStorageHandler getStorageHandler,
+                              final PostStorageHandler postStorageHandler,
                               final ErrorHandler errorHandler,
                               final ApiConfig apiConfig) {
 
@@ -45,9 +45,9 @@ public class ApiRouter {
                         GET(apiConfig.getCachePath()).and(accept(MediaType.APPLICATION_XML)),
                         getCacheHandler::fetch)
                 .andRoute(
-                        POST(apiConfig.getModuleStoragePath()).and(accept(MediaType.APPLICATION_JSON)),
-                        postModuleStorageHandler::save)
-                .andRoute(GET(apiConfig.getModuleStoragePath()), getModuleStorageHandler::fetch)
+                        POST(apiConfig.getStoragePath()).and(accept(MediaType.APPLICATION_JSON)),
+                        postStorageHandler::save)
+                .andRoute(GET(apiConfig.getStoragePath()), getStorageHandler::fetch)
                 .andOther(route(RequestPredicates.all(), errorHandler::invalidRequest));
     }
 }

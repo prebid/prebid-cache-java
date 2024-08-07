@@ -20,7 +20,7 @@ public class ApiConfig {
     private String cachePath;
 
     @NotEmpty
-    private String moduleStoragePath;
+    private String storagePath;
 
     @NotEmpty
     private String apiKey;

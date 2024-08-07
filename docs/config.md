@@ -39,3 +39,14 @@ The next sections describes how to set up project configuration.
 - `circuitbreaker.open_state_duration` - duration (in millis) of circuit breaker sitting in open state.
 - `circuitbreaker.closed_state_calls_number` - size of circuit breaker sliding window.
 - `circuitbreaker.half_open_state_calls_number` - number of calls in half open state.
+
+### Storage
+- `storage.default-ttl-seconds` - set the default ttl for the data
+
+#### Redis
+- `storage.redis.{application-name}.port` - redis port.
+- `storage.redis.{application-name}.host` - redis host.
+- `storage.redis.{application-name}.password` - redis password, leave empty if no password required.
+- `storage.redis.{application-name}.cluster.nodes` - list of node uris, set when using clustered redis.
+- `storage.redis.{application-name}.cluster.enable_topology_refresh` - toggle for topology refresh support, set when using clustered redis.
+- `storage.redis.{application-name}.cluster.topology_periodic_refresh_period` - refresh period of clustered redis topology, used when `storage.redis.{application-name}.cluster.enable_topology_refresh` is set to true.
