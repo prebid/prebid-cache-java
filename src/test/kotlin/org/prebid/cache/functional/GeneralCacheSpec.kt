@@ -8,6 +8,7 @@ import io.kotest.matchers.string.shouldContain
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import org.prebid.cache.functional.BaseSpec.Companion.prebidCacheConfig
 import org.prebid.cache.functional.mapper.objectMapper
 import org.prebid.cache.functional.model.request.MediaType.UNSUPPORTED
 import org.prebid.cache.functional.model.request.RequestObject
@@ -48,7 +49,7 @@ class GeneralCacheSpec : ShouldSpec({
 
     should("throw an exception when allow_external_UUID=true and payload transfer key not in UUID format is given") {
         // given: Prebid Cache with allow_external_UUID=true property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(BaseSpec.prebidCacheConfig.getBaseRedisConfig("true"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true"))
 
         // and: Request object with set payload transfer key not in UUID format
         val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = getRandomUuid() + "*" }
@@ -65,7 +66,7 @@ class GeneralCacheSpec : ShouldSpec({
 
     should("throw an exception when allow_external_UUID=true and empty payload transfer key is given") {
         // given: Prebid Cache with allow_external_UUID=true property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(BaseSpec.prebidCacheConfig.getBaseRedisConfig("true"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true"))
 
         // and: Request object with set empty payload transfer key
         val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = "" }
@@ -98,13 +99,16 @@ class GeneralCacheSpec : ShouldSpec({
         }
     }
 
-    should("return the same JSON transfer value which was saved to cache") {
-        // given: Request object with JSON transfer value
+    should("return the same JSON transfer value which was saved to cache  when routes.allow_public_write is enabled") {
+        // given: Prebid Cache with routes.allow_public_write=true property
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true", "true"))
+
+        // and: Request object with JSON transfer value
         val requestObject = RequestObject.getDefaultJsonRequestObject()
         val requestTransferValue = objectMapper.readValue(requestObject.puts[0].value, TransferValue::class.java)
 
         // and: POST cache endpoint is called
-        val postResponse = BaseSpec.getPrebidCacheApi().postCache(requestObject)
+        val postResponse = prebidCacheApi.postCache(requestObject)
 
         // when: GET cache endpoint is called
         val getCacheResponse = BaseSpec.getPrebidCacheApi().getCache(postResponse.responses[0].uuid)
@@ -120,6 +124,52 @@ class GeneralCacheSpec : ShouldSpec({
             responseTransferValue.adm shouldBe requestTransferValue.adm
             responseTransferValue.width shouldBe requestTransferValue.width
             responseTransferValue.height shouldBe requestTransferValue.height
+        }
+    }
+
+    should("return the same JSON transfer value which was saved to admin cache when routes.allow_public_write is disabled") {
+        // given: Prebid Cache with routes.allow_public_write=true property
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true", "false"))
+
+        // and: Request object with JSON transfer value
+        val requestObject = RequestObject.getDefaultJsonRequestObject()
+        val requestTransferValue = objectMapper.readValue(requestObject.puts[0].value, TransferValue::class.java)
+
+        // and: POST cache endpoint is called
+
+        val postResponse = prebidCacheApi.postCacheAdminRequest(requestObject)
+
+        // when: GET cache endpoint is called
+        val getCacheResponse = prebidCacheApi.getCache(postResponse.responses[0].uuid)
+
+        // then: response content type is the same as request object type
+        getCacheResponse.contentType()?.contentType shouldBe "application"
+        getCacheResponse.contentType()?.contentSubtype shouldBe requestObject.puts[0].type.getValue()
+
+        // and: transfer value is returned
+        val responseTransferValue = objectMapper.readValue(getCacheResponse.bodyAsText(), TransferValue::class.java)
+
+        assertSoftly {
+            responseTransferValue.adm shouldBe requestTransferValue.adm
+            responseTransferValue.width shouldBe requestTransferValue.width
+            responseTransferValue.height shouldBe requestTransferValue.height
+        }
+    }
+
+    should("throw an exception when routes.allow_public_write is disabled and trying to save payload transfer by general cache") {
+        // given: Prebid Cache with routes.allow_public_write=true property
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true", "false"))
+
+        // and: Request object with JSON transfer value
+        val requestObject = RequestObject.getDefaultJsonRequestObject()
+
+        // when: POST cache endpoint is called
+        val exception = shouldThrowExactly<ApiException> { prebidCacheApi.postCache(requestObject) }
+
+        // then: Bad Request exception is thrown
+        assertSoftly {
+            exception.statusCode shouldBe BAD_REQUEST.value()
+            exception.responseBody shouldContain "Main server will only accept GET requests"
         }
     }
 

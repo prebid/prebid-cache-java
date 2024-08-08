@@ -166,10 +166,10 @@ class ApacheIgniteCacheSpec : ShouldSpec({
         val requestObject = RequestObject.of(xmlPayloadTransfer)
         val requestTransferValue = objectMapper.readValue(requestObject.puts[0].value, TransferValue::class.java)
 
-        // and: First request object is saved to Aerospike cache
+        // and: The first request object is saved to Apache ignite cache
         prebidCacheApi.postCache(requestObject)
 
-        // and: Second request object with already existing UUID is prepared
+        // and: A second request object with already existing UUID is prepared
         val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply { key = uuid }
         val secondRequestObject = RequestObject.of(jsonPayloadTransfer)
 
@@ -181,7 +181,7 @@ class ApacheIgniteCacheSpec : ShouldSpec({
         responseObject.responses.size shouldBe 1
         responseObject.responses[0].uuid shouldBe secondRequestObject.puts[0].key
 
-        // and: Cache record was updated in Aerospike with a second request object payload
+        // and: Cache record was updated in Apache ignite with a second request object payload
         val getCacheResponse = prebidCacheApi.getCache(responseObject.responses[0].uuid)
         val responseTransferValue = objectMapper.readValue(getCacheResponse.bodyAsText(), TransferValue::class.java)
 

@@ -15,7 +15,7 @@ abstract class BaseSpec {
 
         fun getPrebidCacheApi(config: Map<String, String> = prebidCacheConfig.getBaseRedisConfig("false")): PrebidCacheApi {
             return ContainerDependencies.prebidCacheContainerPool.getPrebidCacheContainer(config)
-                .let { container -> PrebidCacheApi(container.host, container.getHostPort()) }
+                .let { container -> PrebidCacheApi(container.host, container.getHostPort(), container.getHostAdminPort()) }
         }
     }
 }
