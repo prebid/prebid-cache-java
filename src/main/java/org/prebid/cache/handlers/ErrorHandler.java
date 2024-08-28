@@ -11,18 +11,24 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 @Component
 @Slf4j
-public class ErrorHandler extends MetricsHandler {
+public class ErrorHandler {
+
     private static final String RESOURCE_NOT_FOUND_BAD_URL = "Resource Not Found - Bad URL.";
     private static final String RESOURCE_NOT_FOUND = "Resource Not Found: uuid %s";
     private static final String INVALID_PARAMETERS = "Invalid Parameter(s): uuid not found.";
     private static final String NO_ELEMENTS_FOUND = "No Elements Found.";
 
+    private final MetricsRecorder metricsRecorder;
+    private final PrebidServerResponseBuilder builder;
+
     @Autowired
-    public ErrorHandler(final MetricsRecorder metricsRecorder, final PrebidServerResponseBuilder builder) {
-        this.metricsRecorder = metricsRecorder;
-        this.builder = builder;
+    public ErrorHandler(MetricsRecorder metricsRecorder, PrebidServerResponseBuilder builder) {
+        this.metricsRecorder = Objects.requireNonNull(metricsRecorder);
+        this.builder = Objects.requireNonNull(builder);
     }
 
     public static Mono<ServerResponse> createResourceNotFound(String uuid) {
@@ -37,7 +43,7 @@ public class ErrorHandler extends MetricsHandler {
         return Mono.error(new BadRequestException(NO_ELEMENTS_FOUND));
     }
 
-    public Mono<ServerResponse> invalidRequest(final ServerRequest request) {
+    public Mono<ServerResponse> invalidRequest(ServerRequest request) {
         metricsRecorder.getInvalidRequestMeter().increment();
         return builder.error(Mono.just(new ResourceNotFoundException(RESOURCE_NOT_FOUND_BAD_URL)), request);
     }

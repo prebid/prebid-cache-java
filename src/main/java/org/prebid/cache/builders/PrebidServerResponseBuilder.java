@@ -31,48 +31,47 @@ public class PrebidServerResponseBuilder {
     private static final String HEADER_CONNECTION_KEEPALIVE = "keep-alive";
     private static final String HEADER_CONNECTION_CLOSE = "close";
 
-    public Mono<ServerResponse> createResponseMono(final ServerRequest request,
-                                                   final MediaType mediaType,
-                                                   final PayloadWrapper wrapper) {
+    public Mono<ServerResponse> createResponseMono(ServerRequest request,
+                                                   MediaType mediaType,
+                                                   PayloadWrapper wrapper) {
+
         return ok(request, mediaType).body(fromValue(wrapper.getPayload().getValue()));
     }
 
-    public Mono<ServerResponse> createResponseMono(final ServerRequest request,
-                                                   final MediaType mediaType,
-                                                   final ResponseObject response) {
+    public Mono<ServerResponse> createResponseMono(ServerRequest request,
+                                                   MediaType mediaType,
+                                                   ResponseObject response) {
+
         return ok(request, mediaType).body(fromValue(response));
     }
 
-    private ServerResponse.BodyBuilder ok(final ServerRequest request, final MediaType mediaType) {
+    private ServerResponse.BodyBuilder ok(ServerRequest request, MediaType mediaType) {
         final String now = ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME);
         ServerResponse.BodyBuilder builder = ServerResponse.ok()
-                                                     .contentType(mediaType)
-                                                     .header(HttpHeaders.DATE, now)
-                                                     .varyBy(HttpHeaders.ACCEPT_ENCODING)
-                                                     .cacheControl(CacheControl.noCache());
+                .contentType(mediaType)
+                .header(HttpHeaders.DATE, now)
+                .varyBy(HttpHeaders.ACCEPT_ENCODING)
+                .cacheControl(CacheControl.noCache());
         applyHeaders(builder, request);
         return builder;
     }
 
-    public <T extends Throwable> Mono<ServerResponse> error(final Mono<T> monoError,
-                                                            final ServerRequest request) {
+    public <T extends Throwable> Mono<ServerResponse> error(Mono<T> monoError, ServerRequest request) {
         return monoError.transform(ThrowableTranslator::translate)
                 .flatMap(translation ->
                         addHeaders(status(translation.getHttpStatus()), request)
                                 .body(Mono.just(
-                                        ErrorResponse.builder()
-                                                .error(translation.getHttpStatus().getReasonPhrase())
-                                                .status(translation.getHttpStatus().value())
-                                                .path(request.path())
-                                                .message(translation.getErrorMessage())
-                                                .timestamp(new Date())
-                                                .build()),
-                                        ErrorResponse.class)
-                );
+                                                ErrorResponse.builder()
+                                                        .error(translation.getHttpStatus().getReasonPhrase())
+                                                        .status(translation.getHttpStatus().value())
+                                                        .path(request.path())
+                                                        .message(translation.getErrorMessage())
+                                                        .timestamp(new Date())
+                                                        .build()),
+                                        ErrorResponse.class));
     }
 
-    private static ServerResponse.BodyBuilder addHeaders(final ServerResponse.BodyBuilder builder,
-                                                         final ServerRequest request) {
+    private static ServerResponse.BodyBuilder addHeaders(ServerResponse.BodyBuilder builder, ServerRequest request) {
         ServerResponse.BodyBuilder headers =
                 builder.header(HttpHeaders.DATE, ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME))
                         .varyBy(HttpHeaders.ACCEPT_ENCODING)
@@ -81,9 +80,7 @@ public class PrebidServerResponseBuilder {
         return applyHeaders(headers, request);
     }
 
-    private static ServerResponse.BodyBuilder applyHeaders(final ServerResponse.BodyBuilder builder,
-                                                           final ServerRequest request) {
-
+    private static ServerResponse.BodyBuilder applyHeaders(ServerResponse.BodyBuilder builder, ServerRequest request) {
         final List<String> connectionHeaders = request.headers().header(HttpHeaders.CONNECTION);
         if (hasConnectionValue(connectionHeaders, HEADER_CONNECTION_KEEPALIVE)) {
             builder.header(HttpHeaders.CONNECTION, HEADER_CONNECTION_KEEPALIVE);
@@ -96,8 +93,7 @@ public class PrebidServerResponseBuilder {
 
     private static boolean hasConnectionValue(List<String> connectionHeaders, String value) {
         return !connectionHeaders.isEmpty() && connectionHeaders.stream()
-                                                       .map(String::toLowerCase)
-                                                       .allMatch(Predicate.isEqual(value));
+                .map(String::toLowerCase)
+                .allMatch(Predicate.isEqual(value));
     }
-
 }
