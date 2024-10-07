@@ -246,7 +246,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         given(apiConfig.isCacheWriteSecured()).willReturn(true);
         given(apiConfig.getApiKey()).willReturn("api-key");
 
-        var handler = new PostCacheHandler(
+        final var handler = new PostCacheHandler(
                 repository,
                 cacheConfig,
                 metricsRecorder,
@@ -255,7 +255,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 samplingRate,
                 apiConfig);
 
-        var request = MockServerRequest.builder()
+        final var request = MockServerRequest.builder()
                 .method(HttpMethod.POST)
                 .build();
 
