@@ -13,23 +13,30 @@ class PrebidCacheContainerConfig(
     private val apacheIgniteHost: String
 ) {
 
-    fun getBaseRedisConfig(allowExternalUuid: String, allowPublicWrite: String = "true"): Map<String, String> =
-        getBaseConfig(allowExternalUuid, allowPublicWrite) + getRedisConfig()
+    fun getBaseRedisConfig(
+        allowExternalUuid: Boolean,
+        cacheWriteSecured: Boolean = false,
+        apiKey: String? = null
+    ): Map<String, String> =
+        getBaseConfig(allowExternalUuid, cacheWriteSecured, apiKey) + getRedisConfig()
 
-    fun getBaseAerospikeConfig(allowExternalUuid: String,
-                               aerospikeNamespace: String = NAMESPACE,
-                               allowPublicWrite: String = "true"): Map<String, String> =
-        getBaseConfig(allowExternalUuid, allowPublicWrite) + getAerospikeConfig(aerospikeNamespace)
+    fun getBaseAerospikeConfig(
+        allowExternalUuid: Boolean,
+        aerospikeNamespace: String = NAMESPACE,
+        cacheWriteSecured: Boolean = false
+    ): Map<String, String> =
+        getBaseConfig(allowExternalUuid, cacheWriteSecured) + getAerospikeConfig(aerospikeNamespace)
 
     fun getBaseApacheIgniteConfig(
-        allowExternalUuid: String,
-        allowPublicWrite: String = "true",
-        ingineCacheName: String = CACHE_NAME
+        allowExternalUuid: Boolean,
+        ingineCacheName: String = CACHE_NAME,
+        cacheWriteSecured: Boolean = false
     ): Map<String, String> =
-        getBaseConfig(allowExternalUuid, allowPublicWrite) + getApacheIgniteConfig(ingineCacheName)
+        getBaseConfig(allowExternalUuid, cacheWriteSecured) + getApacheIgniteConfig(ingineCacheName)
 
     fun getBaseModuleStorageConfig(applicationName: String, apiKey: String): Map<String, String> =
-        getBaseConfig("true") + getModuleStorageRedisConfig(apiKey, applicationName) + getRedisConfig()
+        getBaseConfig(allowExternalUuid = true, apiKey = apiKey) +
+                getModuleStorageRedisConfig(applicationName) + getRedisConfig()
 
     fun getCacheExpiryConfig(minExpiry: String = "15", maxExpiry: String = "28800"): Map<String, String> =
         mapOf(
@@ -41,8 +48,8 @@ class PrebidCacheContainerConfig(
     fun getCacheTimeoutConfig(timeoutMs: String): Map<String, String> =
         mapOf("cache.timeout.ms" to timeoutMs)
 
-    fun getAerospikePreventUuidDuplicationConfig(preventUuidDuplication: String): Map<String, String> =
-        mapOf("spring.aerospike.prevent-u-u-i-d-duplication" to preventUuidDuplication)
+    fun getAerospikePreventUuidDuplicationConfig(preventUuidDuplication: Boolean): Map<String, String> =
+        mapOf("spring.aerospike.prevent-u-u-i-d-duplication" to preventUuidDuplication.toString())
 
     fun getSecondaryCacheConfig(secondaryCacheUri: String): Map<String, String> =
         mapOf(
@@ -83,32 +90,40 @@ class PrebidCacheContainerConfig(
         )
 
     private fun getModuleStorageRedisConfig(
-        apiKey: String,
         applicationName: String,
         timeoutMs: Long = 9999L,
-        endpoint: String = "/storage"
     ): Map<String, String> =
         mapOf(
-            "api.api-key" to apiKey,
-            "api.storage-path" to endpoint,
             "storage.redis.${applicationName}.port" to RedisContainer.PORT.toString(),
             "storage.redis.${applicationName}.host" to redisHost,
             "storage.redis.${applicationName}.timeout" to timeoutMs.toString(),
             "storage.default-ttl-seconds" to 1000L.toString()
         )
 
-    private fun getBaseConfig(allowExternalUuid: String, allowPublicWrite: String = "true"): Map<String, String> =
+    private fun getBaseConfig(
+        allowExternalUuid: Boolean,
+        cacheWriteSecured: Boolean = false,
+        apiKey: String? = null,
+        endpoint: String = "/storage"
+    ): Map<String, String> =
         getCachePrefixConfig() +
                 getCacheExpiryConfig() +
                 getAllowExternalUuidConfig(allowExternalUuid) +
                 getCacheTimeoutConfig("2500") +
-                getAllowPublicWriteConfig(allowPublicWrite)
+                getApiConfig(endpoint, apiKey, cacheWriteSecured)
 
     private fun getCachePrefixConfig(): Map<String, String> = mapOf("cache.prefix" to "prebid_")
 
-    private fun getAllowExternalUuidConfig(allowExternalUuid: String): Map<String, String> =
-        mapOf("cache.allow-external-u-u-i-d" to allowExternalUuid)
+    private fun getAllowExternalUuidConfig(allowExternalUuid: Boolean): Map<String, String> =
+        mapOf("cache.allow-external-u-u-i-d" to allowExternalUuid.toString())
 
-    private fun getAllowPublicWriteConfig(allowPublicWrite: String): Map<String, String> =
-        mapOf("routes.allow_public_write" to allowPublicWrite)
+    private fun getApiConfig(
+        endpoint: String,
+        apiKey: String? = null,
+        allowPublicWrite: Boolean? = null
+    ): Map<String, String> = buildMap {
+        put("api.storage-path", endpoint)
+        apiKey?.let { put("api.api-key", it) }
+        allowPublicWrite?.let { put("api.cache-write-secured", it.toString()) }
+    }
 }

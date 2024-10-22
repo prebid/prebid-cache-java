@@ -8,14 +8,13 @@ class PrebidCacheContainer(imageName: String, config: Map<String, String>) :
 
     init {
         withNetwork(ContainerDependencies.network)
-        withExposedPorts(PORT, DEBUG_PORT, ADMIN_PORT)
+        withExposedPorts(PORT, DEBUG_PORT)
         withFixedExposedPorts()
         withJavaToolOptions()
         withConfig(config)
     }
 
     fun getHostPort(): Int = getMappedPort(PORT)
-    fun getHostAdminPort(): Int = getMappedPort(ADMIN_PORT)
 
     private fun withConfig(config: Map<String, String>): PrebidCacheContainer =
         withEnv(normalizeProperties(config))
@@ -24,7 +23,6 @@ class PrebidCacheContainer(imageName: String, config: Map<String, String>) :
         if (USE_FIXED_PORTS) {
             addFixedExposedPort(FIXED_EXPOSED_APPLICATION_PORT, PORT)
             addFixedExposedPort(FIXED_EXPOSED_DEBUG_PORT, DEBUG_PORT)
-            addFixedExposedPort(FIXED_EXPOSED_ADMIN_PORT, ADMIN_PORT)
         }
     }
 
@@ -70,10 +68,8 @@ class PrebidCacheContainer(imageName: String, config: Map<String, String>) :
     companion object {
         private const val PORT = 8080
         private const val DEBUG_PORT = 8000
-        private const val ADMIN_PORT = 8081
         private const val FIXED_EXPOSED_APPLICATION_PORT = 49100
         private const val FIXED_EXPOSED_DEBUG_PORT = 49101
-        private const val FIXED_EXPOSED_ADMIN_PORT = 49102
 
         private val USE_FIXED_PORTS = System.getProperty("useFixedContainerPorts")?.toBoolean() ?: false
     }

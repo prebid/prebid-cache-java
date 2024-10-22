@@ -26,7 +26,6 @@ import org.prebid.cache.functional.model.response.ResponseObject
 class PrebidCacheApi(
     private val prebidCacheHost: String,
     private val prebidCachePort: Int,
-    private val prebidCacheAdminPort: Int
 ) {
 
     suspend fun getCache(uuid: String?, proxyCacheHost: String? = null): HttpResponse =
@@ -35,17 +34,6 @@ class PrebidCacheApi(
 
     suspend fun postCache(requestObject: RequestObject, secondaryCache: String? = null): ResponseObject =
         post(endpoint = CACHE_ENDPOINT,
-            requestObject = requestObject,
-            parameters = mapOf(SECONDARY_CACHE_QUERY_PARAMETER to secondaryCache)).body()
-
-    suspend fun getCacheAdminRequest(uuid: String?, proxyCacheHost: String? = null): HttpResponse =
-        get(endpoint = CACHE_ENDPOINT,
-            requestPort = prebidCacheAdminPort,
-            parameters = mapOf(UUID_QUERY_PARAMETER to uuid, PROXY_CACHE_HOST_QUERY_PARAMETER to proxyCacheHost))
-
-    suspend fun postCacheAdminRequest(requestObject: RequestObject, secondaryCache: String? = null): ResponseObject =
-        post(endpoint = CACHE_ENDPOINT,
-            requestPort = prebidCacheAdminPort,
             requestObject = requestObject,
             parameters = mapOf(SECONDARY_CACHE_QUERY_PARAMETER to secondaryCache)).body()
 

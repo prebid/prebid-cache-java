@@ -26,7 +26,7 @@ class ApacheIgniteCacheSpec : ShouldSpec({
 
     should("throw an exception when cache record is absent in Apache ignite repository") {
         // given: Prebid cache config
-        val config = prebidCacheConfig.getBaseApacheIgniteConfig("true")
+        val config = prebidCacheConfig.getBaseApacheIgniteConfig(true)
         val cachePrefix = config["cache.prefix"]
 
         // when: GET cache endpoint with random UUID is called
@@ -42,7 +42,7 @@ class ApacheIgniteCacheSpec : ShouldSpec({
 
     should("throw an exception when cache is absent in Apache ignite repository due to expiration") {
         // given: Prebid Cache with set min and max expiry as 0
-        val config = prebidCacheConfig.getBaseApacheIgniteConfig("false") +
+        val config = prebidCacheConfig.getBaseApacheIgniteConfig(false) +
                 prebidCacheConfig.getCacheExpiryConfig("0", "0")
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(config)
 
@@ -65,7 +65,7 @@ class ApacheIgniteCacheSpec : ShouldSpec({
 
     should("rethrow an exception from Apache ignite cache server when such happens") {
         // given: Prebid Cache with not matched to Apache ignite server namespace
-        val config = prebidCacheConfig.getBaseApacheIgniteConfig("true", getRandomString())
+        val config = prebidCacheConfig.getBaseApacheIgniteConfig(true, getRandomString())
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(config)
 
         // and: Default request object
@@ -86,7 +86,7 @@ class ApacheIgniteCacheSpec : ShouldSpec({
 
     should("return back PBC UUID when allow_external_UUID=false and request object was successfully cached in Apache ignite") {
         // given: Prebid Cache with disabled allow_external_UUID property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseApacheIgniteConfig("false"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseApacheIgniteConfig(false))
 
         // and: Request object
         val requestObject = RequestObject.getDefaultJsonRequestObject()
@@ -102,7 +102,7 @@ class ApacheIgniteCacheSpec : ShouldSpec({
 
     should("return back two random UUIDs when allow_external_UUID=false and 2 payload transfers were successfully cached") {
         // given: Prebid Cache with disabled allow_external_UUID property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseApacheIgniteConfig("false"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseApacheIgniteConfig(false))
 
         // given: Request object
         val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = null }
@@ -121,7 +121,7 @@ class ApacheIgniteCacheSpec : ShouldSpec({
 
     should("return back a request UUID when allow_external_UUID=true and request object was successfully cached") {
         // given: Prebid Cache with enabled allow_external_UUID property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseApacheIgniteConfig("true"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseApacheIgniteConfig(true))
 
         // and: Request object with set payload transfer UUID key
         val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = getRandomUuid() }
@@ -137,7 +137,7 @@ class ApacheIgniteCacheSpec : ShouldSpec({
 
     should("return back two request UUIDs when allow_external_UUID=true and 2 payload transfers were successfully cached in Apache ignite") {
         // given: Prebid Cache with allow_external_UUID=true property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseApacheIgniteConfig("true"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseApacheIgniteConfig(true))
 
         // and: Request object with 2 payload transfers and set UUIDs is prepared
         val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = getRandomUuid() }
@@ -158,7 +158,7 @@ class ApacheIgniteCacheSpec : ShouldSpec({
 
     should("shouldn't update existing cache record when request with already existing UUID is send") {
         // given: Prebid Cache with allow_external_UUID=true property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseApacheIgniteConfig("true"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseApacheIgniteConfig(true))
 
         // and: First request object
         val uuid = getRandomUuid()

@@ -49,7 +49,7 @@ class GeneralCacheSpec : ShouldSpec({
 
     should("throw an exception when allow_external_UUID=true and payload transfer key not in UUID format is given") {
         // given: Prebid Cache with allow_external_UUID=true property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig(true))
 
         // and: Request object with set payload transfer key not in UUID format
         val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = getRandomUuid() + "*" }
@@ -66,7 +66,7 @@ class GeneralCacheSpec : ShouldSpec({
 
     should("throw an exception when allow_external_UUID=true and empty payload transfer key is given") {
         // given: Prebid Cache with allow_external_UUID=true property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig(true))
 
         // and: Request object with set empty payload transfer key
         val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = "" }
@@ -101,7 +101,10 @@ class GeneralCacheSpec : ShouldSpec({
 
     should("return the same JSON transfer value which was saved to cache  when routes.allow_public_write is enabled") {
         // given: Prebid Cache with routes.allow_public_write=true property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true", "true"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig(
+            allowExternalUuid = true,
+            cacheWriteSecured = true
+        ))
 
         // and: Request object with JSON transfer value
         val requestObject = RequestObject.getDefaultJsonRequestObject()
@@ -129,7 +132,10 @@ class GeneralCacheSpec : ShouldSpec({
 
     should("return the same JSON transfer value which was saved to admin cache when routes.allow_public_write is disabled") {
         // given: Prebid Cache with routes.allow_public_write=true property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true", "false"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig(
+            allowExternalUuid = true,
+            cacheWriteSecured = false
+        ))
 
         // and: Request object with JSON transfer value
         val requestObject = RequestObject.getDefaultJsonRequestObject()
@@ -137,7 +143,7 @@ class GeneralCacheSpec : ShouldSpec({
 
         // and: POST cache endpoint is called
 
-        val postResponse = prebidCacheApi.postCacheAdminRequest(requestObject)
+        val postResponse = prebidCacheApi.postCache(requestObject)
 
         // when: GET cache endpoint is called
         val getCacheResponse = prebidCacheApi.getCache(postResponse.responses[0].uuid)
@@ -158,7 +164,10 @@ class GeneralCacheSpec : ShouldSpec({
 
     should("throw an exception when routes.allow_public_write is disabled and trying to save payload transfer by general cache") {
         // given: Prebid Cache with routes.allow_public_write=true property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true", "false"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig(
+            allowExternalUuid = true,
+            cacheWriteSecured = false
+        ))
 
         // and: Request object with JSON transfer value
         val requestObject = RequestObject.getDefaultJsonRequestObject()
