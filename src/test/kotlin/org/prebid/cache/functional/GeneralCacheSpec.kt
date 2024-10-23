@@ -99,12 +99,9 @@ class GeneralCacheSpec : ShouldSpec({
         }
     }
 
-    should("return the same JSON transfer value which was saved to cache  when routes.allow_public_write is enabled") {
+    should("return the same JSON transfer value which was saved to cache") {
         // given: Prebid Cache with routes.allow_public_write=true property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig(
-            allowExternalUuid = true,
-            cacheWriteSecured = true
-        ))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig(true))
 
         // and: Request object with JSON transfer value
         val requestObject = RequestObject.getDefaultJsonRequestObject()
@@ -127,58 +124,6 @@ class GeneralCacheSpec : ShouldSpec({
             responseTransferValue.adm shouldBe requestTransferValue.adm
             responseTransferValue.width shouldBe requestTransferValue.width
             responseTransferValue.height shouldBe requestTransferValue.height
-        }
-    }
-
-    should("return the same JSON transfer value which was saved to admin cache when routes.allow_public_write is disabled") {
-        // given: Prebid Cache with routes.allow_public_write=true property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig(
-            allowExternalUuid = true,
-            cacheWriteSecured = false
-        ))
-
-        // and: Request object with JSON transfer value
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-        val requestTransferValue = objectMapper.readValue(requestObject.puts[0].value, TransferValue::class.java)
-
-        // and: POST cache endpoint is called
-
-        val postResponse = prebidCacheApi.postCache(requestObject)
-
-        // when: GET cache endpoint is called
-        val getCacheResponse = prebidCacheApi.getCache(postResponse.responses[0].uuid)
-
-        // then: response content type is the same as request object type
-        getCacheResponse.contentType()?.contentType shouldBe "application"
-        getCacheResponse.contentType()?.contentSubtype shouldBe requestObject.puts[0].type.getValue()
-
-        // and: transfer value is returned
-        val responseTransferValue = objectMapper.readValue(getCacheResponse.bodyAsText(), TransferValue::class.java)
-
-        assertSoftly {
-            responseTransferValue.adm shouldBe requestTransferValue.adm
-            responseTransferValue.width shouldBe requestTransferValue.width
-            responseTransferValue.height shouldBe requestTransferValue.height
-        }
-    }
-
-    should("throw an exception when routes.allow_public_write is disabled and trying to save payload transfer by general cache") {
-        // given: Prebid Cache with routes.allow_public_write=true property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig(
-            allowExternalUuid = true,
-            cacheWriteSecured = false
-        ))
-
-        // and: Request object with JSON transfer value
-        val requestObject = RequestObject.getDefaultJsonRequestObject()
-
-        // when: POST cache endpoint is called
-        val exception = shouldThrowExactly<ApiException> { prebidCacheApi.postCache(requestObject) }
-
-        // then: Bad Request exception is thrown
-        assertSoftly {
-            exception.statusCode shouldBe BAD_REQUEST.value()
-            exception.responseBody shouldContain "Main server will only accept GET requests"
         }
     }
 

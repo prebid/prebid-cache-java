@@ -32,10 +32,17 @@ class PrebidCacheApi(
         get(endpoint = CACHE_ENDPOINT,
             parameters = mapOf(UUID_QUERY_PARAMETER to uuid, PROXY_CACHE_HOST_QUERY_PARAMETER to proxyCacheHost))
 
-    suspend fun postCache(requestObject: RequestObject, secondaryCache: String? = null): ResponseObject =
-        post(endpoint = CACHE_ENDPOINT,
+    suspend fun postCache(
+        requestObject: RequestObject,
+        secondaryCache: String? = null,
+        apiKey: String? = null
+    ): ResponseObject =
+        post(
+            endpoint = CACHE_ENDPOINT,
             requestObject = requestObject,
-            parameters = mapOf(SECONDARY_CACHE_QUERY_PARAMETER to secondaryCache)).body()
+            parameters = mapOf(SECONDARY_CACHE_QUERY_PARAMETER to secondaryCache),
+            headers = mapOf(API_KEY_PARAMETER to apiKey)
+        ).body()
 
     suspend fun getStorageCache(
         payloadTransferKey: String?,
