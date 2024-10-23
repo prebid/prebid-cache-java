@@ -19,6 +19,8 @@ public class ApiConfig {
     @NotEmpty
     private String cachePath;
 
+    private boolean cacheWriteSecured;
+
     @NotEmpty
     private String storagePath;
 

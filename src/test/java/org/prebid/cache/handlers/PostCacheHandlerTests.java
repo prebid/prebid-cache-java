@@ -81,6 +81,9 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     @MockBean
     ReactiveRepository<PayloadWrapper, String> repository;
 
+    @MockBean
+    ApiConfig apiConfig;
+
     @Value("${sampling.rate:2.0}")
     Double samplingRate;
 
@@ -92,7 +95,8 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 metricsRecorder,
                 builder,
                 webClientCircuitBreaker,
-                samplingRate);
+                samplingRate,
+                apiConfig);
         verifyJacksonError(handler);
         verifyRepositoryError(handler);
     }
@@ -116,7 +120,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         given(repository.save(PAYLOAD_WRAPPER)).willReturn(Mono.just(PAYLOAD_WRAPPER));
 
         final PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
-                webClientCircuitBreaker, samplingRate);
+                webClientCircuitBreaker, samplingRate, apiConfig);
 
         final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final MockServerRequest requestMono = MockServerRequest.builder()
@@ -144,7 +148,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 .willReturn(aResponse().withBody("{\"responses\":[{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}]}")));
 
         final PostCacheHandler handler = new PostCacheHandler(repository, cacheConfig, metricsRecorder, builder,
-                webClientCircuitBreaker, samplingRate);
+                webClientCircuitBreaker, samplingRate, apiConfig);
 
         final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final MockServerRequest requestMono = MockServerRequest.builder()
@@ -173,11 +177,11 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     void testExternalUUIDInvalid() {
         //given
         final var cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(),
-            cacheConfig.getTimeoutMs(),
-            cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(),
-            false, Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
+                cacheConfig.getTimeoutMs(),
+                cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(),
+                false, Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
         final var handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
-            webClientCircuitBreaker, samplingRate);
+                webClientCircuitBreaker, samplingRate, apiConfig);
 
         final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final MockServerRequest requestMono = MockServerRequest.builder()
@@ -208,7 +212,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(),
                 Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
         final PostCacheHandler handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
-                webClientCircuitBreaker, samplingRate);
+                webClientCircuitBreaker, samplingRate, apiConfig);
 
         final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final MockServerRequest requestMono = MockServerRequest.builder()
@@ -229,11 +233,35 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         final Mono<ServerResponse> responseMonoSecond = handler.save(requestMono);
 
         final Consumer<ServerResponse> consumerSecond = serverResponse ->
-            assertEquals(400, serverResponse.statusCode().value());
+                assertEquals(400, serverResponse.statusCode().value());
 
         StepVerifier.create(responseMonoSecond)
-            .consumeNextWith(consumerSecond)
-            .expectComplete()
-            .verify();
+                .consumeNextWith(consumerSecond)
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    void testAuthorization() {
+        given(apiConfig.isCacheWriteSecured()).willReturn(true);
+        given(apiConfig.getApiKey()).willReturn("api-key");
+
+        final var handler = new PostCacheHandler(
+                repository,
+                cacheConfig,
+                metricsRecorder,
+                builder,
+                webClientCircuitBreaker,
+                samplingRate,
+                apiConfig);
+
+        final var request = MockServerRequest.builder()
+                .method(HttpMethod.POST)
+                .build();
+
+        StepVerifier.create(handler.save(request))
+                .consumeNextWith(serverResponse -> assertEquals(401, serverResponse.statusCode().value()))
+                .expectComplete()
+                .verify();
     }
 }
