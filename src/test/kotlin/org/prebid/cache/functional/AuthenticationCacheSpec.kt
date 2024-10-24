@@ -51,7 +51,7 @@ class AuthenticationCacheSpec : ShouldSpec({
         }
     }
 
-    should("should save JSON transfer value without api-key in header when cache-write-secured is enabled") {
+    should("should save JSON transfer value with proper api-key in header when cache-write-secured is enabled") {
         // given: Prebid Cache with api.cache-write-secured=true property
         val prebidApiKey = getRandomString()
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(
