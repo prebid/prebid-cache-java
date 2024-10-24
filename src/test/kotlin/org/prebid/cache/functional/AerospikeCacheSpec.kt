@@ -25,7 +25,7 @@ class AerospikeCacheSpec : ShouldSpec({
 
     should("throw an exception when cache record is absent in Aerospike repository") {
         // given: Prebid cache config
-        val config = prebidCacheConfig.getBaseAerospikeConfig("true")
+        val config = prebidCacheConfig.getBaseAerospikeConfig(true)
         val cachePrefix = config["cache.prefix"]
 
         // when: GET cache endpoint with random UUID is called
@@ -42,7 +42,7 @@ class AerospikeCacheSpec : ShouldSpec({
     should("rethrow an exception from Aerospike cache server when such happens") {
         // given: Prebid Cache with not matched to Aerospike server namespace
         val unmatchedNamespace = getRandomString()
-        val config = prebidCacheConfig.getBaseAerospikeConfig("true", unmatchedNamespace)
+        val config = prebidCacheConfig.getBaseAerospikeConfig(true, unmatchedNamespace)
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(config)
 
         // and: Default request object
@@ -64,8 +64,8 @@ class AerospikeCacheSpec : ShouldSpec({
     should("throw an exception when aerospike.prevent_UUID_duplication=true and request with already existing UUID is send") {
         // given: Prebid Cache with aerospike.prevent_UUID_duplication=true property
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(
-            prebidCacheConfig.getBaseAerospikeConfig("true") +
-                    prebidCacheConfig.getAerospikePreventUuidDuplicationConfig("true")
+            prebidCacheConfig.getBaseAerospikeConfig(true) +
+                    prebidCacheConfig.getAerospikePreventUuidDuplicationConfig(true)
         )
 
         // and: First request object with set UUID
@@ -73,10 +73,10 @@ class AerospikeCacheSpec : ShouldSpec({
         val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = uuid }
         val requestObject = RequestObject.of(xmlPayloadTransfer)
 
-        // and: First request object is saved to Aerospike cache
+        // and: The first request object is saved to Aerospike cache
         prebidCacheApi.postCache(requestObject)
 
-        // and: Second request object with already existing UUID is prepared
+        // and: A second request object with already existing UUID is prepared
         val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply { key = uuid }
         val secondRequestObject = RequestObject.of(jsonPayloadTransfer)
 
@@ -93,8 +93,8 @@ class AerospikeCacheSpec : ShouldSpec({
     should("return back two request UUIDs when allow_external_UUID=true and 2 payload transfers were successfully cached in Aerospike") {
         // given: Prebid Cache with allow_external_UUID=true property
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(
-            prebidCacheConfig.getBaseAerospikeConfig("true") +
-                    prebidCacheConfig.getAerospikePreventUuidDuplicationConfig("false")
+            prebidCacheConfig.getBaseAerospikeConfig(true) +
+                    prebidCacheConfig.getAerospikePreventUuidDuplicationConfig(false)
         )
 
         // and: Request object with 2 payload transfers and set UUIDs is prepared
@@ -105,7 +105,7 @@ class AerospikeCacheSpec : ShouldSpec({
         // when: POST cache endpoint is called
         val responseObject: ResponseObject = prebidCacheApi.postCache(requestObject)
 
-        // then: UUIDs from request object are returned
+        // then: UUIDs from a request object are returned
         responseObject.responses.isEmpty() shouldBe false
         responseObject.responses.size shouldBe 2
 
@@ -117,8 +117,8 @@ class AerospikeCacheSpec : ShouldSpec({
     should("update existing cache record when aerospike.prevent_UUID_duplication=false and request with already existing UUID is send") {
         // given: Prebid Cache with aerospike.prevent_UUID_duplication=false
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(
-            prebidCacheConfig.getBaseAerospikeConfig("true") +
-                    prebidCacheConfig.getAerospikePreventUuidDuplicationConfig("false")
+            prebidCacheConfig.getBaseAerospikeConfig(true) +
+                    prebidCacheConfig.getAerospikePreventUuidDuplicationConfig(false)
         )
 
         // and: First request object
@@ -126,10 +126,10 @@ class AerospikeCacheSpec : ShouldSpec({
         val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = uuid }
         val requestObject = RequestObject.of(xmlPayloadTransfer)
 
-        // and: First request object is saved to Aerospike cache
+        // and: The first request object is saved to Aerospike cache
         prebidCacheApi.postCache(requestObject)
 
-        // and: Second request object with already existing UUID is prepared
+        // and: A second request object with already existing UUID is prepared
         val jsonPayloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply { key = uuid }
         val secondRequestObject = RequestObject.of(jsonPayloadTransfer)
         val requestTransferValue = objectMapper.readValue(secondRequestObject.puts[0].value, TransferValue::class.java)
