@@ -51,7 +51,7 @@
         <maven-release-plugin.version>3.0.0-M5</maven-release-plugin.version>
         <rest-maven-plugin.version>0.1.4</rest-maven-plugin.version>
         <spring-boot-maven-plugin.version>3.2.3</spring-boot-maven-plugin.version>
-        <lettuce-core.version>6.2.4.RELEASE</lettuce-core.version>
+        <lettuce-core.version>6.5.1.RELEASE</lettuce-core.version>
         <gson.version>2.10.1</gson.version>
         <guava.version>32.0.0-jre</guava.version>
         <caffeine.version>3.1.8</caffeine.version>
