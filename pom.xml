@@ -79,7 +79,7 @@
         <kotlinx-coroutines-core-jvm.version>1.8.0</kotlinx-coroutines-core-jvm.version>
         <testcontainers.version>1.20.0</testcontainers.version>
         <mockserver-client.version>5.15.0</mockserver-client.version>
-        <ktor.version>2.3.8</ktor.version>
+        <ktor.version>2.3.13</ktor.version>
         <jackson-kotlin-module.version>2.16.1</jackson-kotlin-module.version>
         <docker-maven-plugin.version>0.44.0</docker-maven-plugin.version>
     </properties>
