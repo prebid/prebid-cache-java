@@ -22,7 +22,7 @@ class RedisCacheSpec : ShouldSpec({
 
     should("throw an exception when cache record is absent in Redis repository") {
         // given: Prebid cache config
-        val config = prebidCacheConfig.getBaseRedisConfig("true")
+        val config = prebidCacheConfig.getBaseRedisConfig(true)
         val cachePrefix = config["cache.prefix"]
 
         // when: GET cache endpoint with random UUID is called
@@ -38,7 +38,7 @@ class RedisCacheSpec : ShouldSpec({
 
     should("rethrow an exception from Redis cache server when such happens") {
         // given: Prebid Cache with set min and max expiry as 0
-        val config = prebidCacheConfig.getBaseRedisConfig("false") + prebidCacheConfig.getCacheExpiryConfig("0", "0")
+        val config = prebidCacheConfig.getBaseRedisConfig(false) + prebidCacheConfig.getCacheExpiryConfig("0", "0")
         val prebidCacheApi = BaseSpec.getPrebidCacheApi(config)
 
         // and: Request object
@@ -88,7 +88,7 @@ class RedisCacheSpec : ShouldSpec({
 
     should("return back a request UUID when allow_external_UUID=true and request object was successfully cached") {
         // given: Prebid Cache with enabled allow_external_UUID property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig(true))
 
         // and: Request object with set payload transfer UUID key
         val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = getRandomUuid() }
@@ -104,7 +104,7 @@ class RedisCacheSpec : ShouldSpec({
 
     should("return back two request UUIDs when allow_external_UUID=true and 2 payload transfers were successfully cached in Redis") {
         // given: Prebid Cache with enabled allow_external_UUID property
-        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig("true"))
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(prebidCacheConfig.getBaseRedisConfig(true))
 
         // and: Request object with set 2 payload transfers
         val xmlPayloadTransfer = PayloadTransfer.getDefaultXmlPayloadTransfer().apply { key = getRandomUuid() }

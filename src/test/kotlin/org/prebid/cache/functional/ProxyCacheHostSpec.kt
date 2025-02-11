@@ -45,7 +45,7 @@ class ProxyCacheHostSpec : ShouldSpec({
         // and: Prebid Cache with allow_external_UUID=true and configured proxy cache host is started
         proxyCacheHost =
             "${ContainerDependencies.webCacheContainer.getContainerHost()}:${WebCacheContainer.PORT}"
-        specPrebidCacheConfig = BaseSpec.prebidCacheConfig.getBaseRedisConfig("true") +
+        specPrebidCacheConfig = BaseSpec.prebidCacheConfig.getBaseRedisConfig(true) +
                 BaseSpec.prebidCacheConfig.getProxyCacheHostConfig(proxyCacheHost)
         prebidCacheApi = BaseSpec.getPrebidCacheApi(specPrebidCacheConfig)
     }
@@ -61,7 +61,7 @@ class ProxyCacheHostSpec : ShouldSpec({
     should("throw an exception when proxy cache host doesn't exist") {
         // given: Prebid cache config with set up not existing proxy cache host
         val cacheHost = getRandomString()
-        val config = BaseSpec.prebidCacheConfig.getBaseRedisConfig("true") +
+        val config = BaseSpec.prebidCacheConfig.getBaseRedisConfig(true) +
                 BaseSpec.prebidCacheConfig.getProxyCacheHostConfig(cacheHost)
 
         // when: GET cache endpoint is called with provided cache host
