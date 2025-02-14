@@ -11,7 +11,7 @@ public enum PayloadType {
     @JsonValue
     private final String text;
 
-    PayloadType(final String text) {
+    PayloadType(String text) {
         this.text = text;
     }
 
