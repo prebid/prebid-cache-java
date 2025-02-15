@@ -12,6 +12,7 @@ import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
 import org.prebid.cache.handlers.ErrorHandler;
 import org.prebid.cache.handlers.PayloadType;
 import org.prebid.cache.handlers.ServiceType;
+import org.prebid.cache.metrics.MeasurementTag;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.metrics.MetricsRecorder.MetricsRecorderTimer;
 import org.prebid.cache.model.PayloadWrapper;
@@ -77,7 +78,7 @@ public class GetCacheHandler extends CacheHandler {
 
     public Mono<ServerResponse> fetch(ServerRequest request) {
         // metrics
-        metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
+        metricsRecorder.markMeterForTag(this.metricTagPrefix, MeasurementTag.REQUEST);
         final var timerContext = metricsRecorder.createRequestTimerForServiceType(this.type);
 
         return request.queryParam(ID_KEY).map(id -> fetch(request, id, timerContext)).orElseGet(() -> {
@@ -163,14 +164,13 @@ public class GetCacheHandler extends CacheHandler {
 
     private Mono<ServerResponse> createServerResponse(final PayloadWrapper wrapper, final ServerRequest request) {
         if (wrapper.getPayload().getType().equals(PayloadType.JSON.toString())) {
-            metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.JSON);
+            metricsRecorder.markMeterForTag(this.metricTagPrefix, MeasurementTag.JSON);
             return builder.createResponseMono(request, MediaType.APPLICATION_JSON_UTF8, wrapper);
         } else if (wrapper.getPayload().getType().equals(PayloadType.XML.toString())) {
-            metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.XML);
+            metricsRecorder.markMeterForTag(this.metricTagPrefix, MeasurementTag.XML);
             return builder.createResponseMono(request, MediaType.APPLICATION_XML, wrapper);
         }
 
         return Mono.error(new UnsupportedMediaTypeException(UNSUPPORTED_MEDIATYPE));
     }
 }
-
