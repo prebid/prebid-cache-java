@@ -22,6 +22,7 @@ import org.prebid.cache.model.RequestObject;
 import org.prebid.cache.model.ResponseObject;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
+import org.prebid.cache.routers.ApiConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -49,6 +50,7 @@ public class PostCacheHandler extends CacheHandler {
 
     private static final String UUID_KEY = "uuid";
     private static final String SECONDARY_CACHE_KEY = "secondaryCache";
+    private static final String API_KEY_HEADER = "x-pbc-api-key";
 
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
@@ -57,6 +59,7 @@ public class PostCacheHandler extends CacheHandler {
     private final Map<String, WebClient> webClients = new HashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final CircuitBreaker circuitBreaker;
+    private final ApiConfig apiConfig;
 
     @Autowired
     public PostCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
@@ -64,7 +67,8 @@ public class PostCacheHandler extends CacheHandler {
                             final MetricsRecorder metricsRecorder,
                             final PrebidServerResponseBuilder builder,
                             final CircuitBreaker webClientCircuitBreaker,
-                            @Value("${sampling.rate:0.01}") final Double samplingRate) {
+                            @Value("${sampling.rate:0.01}") final Double samplingRate,
+                            final ApiConfig apiConfig) {
 
         super(samplingRate);
         this.metricsRecorder = metricsRecorder;
@@ -77,9 +81,14 @@ public class PostCacheHandler extends CacheHandler {
         this.builder = builder;
         this.metricTagPrefix = "write";
         this.circuitBreaker = webClientCircuitBreaker;
+        this.apiConfig = apiConfig;
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
+        if (!isWriteAllowed(request)) {
+            return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
         metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
         final var timerContext = metricsRecorder.createRequestTimerForServiceType(type);
 
@@ -117,6 +126,11 @@ public class PostCacheHandler extends CacheHandler {
                 });
 
         return finalizeResult(responseMono, request, timerContext);
+    }
+
+    private boolean isWriteAllowed(final ServerRequest request) {
+        return !apiConfig.isCacheWriteSecured()
+                || StringUtils.equals(request.headers().firstHeader(API_KEY_HEADER), apiConfig.getApiKey());
     }
 
     private Function<PayloadTransfer, PayloadWrapper> payloadWrapperTransformer() {
