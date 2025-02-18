@@ -143,10 +143,12 @@ public class PostCacheHandler extends CacheHandler {
                                          boolean isValidApiKey) {
 
         if (payload.isExternalId() && !config.isAllowExternalUUID()) {
+            metricsRecorder.getRejectedExternalId().increment();
             sink.error(new InvalidUUIDException("Prebid cache host forbids specifying UUID in request."));
             return;
         }
         if (payload.isExternalId() && apiConfig.isExternalUUIDSecured() && !isValidApiKey) {
+            metricsRecorder.getRejectedExternalId().increment();
             sink.error(new UnauthorizedAccessException(
                     "Prebid cache host forbids specifying UUID in request by unauthorized users."));
             return;

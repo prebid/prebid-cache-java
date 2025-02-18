@@ -18,6 +18,7 @@ public enum MeasurementTag {
     XML("pbc.${prefix}.xml"),
     ERROR_SECONDARY_WRITE("pbc.err.secondaryWrite"),
     ERROR_EXISTING_ID("pbc.err.existingId"),
+    ERROR_REJECTED_EXTERNAL_ID("pbc.err.rejectedExternalId"),
     PROXY_SUCCESS("pbc.proxy.success"),
     PROXY_FAILURE("pbc.proxy.failure");
 
