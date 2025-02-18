@@ -86,7 +86,13 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
-        if (!isWriteAllowed(request)) {
+        final boolean isValidApiKey = isValidApiKey(request);
+        if (!isValidApiKey) {
+            metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.NO_API_KEY);
+        }
+
+        if (apiConfig.isCacheWriteSecured() && !isValidApiKey) {
+            metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.ERROR_UNAUTHORIZED);
             return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
         }
 
@@ -129,13 +135,8 @@ public class PostCacheHandler extends CacheHandler {
         return finalizeResult(responseMono, request, timerContext);
     }
 
-    private boolean isWriteAllowed(final ServerRequest request) {
-        final boolean isValidApiKey = StringUtils.equals(request.headers().firstHeader(API_KEY_HEADER),
-                apiConfig.getApiKey());
-        if (!isValidApiKey) {
-            metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.UNAUTHORIZED_WRITE);
-        }
-        return !apiConfig.isCacheWriteSecured() || isValidApiKey;
+    private boolean isValidApiKey(final ServerRequest request) {
+        return StringUtils.equals(request.headers().firstHeader(API_KEY_HEADER), apiConfig.getApiKey());
     }
 
     private Function<PayloadTransfer, PayloadWrapper> payloadWrapperTransformer() {
