@@ -11,6 +11,7 @@ import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
 import org.prebid.cache.exceptions.RequestBodyDeserializeException;
+import org.prebid.cache.exceptions.UnauthorizedAccessException;
 import org.prebid.cache.handlers.ErrorHandler;
 import org.prebid.cache.handlers.ServiceType;
 import org.prebid.cache.helpers.RandomUUID;
@@ -110,6 +111,8 @@ public class PostCacheHandler extends CacheHandler {
                         .expiry(adjustExpiry(payload.compareAndGetExpiry()))
                         .build())
                 .map(payloadWrapperTransformer())
+                .handle((PayloadWrapper payload, SynchronousSink<PayloadWrapper> sink) ->
+                        validateUuidPermissions(payload, sink, isValidApiKey))
                 .handle(this::validateUUID)
                 .handle(this::validateExpiry)
                 .concatMap(repository::save)
@@ -135,6 +138,23 @@ public class PostCacheHandler extends CacheHandler {
         return finalizeResult(responseMono, request, timerContext);
     }
 
+    private void validateUuidPermissions(PayloadWrapper payload,
+                                         SynchronousSink<PayloadWrapper> sink,
+                                         boolean isValidApiKey) {
+
+        if (payload.isExternalId() && !config.isAllowExternalUUID()) {
+            sink.error(new InvalidUUIDException("Prebid cache host forbids specifying UUID in request."));
+            return;
+        }
+        if (payload.isExternalId() && apiConfig.isExternalUUIDSecured() && !isValidApiKey) {
+            sink.error(new UnauthorizedAccessException(
+                    "Prebid cache host forbids specifying UUID in request by unauthorized users."));
+            return;
+        }
+
+        sink.next(payload);
+    }
+
     private boolean isValidApiKey(final ServerRequest request) {
         return StringUtils.equals(request.headers().firstHeader(API_KEY_HEADER), apiConfig.getApiKey());
     }
@@ -150,10 +170,6 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private void validateUUID(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
-        if (payload.isExternalId() && !config.isAllowExternalUUID()) {
-            sink.error(new InvalidUUIDException("Prebid cache host forbids specifying UUID in request."));
-            return;
-        }
         if (RandomUUID.isValidUUID(payload.getId())) {
             sink.next(payload);
         } else {

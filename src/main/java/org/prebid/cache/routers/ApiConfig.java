@@ -20,6 +20,7 @@ public class ApiConfig {
     private String cachePath;
 
     private boolean cacheWriteSecured;
+    private boolean externalUUIDSecured;
 
     @NotEmpty
     private String storagePath;
