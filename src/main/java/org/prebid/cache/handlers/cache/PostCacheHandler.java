@@ -87,8 +87,8 @@ public class PostCacheHandler extends CacheHandler {
 
     public Mono<ServerResponse> save(final ServerRequest request) {
         final boolean isValidApiKey = isValidApiKey(request);
-        if (!isValidApiKey) {
-            metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.NO_API_KEY);
+        if (isValidApiKey) {
+            metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.REQUEST_TRUSTED);
         }
 
         if (apiConfig.isCacheWriteSecured() && !isValidApiKey) {

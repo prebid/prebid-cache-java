@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum MeasurementTag {
     REQUEST_DURATION("pbc.${prefix}.request.duration"),
     REQUEST("pbc.${prefix}.request"),
-    NO_API_KEY("pbc.${prefix}.noApiKey"),
+    REQUEST_TRUSTED("pbc.${prefix}.trustedRequest"),
     REQUEST_INVALID("pbc.request.invalid"),
     ERROR_UNKNOWN("pbc.${prefix}.err.unknown"),
     ERROR_TIMED_OUT("pbc.${prefix}.err.timedOut"),
