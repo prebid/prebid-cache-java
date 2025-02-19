@@ -11,7 +11,7 @@ import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
 import org.prebid.cache.handlers.MetricsHandler;
 import org.prebid.cache.handlers.ServiceType;
 import org.prebid.cache.log.ConditionalLogger;
-import org.prebid.cache.metrics.MetricsRecorder;
+import org.prebid.cache.metrics.MeasurementTag;
 import org.prebid.cache.metrics.MetricsRecorder.MetricsRecorderTimer;
 import org.springframework.core.io.buffer.DataBufferLimitException;
 import org.springframework.http.HttpHeaders;
@@ -69,7 +69,7 @@ public abstract class CacheHandler extends MetricsHandler {
 
     private Mono<ServerResponse> handleErrorMetrics(final Throwable error, final ServerRequest request) {
         if (error instanceof RepositoryException) {
-            recordMetric(MetricsRecorder.MeasurementTag.ERROR_DB);
+            recordMetric(MeasurementTag.ERROR_DB);
         } else if (error instanceof ResourceNotFoundException) {
             conditionalLogger.info(
                     error.getMessage()
@@ -79,7 +79,7 @@ public abstract class CacheHandler extends MetricsHandler {
         } else if (error instanceof BadRequestException) {
             log.error(error.getMessage());
         } else if (error instanceof TimeoutException) {
-            metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.ERROR_TIMEDOUT);
+            metricsRecorder.markMeterForTag(this.metricTagPrefix, MeasurementTag.ERROR_TIMED_OUT);
         } else if (error instanceof DataBufferLimitException) {
             final long contentLength = request.headers().contentLength().orElse(UNKNOWN_SIZE_VALUE);
             conditionalLogger.error(
@@ -98,17 +98,17 @@ public abstract class CacheHandler extends MetricsHandler {
         final var response = signal.get();
         HttpMethod method = request.method();
         if (method == null || signal.isOnError() || response == null) {
-            recordMetric(MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
+            recordMetric(MeasurementTag.ERROR_UNKNOWN);
         } else if (response.statusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
-            recordMetric(MetricsRecorder.MeasurementTag.ERROR_UNKNOWN);
+            recordMetric(MeasurementTag.ERROR_UNKNOWN);
         } else if (response.statusCode() == HttpStatus.BAD_REQUEST) {
-            recordMetric(MetricsRecorder.MeasurementTag.ERROR_BAD_REQUEST);
+            recordMetric(MeasurementTag.ERROR_BAD_REQUEST);
         } else if (response.statusCode() == HttpStatus.NOT_FOUND) {
-            recordMetric(MetricsRecorder.MeasurementTag.ERROR_MISSINGID);
+            recordMetric(MeasurementTag.ERROR_MISSING_ID);
         }
     }
 
-    private void recordMetric(MetricsRecorder.MeasurementTag tag) {
+    private void recordMetric(MeasurementTag tag) {
         metricsRecorder.markMeterForTag(this.metricTagPrefix, tag);
     }
 

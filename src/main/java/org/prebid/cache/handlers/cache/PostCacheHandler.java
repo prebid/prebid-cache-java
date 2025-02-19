@@ -14,6 +14,7 @@ import org.prebid.cache.exceptions.RequestBodyDeserializeException;
 import org.prebid.cache.handlers.ErrorHandler;
 import org.prebid.cache.handlers.ServiceType;
 import org.prebid.cache.helpers.RandomUUID;
+import org.prebid.cache.metrics.MeasurementTag;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadTransfer;
@@ -85,11 +86,17 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
-        if (!isWriteAllowed(request)) {
+        final boolean isValidApiKey = isValidApiKey(request);
+        if (isValidApiKey) {
+            metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.REQUEST_TRUSTED);
+        }
+
+        if (apiConfig.isCacheWriteSecured() && !isValidApiKey) {
+            metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.ERROR_UNAUTHORIZED);
             return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
+        metricsRecorder.markMeterForTag(this.metricTagPrefix, MeasurementTag.REQUEST);
         final var timerContext = metricsRecorder.createRequestTimerForServiceType(type);
 
         String secondaryCache = request.queryParam(SECONDARY_CACHE_KEY).orElse(StringUtils.EMPTY);
@@ -128,9 +135,8 @@ public class PostCacheHandler extends CacheHandler {
         return finalizeResult(responseMono, request, timerContext);
     }
 
-    private boolean isWriteAllowed(final ServerRequest request) {
-        return !apiConfig.isCacheWriteSecured()
-                || StringUtils.equals(request.headers().firstHeader(API_KEY_HEADER), apiConfig.getApiKey());
+    private boolean isValidApiKey(final ServerRequest request) {
+        return StringUtils.equals(request.headers().firstHeader(API_KEY_HEADER), apiConfig.getApiKey());
     }
 
     private Function<PayloadTransfer, PayloadWrapper> payloadWrapperTransformer() {
