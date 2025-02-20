@@ -51,6 +51,10 @@ public class MetricsRecorder {
         return meterRegistry.counter(MeasurementTag.PROXY_FAILURE.getTag());
     }
 
+    public Counter getRejectedExternalId() {
+        return meterRegistry.counter(MeasurementTag.ERROR_REJECTED_EXTERNAL_ID.getTag());
+    }
+
     private Counter meterForTag(final String prefix, final MeasurementTag measurementTag) {
         return meterRegistry.counter(measurementTag.getTag().replaceAll(PREFIX_PLACEHOLDER, prefix));
     }

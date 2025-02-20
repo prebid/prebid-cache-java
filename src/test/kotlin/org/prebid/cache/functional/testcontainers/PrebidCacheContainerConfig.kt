@@ -16,9 +16,10 @@ class PrebidCacheContainerConfig(
     fun getBaseRedisConfig(
         allowExternalUuid: Boolean,
         cacheWriteSecured: Boolean = false,
+        externalUuidSecured: Boolean = false,
         apiKey: String? = null
     ): Map<String, String> =
-        getBaseConfig(allowExternalUuid, cacheWriteSecured, apiKey) + getRedisConfig()
+        getBaseConfig(allowExternalUuid, cacheWriteSecured, apiKey, externalUuidSecured) + getRedisConfig()
 
     fun getBaseAerospikeConfig(
         allowExternalUuid: Boolean,
@@ -104,13 +105,14 @@ class PrebidCacheContainerConfig(
         allowExternalUuid: Boolean,
         cacheWriteSecured: Boolean = false,
         apiKey: String? = null,
+        externalUuidSecured: Boolean? = null,
         endpoint: String = "/storage"
     ): Map<String, String> =
         getCachePrefixConfig() +
                 getCacheExpiryConfig() +
                 getAllowExternalUuidConfig(allowExternalUuid) +
                 getCacheTimeoutConfig("2500") +
-                getApiConfig(endpoint, apiKey, cacheWriteSecured)
+                getApiConfig(endpoint, apiKey, externalUuidSecured, cacheWriteSecured)
 
     private fun getCachePrefixConfig(): Map<String, String> = mapOf("cache.prefix" to "prebid_")
 
@@ -120,10 +122,12 @@ class PrebidCacheContainerConfig(
     private fun getApiConfig(
         endpoint: String,
         apiKey: String? = null,
+        externalUuidSecured: Boolean? = null,
         allowPublicWrite: Boolean? = null
     ): Map<String, String> = buildMap {
         put("api.storage-path", endpoint)
         apiKey?.let { put("api.api-key", it) }
+        externalUuidSecured?.let { put("api.external-u-u-i-d-secured", it.toString()) }
         allowPublicWrite?.let { put("api.cache-write-secured", it.toString()) }
     }
 }
