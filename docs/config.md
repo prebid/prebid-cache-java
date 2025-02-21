@@ -14,6 +14,8 @@ The next sections describes how to set up project configuration.
 - `api.cache_path` - set path for cache endpoint.
 - `api.module_storage_path` - set path for storage endpoint.
 - `api.api_key` - set API key.
+- `api.cache_write_secured` - if `true`, POST requests to `/cache` will require a valid API key.
+- `api.external_UUID_secured` - if `true`, providing external UUID will additionally require a valid API key.
 
 #### Cors
 - `cors.enabled` - toggle for cors.
