@@ -3,7 +3,9 @@
 Configuration is handled by [Spring Boot](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html),
 which supports properties files, YAML files, environment variables and command-line arguments for setting config values.
 
-As a general rule, Prebid Cache will immediately fails on startup if any of required properties is missing or invalid.
+Both `_` and `-` can be used as a delimiters. As an example, both `api.cache_path` and `api.cache-path` refer to the same parameter.
+
+As a general rule, Prebid Cache will immediately fail on startup if any of required properties is missing or invalid.
 
 The next sections describes how to set up project configuration.
 
@@ -14,6 +16,8 @@ The next sections describes how to set up project configuration.
 - `api.cache_path` - set path for cache endpoint.
 - `api.module_storage_path` - set path for storage endpoint.
 - `api.api_key` - set API key.
+- `api.cache_write_secured` - if `true`, POST requests to `/cache` will require a valid API key.
+- `api.external_UUID_secured` - if `true`, providing external UUID will additionally require a valid API key.
 
 #### Cors
 - `cors.enabled` - toggle for cors.
