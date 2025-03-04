@@ -27,6 +27,7 @@ import org.prebid.cache.repository.ReactiveRepository;
 import org.prebid.cache.routers.ApiConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -44,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Component
@@ -210,6 +212,7 @@ public class PostCacheHandler extends CacheHandler {
                     .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath())
                             .queryParam("secondaryCache", "yes").build())
                     .contentType(MediaType.APPLICATION_JSON)
+                    .headers(enrichWithSecurityHeader())
                     .bodyValue(RequestObject.of(payloadTransfers))
                     .exchange()
                     .transform(CircuitBreakerOperator.of(circuitBreaker))
@@ -226,6 +229,15 @@ public class PostCacheHandler extends CacheHandler {
                         }
                     }));
         }
+    }
+
+    private Consumer<HttpHeaders> enrichWithSecurityHeader() {
+        return httpHeaders -> {
+            final String apiKey = apiConfig.getApiKey();
+            if (apiKey != null) {
+                httpHeaders.set(API_KEY_HEADER, apiKey);
+            }
+        };
     }
 
     private PayloadTransfer wrapperToTransfer(final PayloadWrapper wrapper) {
