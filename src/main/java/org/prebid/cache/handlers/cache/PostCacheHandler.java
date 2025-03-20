@@ -232,12 +232,10 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private Consumer<HttpHeaders> enrichWithSecurityHeader() {
-        return httpHeaders -> {
-            final String apiKey = apiConfig.getApiKey();
-            if (apiKey != null) {
-                httpHeaders.set(API_KEY_HEADER, apiKey);
-            }
-        };
+        final String apiKey = apiConfig.getApiKey();
+        return apiKey != null
+                ? httpHeaders -> httpHeaders.set(API_KEY_HEADER, apiKey)
+                : httpHeaders -> {};
     }
 
     private PayloadTransfer wrapperToTransfer(final PayloadWrapper wrapper) {
