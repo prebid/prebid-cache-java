@@ -235,7 +235,7 @@ public class PostCacheHandler extends CacheHandler {
         final String apiKey = apiConfig.getApiKey();
         return apiKey != null
                 ? httpHeaders -> httpHeaders.set(API_KEY_HEADER, apiKey)
-                : httpHeaders -> {};
+                : httpHeaders -> { };
     }
 
     private PayloadTransfer wrapperToTransfer(final PayloadWrapper wrapper) {
