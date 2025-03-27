@@ -84,12 +84,12 @@ public class PostCacheHandler extends CacheHandler {
         this.repository = repository;
         this.config = config;
         if (config.getSecondaryUris() != null) {
-            config.getSecondaryUris().forEach(ip -> {
+            config.getSecondaryUris().forEach(url -> {
                 HttpClient httpClient = HttpClient.create()
                         .responseTimeout(Duration.ofMillis(config.getSecondaryCacheTimeoutMs()))
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, config.getSecondaryCacheTimeoutMs());
-                webClients.put(ip, WebClient.builder()
-                        .baseUrl(ip)
+                webClients.put(url, WebClient.builder()
+                        .baseUrl(url)
                         .clientConnector(new ReactorClientHttpConnector(httpClient))
                         .build());
             });
@@ -231,7 +231,7 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private Mono<Void> sendRequestToSecondaryCache(WebClient webClient,
-                                                   String ip,
+                                                   String url,
                                                    List<PayloadTransfer> payloadTransfers) {
         return webClient.post()
                 .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath())
@@ -243,7 +243,7 @@ public class PostCacheHandler extends CacheHandler {
                     if (clientResponse.statusCode() != HttpStatus.OK) {
                         metricsRecorder.getSecondaryCacheWriteError().increment();
                         log.debug(clientResponse.statusCode().toString());
-                        log.error("Failed to write to remote address: {}", ip);
+                        log.error("Failed to write to remote address: {}", url);
                     }
                     return clientResponse.releaseBody();
                 })
