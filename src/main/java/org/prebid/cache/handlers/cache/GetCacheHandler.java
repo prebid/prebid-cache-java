@@ -159,9 +159,10 @@ public class GetCacheHandler extends CacheHandler {
     }
 
     private static Mono<ServerResponse> fromClientResponse(final ClientResponse clientResponse) {
-        return ServerResponse.status(clientResponse.statusCode())
-                .headers(headerConsumer -> clientResponse.headers().asHttpHeaders().forEach(headerConsumer::addAll))
-                .body(clientResponse.bodyToMono(String.class), String.class);
+        return clientResponse.bodyToMono(String.class)
+                .flatMap(body -> ServerResponse.status(clientResponse.statusCode())
+                        .headers(headers -> clientResponse.headers().asHttpHeaders().forEach(headers::addAll))
+                        .body(Mono.just(body), String.class));
     }
 
     private Mono<ServerResponse> processRequest(final ServerRequest request, final String keyIdParam) {
