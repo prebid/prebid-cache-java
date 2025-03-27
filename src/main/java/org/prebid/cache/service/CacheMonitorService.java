@@ -43,7 +43,9 @@ public class CacheMonitorService {
         Flux.fromIterable(monitoredExpiryTimes.entrySet())
                 .flatMap(entry ->
                         Mono.defer(() ->
-                                processExpiryBucket(entry.getKey(), entry.getValue(), monitoredEntities.get(entry.getKey()))
+                                processExpiryBucket(entry.getKey(),
+                                        entry.getValue(),
+                                        monitoredEntities.get(entry.getKey()))
                                         .doOnNext(wrapper -> monitoredEntities.put(entry.getKey(), wrapper))
                         ))
                 .subscribeOn(Schedulers.parallel())
@@ -59,7 +61,8 @@ public class CacheMonitorService {
                 final String normalizedId = payloadWrapper.getNormalizedId();
                 return repository.findById(normalizedId)
                         .switchIfEmpty(Mono.defer(() -> {
-                            final Duration entryLifetime = Duration.ofMillis(Instant.now().toEpochMilli() - payloadWrapper.getTimestamp());
+                            final Duration entryLifetime =
+                                    Duration.ofMillis(Instant.now().toEpochMilli() - payloadWrapper.getTimestamp());
                             metricsRecorder.recordEntryLifetime(bucketName, entryLifetime);
                             return saveNewWrapper(ttl);
                         }));
