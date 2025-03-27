@@ -34,6 +34,8 @@ class SecondaryCacheSpec : ShouldSpec({
         specPrebidCacheConfig = BaseSpec.prebidCacheConfig.getBaseAerospikeConfig(true) +
                 BaseSpec.prebidCacheConfig.getSecondaryCacheConfig(webCacheContainerUri)
         prebidCacheApi = BaseSpec.getPrebidCacheApi(specPrebidCacheConfig)
+        val requestObject = RequestObject.getDefaultJsonRequestObject().apply { puts[0].key = getRandomUuid() }
+        prebidCacheApi.postCache(requestObject, "no")
     }
 
     afterSpec {
