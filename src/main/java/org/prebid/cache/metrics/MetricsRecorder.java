@@ -6,12 +6,15 @@ import io.micrometer.core.instrument.Timer;
 import org.prebid.cache.handlers.ServiceType;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+
 @Component
 public class MetricsRecorder {
 
     private final MeterRegistry meterRegistry;
 
     protected static final String PREFIX_PLACEHOLDER = "\\$\\{prefix\\}";
+    protected static final String TTL_BUCKET_PLACEHOLDER = "\\$\\{ttlBucket\\}";
 
     public MetricsRecorder(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
@@ -66,13 +69,16 @@ public class MetricsRecorder {
     public MetricsRecorderTimer createRequestTimerForServiceType(final ServiceType serviceType) {
         if (serviceType.equals(ServiceType.FETCH)) {
             return new MetricsRecorderTimer(
-                MeasurementTag.REQUEST_DURATION.getTag()
-                    .replaceAll(PREFIX_PLACEHOLDER, "read"));
+                    MeasurementTag.REQUEST_DURATION.getTag().replaceAll(PREFIX_PLACEHOLDER, "read"));
         } else if (serviceType.equals(ServiceType.SAVE)) {
             return new MetricsRecorderTimer(
-                MeasurementTag.REQUEST_DURATION.getTag()
-                    .replaceAll(PREFIX_PLACEHOLDER, "write"));
+                    MeasurementTag.REQUEST_DURATION.getTag().replaceAll(PREFIX_PLACEHOLDER, "write"));
         }
         return null;
+    }
+
+    public void recordEntryLifetime(String bucketName, Duration entryLifetime) {
+        meterRegistry.timer(MeasurementTag.ENTRY_LIFETIME.getTag().replaceAll(TTL_BUCKET_PLACEHOLDER, bucketName))
+                .record(Duration.ofSeconds(entryLifetime.getSeconds()));
     }
 }
