@@ -40,8 +40,11 @@ class WebCacheContainerClient(mockServerHost: String, mockServerPort: Int) {
                     .withBody(body, mediaType)
             )
 
-    fun getSecondaryCacheRecordedRequests(uuidKey: String): Array<out HttpRequest>? =
-        mockServerClient.retrieveRecordedRequests(getSecondaryCacheRequest(uuidKey))
+    fun getSecondaryCacheRecordedRequests(uuidKey: String): Array<out HttpRequest>? {
+        val secondaryCacheRequest = getSecondaryCacheRequest(uuidKey)
+        waitUntil({ mockServerClient.retrieveRecordedRequests(secondaryCacheRequest)!!.isNotEmpty() })
+        return mockServerClient.retrieveRecordedRequests(secondaryCacheRequest)
+    }
 
     fun initSecondaryCacheResponse(): Array<out Expectation>? =
         mockServerClient.`when`(getSecondaryCacheRequest())
@@ -59,4 +62,15 @@ class WebCacheContainerClient(mockServerHost: String, mockServerPort: Int) {
         request().withMethod(POST.name())
             .withPath("/$WEB_CACHE_PATH")
             .withBody(jsonPath("\$.puts[?(@.key == '$uuidKey')]"))
+
+    private fun waitUntil(closure: () -> Boolean, timeoutMs: Long = 5000, pollInterval: Long = 100) {
+        val startTime = System.currentTimeMillis()
+        while (System.currentTimeMillis() - startTime <= timeoutMs) {
+            if (closure()) {
+                return
+            }
+            Thread.sleep(pollInterval)
+        }
+        throw IllegalStateException("Condition was not fulfilled within $timeoutMs ms.")
+    }
 }

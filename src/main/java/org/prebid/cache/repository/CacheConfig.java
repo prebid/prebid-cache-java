@@ -22,9 +22,9 @@ public class CacheConfig {
     private boolean allowExternalUUID;
     private List<String> secondaryUris;
     private String secondaryCachePath;
+    private int secondaryCacheTimeoutMs;
     private int clientsCacheDuration;
     private int clientsCacheSize;
     private String allowedProxyHost;
     private String hostParamProtocol;
 }
-
