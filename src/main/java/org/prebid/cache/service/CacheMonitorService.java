@@ -19,11 +19,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class CacheMonitorService {
+
+    private static final String DEFAULT_CACHE_TTL = "default";
+    private static final String MIN_CACHE_TTL = "min";
+    private static final String MAX_CACHE_TTL = "max";
+    private static final String STATIC_CACHE_TTL = "static";
+
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final MetricsRecorder metricsRecorder;
     private final String prefix;
 
-    private final Map<Long, String> monitoredExpiryTimes;
+    private final Map<Long, String> expiryBuckets;
     private final Map<Long, PayloadWrapper> monitoredEntities = new ConcurrentHashMap<>();
 
     public CacheMonitorService(ReactiveRepository<PayloadWrapper, String> repository,
@@ -33,24 +39,25 @@ public class CacheMonitorService {
         this.repository = repository;
         this.metricsRecorder = metricsRecorder;
         this.prefix = config.getPrefix();
-        monitoredExpiryTimes = Map.of(
-                config.getMinExpiry(), "min",
-                config.getExpirySec(), "default",
-                config.getMaxExpiry(), "max");
+        expiryBuckets = resolveExpiryBuckets(config);
     }
 
-    public void poll() {
-        Flux.fromIterable(monitoredExpiryTimes.entrySet())
+    public Mono<Void> poll() {
+        return processExpiryBuckets()
+                .onErrorContinue((error, o) -> log.error("Error during cache monitor poll.", error))
+                .then();
+    }
+
+    private Flux<PayloadWrapper> processExpiryBuckets() {
+        return Flux.fromIterable(expiryBuckets.entrySet())
                 .flatMap(entry ->
-                        Mono.defer(() ->
-                                processExpiryBucket(entry.getKey(),
-                                        entry.getValue(),
-                                        monitoredEntities.get(entry.getKey()))
-                                        .doOnNext(wrapper -> monitoredEntities.put(entry.getKey(), wrapper))
-                        ))
-                .subscribeOn(Schedulers.parallel())
-                .doOnError(error -> log.error("Error during cache monitor poll.", error))
-                .subscribe();
+                        Mono.just(entry)
+                                .flatMap(element ->
+                                        processExpiryBucket(element.getKey(),
+                                                element.getValue(),
+                                                monitoredEntities.get(element.getKey())))
+                                .subscribeOn(Schedulers.parallel())
+                );
     }
 
     private Mono<PayloadWrapper> processExpiryBucket(Long ttl, String bucketName, PayloadWrapper payloadWrapper) {
@@ -73,12 +80,28 @@ public class CacheMonitorService {
     }
 
     private Mono<PayloadWrapper> saveNewWrapper(Long ttl) {
-        final PayloadWrapper wrapper = PayloadWrapper.builder()
+        final PayloadWrapper newWrapper = PayloadWrapper.builder()
                 .id(UUID.randomUUID().toString())
                 .prefix(prefix)
                 .timestamp(Instant.now().toEpochMilli())
                 .expiry(ttl)
                 .build();
-        return repository.save(wrapper);
+        return repository.save(newWrapper)
+                .doOnSuccess(wrapper -> monitoredEntities.put(ttl, wrapper));
+    }
+
+    private Map<Long, String> resolveExpiryBuckets(CacheConfig config) {
+        if (config.getMinExpiry() == config.getMaxExpiry() && config.getMinExpiry() == 0) {
+            return Map.of(config.getExpirySec(), DEFAULT_CACHE_TTL);
+        } else if (config.getMinExpiry() == config.getMaxExpiry()) {
+            return Map.of(
+                    config.getMinExpiry(), STATIC_CACHE_TTL,
+                    config.getExpirySec(), DEFAULT_CACHE_TTL);
+        } else {
+            return Map.of(
+                    config.getMinExpiry(), MIN_CACHE_TTL,
+                    config.getExpirySec(), DEFAULT_CACHE_TTL,
+                    config.getMaxExpiry(), MAX_CACHE_TTL);
+        }
     }
 }

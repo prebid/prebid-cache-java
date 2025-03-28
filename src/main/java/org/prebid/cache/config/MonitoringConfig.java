@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 
@@ -31,14 +30,12 @@ public class MonitoringConfig {
     @Bean
     public Disposable monitorScheduledPoller(CacheMonitorService cacheMonitorService,
                                              @Value("${cache.monitoring.intervalSec}") int intervalSec) {
+
         return Flux.interval(Duration.ofSeconds(intervalSec))
                 .onBackpressureDrop()
                 .onErrorContinue((throwable, o) -> log.error(
                         "Failed during cache monitor polling: " + throwable.getMessage(), throwable))
-                .flatMap(counter -> Mono.fromCallable(() -> {
-                    cacheMonitorService.poll();
-                    return counter;
-                }))
+                .concatMap(counter -> cacheMonitorService.poll())
                 .subscribe();
     }
 }

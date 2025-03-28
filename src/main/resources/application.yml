@@ -21,7 +21,7 @@ cors:
 # cache
 cache:
   monitoring:
-    enabled: true
+    enabled: false
     intervalSec: 1
   prefix: prebid_
   expiry_sec: 300
