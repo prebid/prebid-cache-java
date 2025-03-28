@@ -42,7 +42,7 @@ class WebCacheContainerClient(mockServerHost: String, mockServerPort: Int) {
 
     fun getSecondaryCacheRecordedRequests(uuidKey: String): Array<out HttpRequest>? {
         val secondaryCacheRequest = getSecondaryCacheRequest(uuidKey)
-        waitUntil({ mockServerClient.retrieveRecordedRequests(secondaryCacheRequest)?.isNotEmpty() == true })
+        waitUntil({ mockServerClient.retrieveRecordedRequests(secondaryCacheRequest)!!.isNotEmpty() })
         return mockServerClient.retrieveRecordedRequests(secondaryCacheRequest)
     }
 
