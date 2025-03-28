@@ -91,8 +91,8 @@ public class CacheMonitorService {
     }
 
     private static Map<Long, String> resolveExpiryBuckets(CacheConfig config) {
-        if ((config.getMinExpiry() == config.getMaxExpiry() && config.getMinExpiry() == 0)
-                || (config.getMinExpiry() == config.getMaxExpiry() && config.getMinExpiry() == config.getExpirySec())) {
+        if (config.getMinExpiry() == config.getMaxExpiry() && config.getMinExpiry() == 0
+                || config.getMinExpiry() == config.getMaxExpiry() && config.getMinExpiry() == config.getExpirySec()) {
             return Map.of(config.getExpirySec(), DEFAULT_CACHE_TTL);
         } else if (config.getMinExpiry() == config.getMaxExpiry()) {
             return Map.of(
