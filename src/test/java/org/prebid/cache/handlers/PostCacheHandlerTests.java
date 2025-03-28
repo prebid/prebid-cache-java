@@ -51,13 +51,13 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-    PostCacheHandler.class,
-    PrebidServerResponseBuilder.class,
-    CacheConfig.class,
-    MetricsRecorderTest.class,
-    MetricsRecorder.class,
-    ApiConfig.class,
-    CircuitBreakerPropertyConfiguration.class
+        PostCacheHandler.class,
+        PrebidServerResponseBuilder.class,
+        CacheConfig.class,
+        MetricsRecorderTest.class,
+        MetricsRecorder.class,
+        ApiConfig.class,
+        CircuitBreakerPropertyConfiguration.class
 })
 @EnableConfigurationProperties
 @SpringBootTest

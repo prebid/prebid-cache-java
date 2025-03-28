@@ -47,14 +47,14 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
-    GetCacheHandler.class,
-    PrebidServerResponseBuilder.class,
-    CacheConfig.class,
-    CacheConfig.class,
-    MetricsRecorderTest.class,
-    MetricsRecorder.class,
-    ApiConfig.class,
-    CircuitBreakerPropertyConfiguration.class
+        GetCacheHandler.class,
+        PrebidServerResponseBuilder.class,
+        CacheConfig.class,
+        CacheConfig.class,
+        MetricsRecorderTest.class,
+        MetricsRecorder.class,
+        ApiConfig.class,
+        CircuitBreakerPropertyConfiguration.class
 })
 @EnableConfigurationProperties
 @SpringBootTest
@@ -110,18 +110,14 @@ class GetCacheHandlerTests extends CacheHandlerTests {
         verifyRepositoryError(handler);
     }
 
-    private static Consumer<ServerResponse> assertNotFoundStatusCode() {
-        return response -> assertEquals(response.statusCode().value(), 404);
-    }
-
     @Test
     void testVerifyFetch() {
         given(repository.findById("prebid_a8db2208-d085-444c-9721-c1161d7f09ce")).willReturn(Mono.just(PAYLOAD_WRAPPER));
 
         final var requestMono = MockServerRequest.builder()
-            .method(HttpMethod.GET)
-            .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
-            .build();
+                .method(HttpMethod.GET)
+                .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
+                .build();
 
         final var responseMono = handler.fetch(requestMono);
 
@@ -142,18 +138,18 @@ class GetCacheHandlerTests extends CacheHandlerTests {
         final var requestMono = MockServerRequest.builder()
                 .method(HttpMethod.GET)
                 .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
-            .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
-            .queryParam("ch", "localhost:8080")
-            .build();
+                .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
+                .queryParam("ch", "localhost:8080")
+                .build();
 
         final var responseMono = handler.fetch(requestMono);
         responseMono.doOnEach(assertSignalStatusCode(200)).subscribe();
 
         StepVerifier.create(responseMono)
-            .expectSubscription()
-            .expectNextMatches(t -> true)
-            .expectComplete()
-            .verify();
+                .expectSubscription()
+                .expectNextMatches(t -> true)
+                .expectComplete()
+                .verify();
 
         verify(getRequestedFor(urlPathEqualTo("/cache"))
                 .withQueryParam("uuid", equalTo("a8db2208-d085-444c-9721-c1161d7f09ce"))
@@ -164,34 +160,34 @@ class GetCacheHandlerTests extends CacheHandlerTests {
     @Test
     void testVerifyFailForNotFoundResourceWithCacheHostParam() {
         final var requestMono = MockServerRequest.builder()
-            .method(HttpMethod.GET)
-            .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
-            .queryParam("ch", "localhost:8080")
-            .build();
+                .method(HttpMethod.GET)
+                .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
+                .queryParam("ch", "localhost:8080")
+                .build();
 
         final var responseMono = handler.fetch(requestMono);
 
         responseMono.doOnEach(assertSignalStatusCode(404)).subscribe();
         StepVerifier.create(responseMono)
                 .consumeNextWith(assertNotFoundStatusCode())
-            .expectComplete()
-            .verify();
+                .expectComplete()
+                .verify();
     }
 
     @Test
     void testVerifyFetchReturnsBadRequestWhenResponseStatusIsNotOk() {
 
         serverMock.stubFor(get(urlPathEqualTo("/cache"))
-            .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=utf-8")
-                .withStatus(201)
-                .withBody("{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}")));
+                .willReturn(aResponse().withHeader(HttpHeaders.CONTENT_TYPE, "application/json;charset=utf-8")
+                        .withStatus(201)
+                        .withBody("{\"uuid\":\"2be04ba5-8f9b-4a1e-8100-d573c40312f8\"}")));
 
         final var requestMono = MockServerRequest.builder()
                 .method(HttpMethod.GET)
                 .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
-            .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
-            .queryParam("ch", "localhost:8080")
-            .build();
+                .queryParam("uuid", "a8db2208-d085-444c-9721-c1161d7f09ce")
+                .queryParam("ch", "localhost:8080")
+                .build();
 
         final var responseMono = handler.fetch(requestMono);
 
@@ -208,10 +204,49 @@ class GetCacheHandlerTests extends CacheHandlerTests {
         );
     }
 
+    @Test
+    void testVerifyFetchReturnsBadRequestWhenNoUuid() {
+        final var requestMono = MockServerRequest.builder()
+                .method(HttpMethod.GET)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .build();
+
+        final var responseMono = handler.fetch(requestMono);
+
+        StepVerifier.create(responseMono)
+                .consumeNextWith(assertBadRequestStatusCode())
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
+    void testVerifyFetchReturnsBadRequestWhenUuidIsEmpty() {
+        final var requestMono = MockServerRequest.builder()
+                .method(HttpMethod.GET)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .queryParam("uuid", "")
+                .build();
+
+        final var responseMono = handler.fetch(requestMono);
+
+        StepVerifier.create(responseMono)
+                .consumeNextWith(assertBadRequestStatusCode())
+                .expectComplete()
+                .verify();
+    }
+
     private static Consumer<Signal<ServerResponse>> assertSignalStatusCode(int statusCode) {
         return signal -> {
             assertTrue(signal.isOnComplete());
             assertEquals(signal.get().statusCode().value(), statusCode);
         };
+    }
+
+    private static Consumer<ServerResponse> assertNotFoundStatusCode() {
+        return response -> assertEquals(response.statusCode().value(), 404);
+    }
+
+    private static Consumer<ServerResponse> assertBadRequestStatusCode() {
+        return response -> assertEquals(response.statusCode().value(), 400);
     }
 }

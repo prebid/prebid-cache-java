@@ -29,7 +29,18 @@ class GeneralCacheSpec : ShouldSpec({
         // then: Bad Request exception is thrown
         assertSoftly {
             exception.statusCode shouldBe BAD_REQUEST.value()
-            exception.responseBody shouldContain "\"message\":\"Invalid Parameter(s): uuid not found.\""
+            exception.responseBody shouldContain "\"message\":\"Invalid Parameter(s): uuid not found or is empty.\""
+        }
+    }
+
+    should("throw an exception when 'uuid' query parameter is empty") {
+        // when: GET cache endpoint is called with empty 'uuid' query parameter
+        val exception = shouldThrowExactly<ApiException> { BaseSpec.getPrebidCacheApi().getCache("") }
+
+        // then: Bad Request exception is thrown
+        assertSoftly {
+            exception.statusCode shouldBe BAD_REQUEST.value()
+            exception.responseBody shouldContain "\"message\":\"Invalid Parameter(s): uuid not found or is empty.\""
         }
     }
 

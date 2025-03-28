@@ -16,7 +16,7 @@ import reactor.core.publisher.Mono;
 public class ErrorHandler extends MetricsHandler {
     private static final String RESOURCE_NOT_FOUND_BAD_URL = "Resource Not Found - Bad URL.";
     private static final String RESOURCE_NOT_FOUND = "Resource Not Found: uuid %s";
-    private static final String INVALID_PARAMETERS = "Invalid Parameter(s): uuid not found.";
+    private static final String INVALID_PARAMETERS = "Invalid Parameter(s): uuid not found or is empty.";
     private static final String NO_ELEMENTS_FOUND = "No Elements Found.";
 
     @Autowired
