@@ -77,14 +77,16 @@ public class GetCacheHandler extends CacheHandler {
     }
 
     public Mono<ServerResponse> fetch(ServerRequest request) {
-        // metrics
-        metricsRecorder.markMeterForTag(this.metricTagPrefix, MeasurementTag.REQUEST);
-        final var timerContext = metricsRecorder.createRequestTimerForServiceType(this.type);
+        metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.REQUEST);
+        final var timerContext = metricsRecorder.createRequestTimerForServiceType(type);
 
-        return request.queryParam(ID_KEY).map(id -> fetch(request, id, timerContext)).orElseGet(() -> {
-            final var responseMono = ErrorHandler.createInvalidParameters();
-            return finalizeResult(responseMono, request, timerContext);
-        });
+        return request.queryParam(ID_KEY)
+                .filter(StringUtils::isNotBlank)
+                .map(id -> fetch(request, id, timerContext))
+                .orElseGet(() -> {
+                    final var responseMono = ErrorHandler.createInvalidParameters();
+                    return finalizeResult(responseMono, request, timerContext);
+                });
     }
 
     private Mono<ServerResponse> fetch(final ServerRequest request,

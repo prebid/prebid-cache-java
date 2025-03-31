@@ -1,7 +1,7 @@
 package org.prebid.cache.handlers;
 
-import org.prebid.cache.exceptions.RequestParsingException;
 import org.prebid.cache.exceptions.RepositoryException;
+import org.prebid.cache.exceptions.RequestParsingException;
 import org.prebid.cache.handlers.cache.CacheHandler;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadTransfer;
