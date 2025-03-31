@@ -43,39 +43,34 @@ public class CacheMonitorService {
     }
 
     public Mono<Void> poll() {
-        return processExpiryBuckets()
-                .onErrorContinue((error, o) -> log.error("Error during cache monitor poll.", error))
-                .then();
-    }
-
-    private Flux<PayloadWrapper> processExpiryBuckets() {
         return Flux.fromIterable(expiryBuckets.entrySet())
+                .parallel()
+                .runOn(Schedulers.parallel())
                 .flatMap(entry ->
-                        Mono.just(entry)
-                                .flatMap(element ->
-                                        processExpiryBucket(element.getKey(),
-                                                element.getValue(),
-                                                monitoredEntities.get(element.getKey())))
-                                .subscribeOn(Schedulers.parallel())
-                );
+                        processExpiryBucket(entry.getKey(),
+                                entry.getValue(),
+                                monitoredEntities.get(entry.getKey()))
+                                .doOnNext(wrapper -> monitoredEntities.put(entry.getKey(), wrapper))
+                )
+                .then();
     }
 
     private Mono<PayloadWrapper> processExpiryBucket(Long ttl, String bucketName, PayloadWrapper payloadWrapper) {
         if (Objects.isNull(payloadWrapper)) {
             return saveNewWrapper(ttl);
-        } else {
-            try {
-                final String normalizedId = payloadWrapper.getNormalizedId();
-                return repository.findById(normalizedId)
-                        .switchIfEmpty(Mono.defer(() -> {
-                            final Duration entryLifetime =
-                                    Duration.ofMillis(Instant.now().toEpochMilli() - payloadWrapper.getTimestamp());
-                            metricsRecorder.recordEntryLifetime(bucketName, entryLifetime);
-                            return saveNewWrapper(ttl);
-                        }));
-            } catch (PayloadWrapperPropertyException e) {
-                return Mono.error(new RuntimeException(e));
-            }
+        }
+
+        try {
+            final String normalizedId = payloadWrapper.getNormalizedId();
+            return repository.findById(normalizedId)
+                    .switchIfEmpty(Mono.defer(() -> {
+                        final Duration entryLifetime =
+                                Duration.ofMillis(Instant.now().toEpochMilli() - payloadWrapper.getTimestamp());
+                        metricsRecorder.recordEntryLifetime(bucketName, entryLifetime);
+                        return saveNewWrapper(ttl);
+                    }));
+        } catch (PayloadWrapperPropertyException e) {
+            return Mono.error(new RuntimeException(e));
         }
     }
 

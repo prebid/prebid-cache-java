@@ -14,6 +14,7 @@ import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 
 import java.time.Duration;
+import java.util.Random;
 
 @Slf4j
 @Configuration
@@ -29,13 +30,14 @@ public class MonitoringConfig {
 
     @Bean
     public Disposable monitorScheduledPoller(CacheMonitorService cacheMonitorService,
+                                             CacheConfig cacheConfig,
                                              @Value("${cache.monitoring.intervalSec}") int intervalSec) {
-
-        return Flux.interval(Duration.ofSeconds(intervalSec))
+        final Duration startDelay = Duration.ofSeconds(new Random().nextInt(0, cacheConfig.getTimeoutMs()));
+        return Flux.interval(startDelay, Duration.ofSeconds(intervalSec))
                 .onBackpressureDrop()
+                .concatMap(counter -> cacheMonitorService.poll())
                 .onErrorContinue((throwable, o) -> log.error(
                         "Failed during cache monitor polling: " + throwable.getMessage(), throwable))
-                .concatMap(counter -> cacheMonitorService.poll())
                 .subscribe();
     }
 }
