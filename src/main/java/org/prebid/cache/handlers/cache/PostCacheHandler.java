@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
+import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -30,6 +31,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -37,11 +39,13 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.ParallelFlux;
 import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
+import reactor.netty.http.client.HttpClient;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,7 +84,15 @@ public class PostCacheHandler extends CacheHandler {
         this.repository = repository;
         this.config = config;
         if (config.getSecondaryUris() != null) {
-            config.getSecondaryUris().forEach(ip -> webClients.put(ip, WebClient.create(ip)));
+            config.getSecondaryUris().forEach(url -> {
+                HttpClient httpClient = HttpClient.create()
+                        .responseTimeout(Duration.ofMillis(config.getSecondaryCacheTimeoutMs()))
+                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, config.getSecondaryCacheTimeoutMs());
+                webClients.put(url, WebClient.builder()
+                        .baseUrl(url)
+                        .clientConnector(new ReactorClientHttpConnector(httpClient))
+                        .build());
+            });
         }
         this.builder = builder;
         this.metricTagPrefix = "write";
@@ -202,33 +214,46 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private void sendRequestToSecondaryPrebidCacheHosts(List<PayloadWrapper> payloadWrappers, String secondaryCache) {
-        if (!"yes".equals(secondaryCache) && webClients.size() != 0) {
-            final List<PayloadTransfer> payloadTransfers = new ArrayList<>();
-            for (PayloadWrapper payloadWrapper : payloadWrappers) {
-                payloadTransfers.add(wrapperToTransfer(payloadWrapper));
-            }
-
-            webClients.forEach((ip, webClient) -> webClient.post()
-                    .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath())
-                            .queryParam("secondaryCache", "yes").build())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .headers(enrichWithSecurityHeader())
-                    .bodyValue(RequestObject.of(payloadTransfers))
-                    .exchange()
-                    .transform(CircuitBreakerOperator.of(circuitBreaker))
-                    .doOnError(throwable -> {
-                        metricsRecorder.getSecondaryCacheWriteError().increment();
-                        log.info("Failed to send request: '{}', cause: '{}'",
-                                ExceptionUtils.getMessage(throwable), ExceptionUtils.getMessage(throwable));
-                    })
-                    .subscribe(clientResponse -> {
-                        if (clientResponse.statusCode() != HttpStatus.OK) {
-                            metricsRecorder.getSecondaryCacheWriteError().increment();
-                            log.debug(clientResponse.statusCode().toString());
-                            log.info("Failed to write to remote address : {}", ip);
-                        }
-                    }));
+        if (!"yes".equals(secondaryCache) && !webClients.isEmpty()) {
+            Flux.fromIterable(payloadWrappers)
+                    .map(this::wrapperToTransfer)
+                    .collectList()
+                    .flatMapMany(this::createSecondaryCacheRequests)
+                    .subscribe();
         }
+    }
+
+    private ParallelFlux<Void> createSecondaryCacheRequests(List<PayloadTransfer> payloadTransfers) {
+        return Flux.fromIterable(webClients.entrySet())
+                .parallel()
+                .runOn(Schedulers.parallel())
+                .flatMap(entry -> sendRequestToSecondaryCache(entry.getValue(), entry.getKey(), payloadTransfers));
+    }
+
+    private Mono<Void> sendRequestToSecondaryCache(WebClient webClient,
+                                                   String url,
+                                                   List<PayloadTransfer> payloadTransfers) {
+        return webClient.post()
+                .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath())
+                        .queryParam("secondaryCache", "yes").build())
+                .contentType(MediaType.APPLICATION_JSON)
+                .headers(enrichWithSecurityHeader())
+                .bodyValue(RequestObject.of(payloadTransfers))
+                .exchangeToMono(clientResponse -> {
+                    if (clientResponse.statusCode() != HttpStatus.OK) {
+                        metricsRecorder.getSecondaryCacheWriteError().increment();
+                        log.debug(clientResponse.statusCode().toString());
+                        log.error("Failed to write to remote address: {}", url);
+                    }
+                    return clientResponse.releaseBody();
+                })
+                .transform(CircuitBreakerOperator.of(circuitBreaker))
+                .doOnError(throwable -> {
+                    metricsRecorder.getSecondaryCacheWriteError().increment();
+                    log.error("Failed to send request: '{}', cause: '{}'",
+                            ExceptionUtils.getMessage(throwable), ExceptionUtils.getMessage(throwable));
+                })
+                .then();
     }
 
     private Consumer<HttpHeaders> enrichWithSecurityHeader() {

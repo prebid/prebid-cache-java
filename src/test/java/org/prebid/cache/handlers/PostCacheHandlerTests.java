@@ -176,10 +176,19 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     @Test
     void testExternalUUIDInvalid() {
         //given
-        final var cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(),
+        final var cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(),
+                cacheConfig.getExpirySec(),
                 cacheConfig.getTimeoutMs(),
-                cacheConfig.getMinExpiry(), cacheConfig.getMaxExpiry(),
-                false, Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
+                cacheConfig.getMinExpiry(),
+                cacheConfig.getMaxExpiry(),
+                false,
+                Collections.emptyList(),
+                cacheConfig.getSecondaryCachePath(),
+                100,
+                100,
+                100,
+                "example.com",
+                "http");
         final var handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
                 webClientCircuitBreaker, samplingRate, apiConfig);
 
@@ -207,10 +216,19 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 .willReturn(Mono.just(PAYLOAD_WRAPPER))
                 .willReturn(Mono.error(new DuplicateKeyException("")));
 
-        final CacheConfig cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(), cacheConfig.getExpirySec(),
+        final CacheConfig cacheConfigLocal = new CacheConfig(cacheConfig.getPrefix(),
+                cacheConfig.getExpirySec(),
                 cacheConfig.getTimeoutMs(),
-                5, cacheConfig.getMaxExpiry(), cacheConfig.isAllowExternalUUID(),
-                Collections.emptyList(), cacheConfig.getSecondaryCachePath(), 100, 100, "example.com", "http");
+                5,
+                cacheConfig.getMaxExpiry(),
+                cacheConfig.isAllowExternalUUID(),
+                Collections.emptyList(),
+                cacheConfig.getSecondaryCachePath(),
+                100,
+                100,
+                100,
+                "example.com",
+                "http");
         final PostCacheHandler handler = new PostCacheHandler(repository, cacheConfigLocal, metricsRecorder, builder,
                 webClientCircuitBreaker, samplingRate, apiConfig);
 
