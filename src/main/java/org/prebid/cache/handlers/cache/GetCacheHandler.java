@@ -159,6 +159,8 @@ public class GetCacheHandler extends CacheHandler {
     }
 
     private static Mono<ServerResponse> fromClientResponse(final ClientResponse clientResponse) {
+        // This is a workaround to handle the race condition when the response body is consumed
+        // https://github.com/spring-projects/spring-boot/issues/15320
         return clientResponse.bodyToMono(String.class)
                 .flatMap(body -> ServerResponse.status(clientResponse.statusCode())
                         .headers(headers -> clientResponse.headers().asHttpHeaders().forEach(headers::addAll))
