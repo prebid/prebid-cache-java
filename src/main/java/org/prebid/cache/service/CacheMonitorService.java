@@ -1,6 +1,5 @@
 package org.prebid.cache.service;
 
-import lombok.extern.slf4j.Slf4j;
 import org.prebid.cache.exceptions.PayloadWrapperPropertyException;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.model.PayloadWrapper;
@@ -17,7 +16,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Slf4j
 public class CacheMonitorService {
 
     private static final String DEFAULT_CACHE_TTL = "default";
