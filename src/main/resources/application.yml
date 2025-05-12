@@ -20,6 +20,9 @@ cors:
 
 # cache
 cache:
+  monitoring:
+    enabled: false
+    intervalSec: 1
   prefix: prebid_
   expiry_sec: 300
   timeout_ms: 300

@@ -20,7 +20,8 @@ public enum MeasurementTag {
     ERROR_EXISTING_ID("pbc.err.existingId"),
     ERROR_REJECTED_EXTERNAL_ID("pbc.err.rejectedExternalId"),
     PROXY_SUCCESS("pbc.proxy.success"),
-    PROXY_FAILURE("pbc.proxy.failure");
+    PROXY_FAILURE("pbc.proxy.failure"),
+    ENTRY_LIFETIME("pbc.entryLifetimeSec.${ttlBucket}");
 
     private final String tag;
 
