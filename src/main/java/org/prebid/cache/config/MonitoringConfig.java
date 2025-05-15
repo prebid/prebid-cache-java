@@ -30,9 +30,11 @@ public class MonitoringConfig {
 
     @Bean
     public Disposable monitorScheduledPoller(CacheMonitorService cacheMonitorService,
-                                             CacheConfig cacheConfig,
-                                             @Value("${cache.monitoring.intervalSec}") int intervalSec) {
-        final Duration startDelay = Duration.ofSeconds(new Random().nextInt(0, cacheConfig.getTimeoutMs()));
+                                             @Value("${cache.monitoring.intervalSec}") int intervalSec,
+                                             @Value("${cache.monitoring.maxStartDelayJitterSec}") int startJitterSec) {
+        final Duration startDelay = startJitterSec > 0
+                ? Duration.ofSeconds(new Random().nextInt(0, startJitterSec))
+                : Duration.ZERO;
         return Flux.interval(startDelay, Duration.ofSeconds(intervalSec))
                 .onBackpressureDrop()
                 .concatMap(counter -> cacheMonitorService.poll())

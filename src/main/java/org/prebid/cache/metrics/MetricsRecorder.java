@@ -79,6 +79,6 @@ public class MetricsRecorder {
 
     public void recordEntryLifetime(String bucketName, Duration entryLifetime) {
         meterRegistry.timer(MeasurementTag.ENTRY_LIFETIME.getTag().replaceAll(TTL_BUCKET_PLACEHOLDER, bucketName))
-                .record(Duration.ofSeconds(entryLifetime.getSeconds()));
+                .record(entryLifetime);
     }
 }

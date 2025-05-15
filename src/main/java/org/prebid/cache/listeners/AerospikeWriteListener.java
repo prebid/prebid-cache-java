@@ -8,6 +8,7 @@ import reactor.core.publisher.MonoSink;
 
 @Slf4j
 public class AerospikeWriteListener implements WriteListener {
+
     private final MonoSink<String> sink;
     private final String keyId;
 
@@ -23,7 +24,7 @@ public class AerospikeWriteListener implements WriteListener {
 
     @Override
     public void onFailure(AerospikeException exception) {
-        log.error("Error when writing record with keyID : {}", keyId);
+        log.error("Error writing record with key id {} due to: {}", keyId, exception.getMessage());
         sink.error(exception);
     }
 }

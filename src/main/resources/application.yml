@@ -22,7 +22,8 @@ cors:
 cache:
   monitoring:
     enabled: false
-    intervalSec: 1
+    intervalSec: 5
+    maxStartDelayJitterSec: 0
   prefix: prebid_
   expiry_sec: 300
   timeout_ms: 300

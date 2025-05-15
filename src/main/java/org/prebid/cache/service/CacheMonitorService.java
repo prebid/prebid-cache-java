@@ -63,7 +63,7 @@ public class CacheMonitorService {
             return repository.findById(normalizedId)
                     .switchIfEmpty(Mono.defer(() -> {
                         final Duration entryLifetime =
-                                Duration.ofMillis(Instant.now().toEpochMilli() - payloadWrapper.getTimestamp());
+                                Duration.between(Instant.ofEpochMilli(payloadWrapper.getTimestamp()), Instant.now());
                         metricsRecorder.recordEntryLifetime(bucketName, entryLifetime);
                         return saveNewWrapper(ttl);
                     }));
