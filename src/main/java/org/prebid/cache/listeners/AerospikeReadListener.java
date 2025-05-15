@@ -11,13 +11,14 @@ import java.util.Objects;
 
 @Slf4j
 public class AerospikeReadListener implements RecordListener {
+
     private static final String NAME = "cache";
     private final MonoSink<String> sink;
-    private final String recordKeyId;
+    private final String keyId;
 
-    public AerospikeReadListener(MonoSink<String> sink, String recordKeyId) {
+    public AerospikeReadListener(MonoSink<String> sink, String keyId) {
         this.sink = sink;
-        this.recordKeyId = recordKeyId;
+        this.keyId = keyId;
     }
 
     @Override
@@ -31,7 +32,7 @@ public class AerospikeReadListener implements RecordListener {
 
     @Override
     public void onFailure(AerospikeException exception) {
-        log.error("Error when reading record with keyId {}", recordKeyId);
+        log.error("Error reading record with key id {} due to: {}", keyId, exception.getMessage());
         sink.error(exception);
     }
 }
