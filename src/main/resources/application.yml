@@ -123,6 +123,8 @@ spring:
     max_retry: 3
     namespace: "prebid_cache"
     prevent_UUID_duplication: true
+    socket_timeout: 30000
+    total_timeout: 1000
 
 ---
 # dev

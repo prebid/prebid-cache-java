@@ -27,7 +27,6 @@ import reactor.util.retry.Retry;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -40,7 +39,6 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
     private final EventLoops eventLoops;
     @NotNull
     private final Policy policy;
-    private WritePolicy writePolicy;
 
     private static final String BIN_NAME = "cache";
 
@@ -79,11 +77,10 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
     }
 
     private WritePolicy writePolicy() {
-        if (Objects.isNull(writePolicy)) {
-            writePolicy = new WritePolicy();
-            if (configuration.isPreventUUIDDuplication()) {
-                writePolicy.recordExistsAction = RecordExistsAction.CREATE_ONLY;
-            }
+        final WritePolicy writePolicy = new WritePolicy();
+        writePolicy.setTimeouts(configuration.getSocketTimeout(), configuration.getTotalTimeout());
+        if (configuration.isPreventUUIDDuplication()) {
+            writePolicy.recordExistsAction = RecordExistsAction.CREATE_ONLY;
         }
         return writePolicy;
     }
