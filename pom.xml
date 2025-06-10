@@ -60,7 +60,7 @@
         <metrics-graphite.version>4.2.17</metrics-graphite.version>
         <javax.el-api.version>3.0.0</javax.el-api.version>
         <reflections.version>0.10.2</reflections.version>
-        <aerospike-client.version>8.0.0</aerospike-client.version>
+        <aerospike-client.version>9.0.5</aerospike-client.version>
         <ignite-client.version>2.17.0</ignite-client.version>
         <reactor-extra.version>3.5.1</reactor-extra.version>
         <!-- Wiremock 3.4.0+ has incompatibility with the mockserver client (do we really need both?) -->
@@ -213,7 +213,7 @@
         </dependency>
         <dependency>
             <groupId>com.aerospike</groupId>
-            <artifactId>aerospike-client</artifactId>
+            <artifactId>aerospike-client-jdk21</artifactId>
             <version>${aerospike-client.version}</version>
         </dependency>
         <dependency>
