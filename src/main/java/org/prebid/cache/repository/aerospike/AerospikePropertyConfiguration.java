@@ -31,24 +31,19 @@ import static java.util.Objects.requireNonNull;
 @ConditionalOnProperty(prefix = "spring.aerospike", name = {"host"})
 @ConfigurationProperties(prefix = "spring.aerospike")
 public class AerospikePropertyConfiguration {
-    @NotNull
     private String host;
-    @NotNull
     private Integer port;
 
     private String password;
-    @NotNull
     private Integer cores;
-    @NotNull
     private Long firstBackoff;
-    @NotNull
     private Long maxBackoff;
-    @NotNull
     private int maxRetry;
-    @NotNull
     private String namespace;
-    @NotNull
     private boolean preventUUIDDuplication;
+    private int socketTimeout;
+    private int totalTimeout;
+    private int connectTimeout;
 
     private static final int DEFAULT_PORT = 3000;
 
@@ -72,7 +67,10 @@ public class AerospikePropertyConfiguration {
 
     @Bean
     Policy readPolicy() {
-        return new Policy();
+        final Policy policy = new Policy();
+        policy.setConnectTimeout(connectTimeout);
+        policy.setTimeouts(socketTimeout, totalTimeout);
+        return policy;
     }
 
     @Bean
