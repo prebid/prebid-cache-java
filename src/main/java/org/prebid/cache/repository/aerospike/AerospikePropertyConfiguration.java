@@ -43,6 +43,7 @@ public class AerospikePropertyConfiguration {
     private boolean preventUUIDDuplication;
     private int socketTimeout;
     private int totalTimeout;
+    private int connectTimeout;
 
     private static final int DEFAULT_PORT = 3000;
 
@@ -67,6 +68,7 @@ public class AerospikePropertyConfiguration {
     @Bean
     Policy readPolicy() {
         final Policy policy = new Policy();
+        policy.setConnectTimeout(connectTimeout);
         policy.setTimeouts(socketTimeout, totalTimeout);
         return policy;
     }

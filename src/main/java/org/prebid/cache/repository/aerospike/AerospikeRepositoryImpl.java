@@ -78,6 +78,7 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
 
     private WritePolicy writePolicy() {
         final WritePolicy writePolicy = new WritePolicy();
+        writePolicy.setConnectTimeout(configuration.getConnectTimeout());
         writePolicy.setTimeouts(configuration.getSocketTimeout(), configuration.getTotalTimeout());
         if (configuration.isPreventUUIDDuplication()) {
             writePolicy.recordExistsAction = RecordExistsAction.CREATE_ONLY;

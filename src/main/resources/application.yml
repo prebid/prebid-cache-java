@@ -125,6 +125,7 @@ spring:
     prevent_UUID_duplication: true
     socket_timeout: 30000
     total_timeout: 1000
+    connect_timeout: 0
 
 ---
 # dev
