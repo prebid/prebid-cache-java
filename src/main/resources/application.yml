@@ -126,6 +126,7 @@ spring:
     socket_timeout: 30000
     total_timeout: 1000
     connect_timeout: 0
+    min_conns_per_node: 0
 
 ---
 # dev
