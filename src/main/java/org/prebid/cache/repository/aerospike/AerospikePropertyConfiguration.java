@@ -44,6 +44,7 @@ public class AerospikePropertyConfiguration {
     private int socketTimeout;
     private int totalTimeout;
     private int connectTimeout;
+    private int minConnsPerNode;
 
     private static final int DEFAULT_PORT = 3000;
 
@@ -92,6 +93,7 @@ public class AerospikePropertyConfiguration {
     ClientPolicy clientPolicy() {
         ClientPolicy clientPolicy = new ClientPolicy();
         clientPolicy.eventLoops = eventLoops();
+        clientPolicy.minConnsPerNode = minConnsPerNode;
         return clientPolicy;
     }
 
