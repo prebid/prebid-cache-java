@@ -70,14 +70,12 @@ public abstract class CacheHandler extends MetricsHandler {
     private Mono<ServerResponse> handleErrorMetrics(final Throwable error, final ServerRequest request) {
         if (error instanceof RepositoryException) {
             recordMetric(MeasurementTag.ERROR_DB);
-        } else if (error instanceof ResourceNotFoundException) {
+        } else if (error instanceof ResourceNotFoundException || error instanceof BadRequestException) {
             conditionalLogger.info(
                     error.getMessage()
                             + ". Refererring URLs: " + request.headers().header(HttpHeaders.REFERER)
                             + ". Request URI: " + request.uri(),
                     samplingRate);
-        } else if (error instanceof BadRequestException) {
-            conditionalLogger.error(error.getMessage(), samplingRate);
         } else if (error instanceof TimeoutException) {
             metricsRecorder.markMeterForTag(this.metricTagPrefix, MeasurementTag.ERROR_TIMED_OUT);
         } else if (error instanceof DataBufferLimitException) {
