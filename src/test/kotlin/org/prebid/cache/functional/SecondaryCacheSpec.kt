@@ -31,7 +31,7 @@ class SecondaryCacheSpec : ShouldSpec({
             "http://${ContainerDependencies.webCacheContainer.getContainerHost()}:${WebCacheContainer.PORT}"
 
         // and: Prebid Cache with allow_external_UUID=true and configured secondary cache is started
-        specPrebidCacheConfig = BaseSpec.prebidCacheConfig.getBaseAerospikeConfig("true") +
+        specPrebidCacheConfig = BaseSpec.prebidCacheConfig.getBaseAerospikeConfig(true) +
                 BaseSpec.prebidCacheConfig.getSecondaryCacheConfig(webCacheContainerUri)
         prebidCacheApi = BaseSpec.getPrebidCacheApi(specPrebidCacheConfig)
     }

@@ -20,12 +20,17 @@ cors:
 
 # cache
 cache:
+  monitoring:
+    enabled: false
+    intervalSec: 5
+    maxStartDelayJitterSec: 0
   prefix: prebid_
   expiry_sec: 300
   timeout_ms: 300
   clients_cache_duration: 86400
   clients_cache_size: 1000
   host_param_protocol: https
+  secondary_cache_timeout_ms: 5000
 
 storage:
   redis: {}
@@ -118,6 +123,10 @@ spring:
     max_retry: 3
     namespace: "prebid_cache"
     prevent_UUID_duplication: true
+    socket_timeout: 30000
+    total_timeout: 1000
+    connect_timeout: 0
+    min_conns_per_node: 0
 
 ---
 # dev

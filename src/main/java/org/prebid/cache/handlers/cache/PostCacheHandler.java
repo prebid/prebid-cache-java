@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
+import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -11,9 +12,11 @@ import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.ExpiryOutOfRangeException;
 import org.prebid.cache.exceptions.InvalidUUIDException;
 import org.prebid.cache.exceptions.RequestBodyDeserializeException;
+import org.prebid.cache.exceptions.UnauthorizedAccessException;
 import org.prebid.cache.handlers.ErrorHandler;
 import org.prebid.cache.handlers.ServiceType;
 import org.prebid.cache.helpers.RandomUUID;
+import org.prebid.cache.metrics.MeasurementTag;
 import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadTransfer;
@@ -22,10 +25,13 @@ import org.prebid.cache.model.RequestObject;
 import org.prebid.cache.model.ResponseObject;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
+import org.prebid.cache.routers.ApiConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyExtractors;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -33,14 +39,17 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.publisher.ParallelFlux;
 import reactor.core.publisher.SynchronousSink;
 import reactor.core.scheduler.Schedulers;
+import reactor.netty.http.client.HttpClient;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Component
@@ -49,6 +58,7 @@ public class PostCacheHandler extends CacheHandler {
 
     private static final String UUID_KEY = "uuid";
     private static final String SECONDARY_CACHE_KEY = "secondaryCache";
+    private static final String API_KEY_HEADER = "x-pbc-api-key";
 
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
@@ -57,6 +67,7 @@ public class PostCacheHandler extends CacheHandler {
     private final Map<String, WebClient> webClients = new HashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final CircuitBreaker circuitBreaker;
+    private final ApiConfig apiConfig;
 
     @Autowired
     public PostCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
@@ -64,7 +75,8 @@ public class PostCacheHandler extends CacheHandler {
                             final MetricsRecorder metricsRecorder,
                             final PrebidServerResponseBuilder builder,
                             final CircuitBreaker webClientCircuitBreaker,
-                            @Value("${sampling.rate:0.01}") final Double samplingRate) {
+                            @Value("${sampling.rate:0.01}") final Double samplingRate,
+                            final ApiConfig apiConfig) {
 
         super(samplingRate);
         this.metricsRecorder = metricsRecorder;
@@ -72,15 +84,34 @@ public class PostCacheHandler extends CacheHandler {
         this.repository = repository;
         this.config = config;
         if (config.getSecondaryUris() != null) {
-            config.getSecondaryUris().forEach(ip -> webClients.put(ip, WebClient.create(ip)));
+            config.getSecondaryUris().forEach(url -> {
+                HttpClient httpClient = HttpClient.create()
+                        .responseTimeout(Duration.ofMillis(config.getSecondaryCacheTimeoutMs()))
+                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, config.getSecondaryCacheTimeoutMs());
+                webClients.put(url, WebClient.builder()
+                        .baseUrl(url)
+                        .clientConnector(new ReactorClientHttpConnector(httpClient))
+                        .build());
+            });
         }
         this.builder = builder;
         this.metricTagPrefix = "write";
         this.circuitBreaker = webClientCircuitBreaker;
+        this.apiConfig = apiConfig;
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
-        metricsRecorder.markMeterForTag(this.metricTagPrefix, MetricsRecorder.MeasurementTag.REQUEST);
+        final boolean isValidApiKey = isValidApiKey(request);
+        if (isValidApiKey) {
+            metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.REQUEST_TRUSTED);
+        }
+
+        if (apiConfig.isCacheWriteSecured() && !isValidApiKey) {
+            metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.ERROR_UNAUTHORIZED);
+            return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        metricsRecorder.markMeterForTag(this.metricTagPrefix, MeasurementTag.REQUEST);
         final var timerContext = metricsRecorder.createRequestTimerForServiceType(type);
 
         String secondaryCache = request.queryParam(SECONDARY_CACHE_KEY).orElse(StringUtils.EMPTY);
@@ -94,6 +125,8 @@ public class PostCacheHandler extends CacheHandler {
                         .expiry(adjustExpiry(payload.compareAndGetExpiry()))
                         .build())
                 .map(payloadWrapperTransformer())
+                .handle((PayloadWrapper payload, SynchronousSink<PayloadWrapper> sink) ->
+                        validateUuidPermissions(payload, sink, isValidApiKey))
                 .handle(this::validateUUID)
                 .handle(this::validateExpiry)
                 .concatMap(repository::save)
@@ -119,6 +152,29 @@ public class PostCacheHandler extends CacheHandler {
         return finalizeResult(responseMono, request, timerContext);
     }
 
+    private void validateUuidPermissions(PayloadWrapper payload,
+                                         SynchronousSink<PayloadWrapper> sink,
+                                         boolean isValidApiKey) {
+
+        if (payload.isExternalId() && !config.isAllowExternalUUID()) {
+            metricsRecorder.getRejectedExternalId().increment();
+            sink.error(new InvalidUUIDException("Prebid cache host forbids specifying UUID in request."));
+            return;
+        }
+        if (payload.isExternalId() && apiConfig.isExternalUUIDSecured() && !isValidApiKey) {
+            metricsRecorder.getRejectedExternalId().increment();
+            sink.error(new UnauthorizedAccessException(
+                    "Prebid cache host forbids specifying UUID in request by unauthorized users."));
+            return;
+        }
+
+        sink.next(payload);
+    }
+
+    private boolean isValidApiKey(final ServerRequest request) {
+        return StringUtils.equals(request.headers().firstHeader(API_KEY_HEADER), apiConfig.getApiKey());
+    }
+
     private Function<PayloadTransfer, PayloadWrapper> payloadWrapperTransformer() {
         return transfer -> PayloadWrapper.builder()
                 .id(RandomUUID.extractUUID(transfer))
@@ -130,10 +186,6 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private void validateUUID(final PayloadWrapper payload, final SynchronousSink<PayloadWrapper> sink) {
-        if (payload.isExternalId() && !config.isAllowExternalUUID()) {
-            sink.error(new InvalidUUIDException("Prebid cache host forbids specifying UUID in request."));
-            return;
-        }
         if (RandomUUID.isValidUUID(payload.getId())) {
             sink.next(payload);
         } else {
@@ -162,32 +214,53 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private void sendRequestToSecondaryPrebidCacheHosts(List<PayloadWrapper> payloadWrappers, String secondaryCache) {
-        if (!"yes".equals(secondaryCache) && webClients.size() != 0) {
-            final List<PayloadTransfer> payloadTransfers = new ArrayList<>();
-            for (PayloadWrapper payloadWrapper : payloadWrappers) {
-                payloadTransfers.add(wrapperToTransfer(payloadWrapper));
-            }
-
-            webClients.forEach((ip, webClient) -> webClient.post()
-                    .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath())
-                            .queryParam("secondaryCache", "yes").build())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .bodyValue(RequestObject.of(payloadTransfers))
-                    .exchange()
-                    .transform(CircuitBreakerOperator.of(circuitBreaker))
-                    .doOnError(throwable -> {
-                        metricsRecorder.getSecondaryCacheWriteError().increment();
-                        log.info("Failed to send request: '{}', cause: '{}'",
-                                ExceptionUtils.getMessage(throwable), ExceptionUtils.getMessage(throwable));
-                    })
-                    .subscribe(clientResponse -> {
-                        if (clientResponse.statusCode() != HttpStatus.OK) {
-                            metricsRecorder.getSecondaryCacheWriteError().increment();
-                            log.debug(clientResponse.statusCode().toString());
-                            log.info("Failed to write to remote address : {}", ip);
-                        }
-                    }));
+        if (!"yes".equals(secondaryCache) && !webClients.isEmpty()) {
+            Flux.fromIterable(payloadWrappers)
+                    .map(this::wrapperToTransfer)
+                    .collectList()
+                    .flatMapMany(this::createSecondaryCacheRequests)
+                    .subscribe();
         }
+    }
+
+    private ParallelFlux<Void> createSecondaryCacheRequests(List<PayloadTransfer> payloadTransfers) {
+        return Flux.fromIterable(webClients.entrySet())
+                .parallel()
+                .runOn(Schedulers.parallel())
+                .flatMap(entry -> sendRequestToSecondaryCache(entry.getValue(), entry.getKey(), payloadTransfers));
+    }
+
+    private Mono<Void> sendRequestToSecondaryCache(WebClient webClient,
+                                                   String url,
+                                                   List<PayloadTransfer> payloadTransfers) {
+        return webClient.post()
+                .uri(uriBuilder -> uriBuilder.path(config.getSecondaryCachePath())
+                        .queryParam("secondaryCache", "yes").build())
+                .contentType(MediaType.APPLICATION_JSON)
+                .headers(enrichWithSecurityHeader())
+                .bodyValue(RequestObject.of(payloadTransfers))
+                .exchangeToMono(clientResponse -> {
+                    if (clientResponse.statusCode() != HttpStatus.OK) {
+                        metricsRecorder.getSecondaryCacheWriteError().increment();
+                        log.debug(clientResponse.statusCode().toString());
+                        log.error("Failed to write to remote address: {}", url);
+                    }
+                    return clientResponse.releaseBody();
+                })
+                .transform(CircuitBreakerOperator.of(circuitBreaker))
+                .doOnError(throwable -> {
+                    metricsRecorder.getSecondaryCacheWriteError().increment();
+                    log.error("Failed to send request: '{}', cause: '{}'",
+                            ExceptionUtils.getMessage(throwable), ExceptionUtils.getMessage(throwable));
+                })
+                .then();
+    }
+
+    private Consumer<HttpHeaders> enrichWithSecurityHeader() {
+        final String apiKey = apiConfig.getApiKey();
+        return apiKey != null
+                ? httpHeaders -> httpHeaders.set(API_KEY_HEADER, apiKey)
+                : httpHeaders -> { };
     }
 
     private PayloadTransfer wrapperToTransfer(final PayloadWrapper wrapper) {

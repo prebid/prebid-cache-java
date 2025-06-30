@@ -4,7 +4,7 @@
 
     <groupId>org.prebid.cache</groupId>
     <artifactId>prebid-cache</artifactId>
-    <version>2.4.0-SNAPSHOT</version>
+    <version>2.8.0-SNAPSHOT</version>
 
     <name>prebid-cache</name>
     <description>Prebid Cache</description>
@@ -60,8 +60,8 @@
         <metrics-graphite.version>4.2.17</metrics-graphite.version>
         <javax.el-api.version>3.0.0</javax.el-api.version>
         <reflections.version>0.10.2</reflections.version>
-        <aerospike-client.version>6.2.0</aerospike-client.version>
-        <ignite-client.version>2.16.0</ignite-client.version>
+        <aerospike-client.version>8.0.0</aerospike-client.version>
+        <ignite-client.version>2.17.0</ignite-client.version>
         <reactor-extra.version>3.5.1</reactor-extra.version>
         <!-- Wiremock 3.4.0+ has incompatibility with the mockserver client (do we really need both?) -->
         <wiremock.version>3.3.1</wiremock.version>

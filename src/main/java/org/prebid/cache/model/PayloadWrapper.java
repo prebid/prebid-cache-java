@@ -10,7 +10,7 @@ public class PayloadWrapper {
     String id;
     String prefix;
     Payload payload;
-
+    Long timestamp;
     Long expiry;
 
     transient boolean isExternalId;

@@ -125,14 +125,14 @@ This section shows examples of the various runtime environment configuration(s).
 
 _VM Options:_
 ```bash
-java -jar prebid-cache.jar -Dspring.profiles.active=manage,local -Dlog.dir=/app/prebid-cache-java/log/
+java -Dspring.profiles.active=manage,local -Dlog.dir=/app/prebid-cache-java/log/ -jar prebid-cache.jar
 ```
 
 (2). Production with log4j and management endpoints disabled:
 
 _VM Options:_
 ```bash
-java -jar prebid-cache.jar -Dspring.profiles.active=prod -Dlog.dir=/app/prebid-cache-java/log/
+java -Dspring.profiles.active=prod -Dlog.dir=/app/prebid-cache-java/log/ -jar prebid-cache.jar
 ```
 
 _Note_
@@ -204,9 +204,12 @@ or
     cache-name: cacheName
 ```
 
+### Providing your own configuration
+It is possible to override the default YAML configuration by supplying a custom configuration. This is done using the `spring.config.additional-location` property.
 
-
-It is possible to override the default YAML configuration by supplying a custom configuration.  See example scenario(s) below.
+```bash
+java -jar prebid-cache.jar --spring.config.additional-location=path-to-your-conf.yaml
+```
 
 ###### Cluster config for Redis, Aerospike and Apache Ignite
 
@@ -513,7 +516,7 @@ cp prebid-cache-java/target/prebid-cache.jar aws-prebid-cache
 ```bash 
 sudo nano Procfile
 
-web: java -jar -Dspring.profiles.active=aws prebid-cache.jar
+web: java -Dspring.profiles.active=aws -jar prebid-cache.jar
 ```
 
 (7). Zip aws-prebid-cache directory

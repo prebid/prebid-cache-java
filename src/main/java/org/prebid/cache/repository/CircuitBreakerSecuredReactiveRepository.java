@@ -3,8 +3,10 @@ package org.prebid.cache.repository;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @RequiredArgsConstructor
 public class CircuitBreakerSecuredReactiveRepository<T, R> implements ReactiveRepository<T, R> {
 
@@ -14,12 +16,14 @@ public class CircuitBreakerSecuredReactiveRepository<T, R> implements ReactiveRe
     @Override
     public Mono<T> save(T wrapper) {
         return delegate.save(wrapper)
-            .transform(CircuitBreakerOperator.of(circuitBreaker));
+                .doOnError(error -> log.error("Error while accessing data source: {}", error.getMessage(), error))
+                .transform(CircuitBreakerOperator.of(circuitBreaker));
     }
 
     @Override
     public Mono<T> findById(R id) {
         return delegate.findById(id)
-            .transform(CircuitBreakerOperator.of(circuitBreaker));
+                .doOnError(error -> log.error("Error while accessing data source: {}", error.getMessage(), error))
+                .transform(CircuitBreakerOperator.of(circuitBreaker));
     }
 }

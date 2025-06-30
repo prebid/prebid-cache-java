@@ -1,11 +1,11 @@
 package org.prebid.cache.metrics;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.MockClock;
 import io.micrometer.core.instrument.simple.SimpleConfig;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import io.micrometer.core.instrument.MockClock;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 public class MetricsRecorderTest {
 
