@@ -46,8 +46,8 @@ public class AerospikePropertyConfiguration {
     private int totalTimeout;
     private int connectTimeout;
     private int minConnsPerNode;
-    private int maxConnsPerNode;
-    private Replica readPolicy = Replica.MASTER;
+    private int maxConnsPerNode = 100;
+    private Replica readPolicy = Replica.SEQUENCE;
 
     private static final int DEFAULT_PORT = 3000;
 

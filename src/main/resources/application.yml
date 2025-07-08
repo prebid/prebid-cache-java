@@ -128,7 +128,7 @@ spring:
     connect_timeout: 0
     min_conns_per_node: 0
     max_conns_per_node: 100
-    read_policy: master
+    read_policy: sequence
 
 ---
 # dev
