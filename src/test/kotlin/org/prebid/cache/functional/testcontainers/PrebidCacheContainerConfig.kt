@@ -87,9 +87,7 @@ class PrebidCacheContainerConfig(
             "spring.aerospike.first_backoff" to "300",
             "spring.aerospike.max_backoff" to "1000",
             "spring.aerospike.max_retry" to "3",
-            "spring.aerospike.namespace" to aerospikeNamespace,
-            "spring.aerospike.max_conns_per_node" to "100",
-            "spring.aerospike.read_policy" to "master"
+            "spring.aerospike.namespace" to aerospikeNamespace
         )
 
     private fun getModuleStorageRedisConfig(
