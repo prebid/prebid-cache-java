@@ -7,6 +7,7 @@ import com.aerospike.client.async.EventPolicy;
 import com.aerospike.client.async.NettyEventLoops;
 import com.aerospike.client.policy.ClientPolicy;
 import com.aerospike.client.policy.Policy;
+import com.aerospike.client.policy.Replica;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import jakarta.validation.constraints.NotNull;
@@ -45,6 +46,8 @@ public class AerospikePropertyConfiguration {
     private int totalTimeout;
     private int connectTimeout;
     private int minConnsPerNode;
+    private int maxConnsPerNode = 100;
+    private Replica readPolicy = Replica.SEQUENCE;
 
     private static final int DEFAULT_PORT = 3000;
 
@@ -71,6 +74,7 @@ public class AerospikePropertyConfiguration {
         final Policy policy = new Policy();
         policy.setConnectTimeout(connectTimeout);
         policy.setTimeouts(socketTimeout, totalTimeout);
+        policy.setReplica(readPolicy);
         return policy;
     }
 
@@ -94,6 +98,7 @@ public class AerospikePropertyConfiguration {
         ClientPolicy clientPolicy = new ClientPolicy();
         clientPolicy.eventLoops = eventLoops();
         clientPolicy.minConnsPerNode = minConnsPerNode;
+        clientPolicy.maxConnsPerNode = maxConnsPerNode;
         return clientPolicy;
     }
 
