@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Signal;
 
 import java.util.concurrent.TimeoutException;
 
@@ -38,13 +37,12 @@ public class StorageMetricsRecorder {
         }
 
         return responseBuilder.error(Mono.just(error), request)
-                .doOnEach(signal -> handleErrorStatusCodes(request, signal));
+                .doOnNext(response -> handleErrorStatusCodes(request, response));
     }
 
-    private void handleErrorStatusCodes(ServerRequest request, Signal<ServerResponse> signal) {
-        final var response = signal.get();
-        HttpMethod method = request.method();
-        if (method == null || signal.isOnError() || response == null) {
+    private void handleErrorStatusCodes(ServerRequest request, ServerResponse response) {
+        final HttpMethod method = request.method();
+        if (method == null || response == null) {
             recordMetric(MeasurementTag.ERROR_UNKNOWN);
         } else if (response.statusCode() == HttpStatus.INTERNAL_SERVER_ERROR) {
             recordMetric(MeasurementTag.ERROR_UNKNOWN);
