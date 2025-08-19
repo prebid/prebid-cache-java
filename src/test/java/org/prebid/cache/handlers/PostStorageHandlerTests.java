@@ -9,10 +9,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.config.StorageConfig;
 import org.prebid.cache.handlers.storage.PostStorageHandler;
+import org.prebid.cache.metrics.MeasurementTag;
+import org.prebid.cache.metrics.MetricsRecorder;
 import org.prebid.cache.model.Payload;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.model.StoragePayload;
-import org.prebid.cache.repository.redis.module.storage.ModuleCompositeRepository;
+import org.prebid.cache.repository.module.storage.ModuleCompositeRepository;
 import org.prebid.cache.routers.ApiConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -30,6 +32,8 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
@@ -45,6 +49,9 @@ class PostStorageHandlerTests {
 
     @Autowired
     PrebidServerResponseBuilder responseBuilder;
+
+    @MockBean
+    MetricsRecorder metricsRecorder;
 
     @MockBean
     StorageConfig storageConfig;
@@ -66,7 +73,8 @@ class PostStorageHandlerTests {
                 moduleCompositeRepository,
                 responseBuilder,
                 apiConfig,
-                storageConfig);
+                storageConfig,
+                metricsRecorder);
         serverMock = new WireMockServer(8080);
         serverMock.start();
     }
@@ -74,6 +82,7 @@ class PostStorageHandlerTests {
     @AfterEach
     public void teardown() {
         serverMock.stop();
+        reset(metricsRecorder);
     }
 
     @Test
@@ -109,6 +118,8 @@ class PostStorageHandlerTests {
                 .consumeNextWith(serverResponse -> assertEquals(204, serverResponse.statusCode().value()))
                 .expectComplete()
                 .verify();
+
+        verify(metricsRecorder).markMeterForTag("module_storage.write", MeasurementTag.REQUEST);
     }
 
     @Test
@@ -168,5 +179,7 @@ class PostStorageHandlerTests {
                 .consumeNextWith(serverResponse -> assertEquals(401, serverResponse.statusCode().value()))
                 .expectComplete()
                 .verify();
+
+        verify(metricsRecorder).markMeterForTag("module_storage.write", MeasurementTag.ERROR_UNAUTHORIZED);
     }
 }
