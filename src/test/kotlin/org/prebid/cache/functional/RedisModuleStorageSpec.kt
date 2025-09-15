@@ -3,6 +3,7 @@ package org.prebid.cache.functional
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.beEmpty
@@ -18,16 +19,16 @@ import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 
-class StorageSpec : ShouldSpec({
+class RedisModuleStorageSpec : ShouldSpec({
 
     lateinit var apiKey: String
     lateinit var applicationName: String
     lateinit var cacheApi: PrebidCacheApi
 
-    beforeSpec {
+    beforeEach {
         apiKey = getRandomString()
         applicationName = getRandomString().lowercase(Locale.getDefault())
-        val config = prebidCacheConfig.getBaseModuleStorageConfig(applicationName, apiKey)
+        val config = prebidCacheConfig.getRedisModuleStorageConfig(applicationName, apiKey)
         cacheApi = BaseSpec.getPrebidCacheApi(config)
     }
 
@@ -46,6 +47,15 @@ class StorageSpec : ShouldSpec({
         val savedPayload = cacheApi.getStorageCache(payloadKey, applicationName, apiKey)
         savedPayload.type shouldBe payloadTransfer.type
         savedPayload.value shouldBe payloadTransfer.value
+
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.read.request.duration"
+        metrics shouldContain "pbc.module_storage.read.request"
+        metrics shouldContain "pbc.module_storage.read.text"
+
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
 
         // and: shouldn't contain information about application
         savedPayload.application?.should(beNull())
@@ -68,6 +78,15 @@ class StorageSpec : ShouldSpec({
         savedPayload.type shouldBe payloadTransfer.type
         savedPayload.value shouldBe payloadTransfer.value
 
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.read.request.duration"
+        metrics shouldContain "pbc.module_storage.read.request"
+        metrics shouldContain "pbc.module_storage.read.xml"
+
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
+
         // and: shouldn't contain information about application
         savedPayload.application?.should(beNull())
     }
@@ -89,6 +108,15 @@ class StorageSpec : ShouldSpec({
         savedPayload.type shouldBe payloadTransfer.type
         savedPayload.value shouldBe payloadTransfer.value
 
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.read.request.duration"
+        metrics shouldContain "pbc.module_storage.read.request"
+        metrics shouldContain "pbc.module_storage.read.json"
+
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
+
         // and: shouldn't contain information about application
         savedPayload.application?.should(beNull())
     }
@@ -104,7 +132,8 @@ class StorageSpec : ShouldSpec({
 
         // when: POST module-storage endpoint is called
         val exception = shouldThrowExactly<ApiException> {
-            cacheApi.postStorageCache(payloadTransfer, apiKey) }
+            cacheApi.postStorageCache(payloadTransfer, apiKey)
+        }
 
         // then: Not found exception is thrown
         assertSoftly {
@@ -112,6 +141,13 @@ class StorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "\"message\":\"Invalid application: ${randomApplication}\""
         }
+
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.write.err.badRequest"
+        metrics shouldContain "pbc.module_storage.write.err.missingId"
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when post request have null application name") {
@@ -131,6 +167,12 @@ class StorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "application must not be empty"
         }
+
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.write.err.badRequest"
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when post request have empty application name") {
@@ -150,6 +192,12 @@ class StorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "application must not be empty"
         }
+
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.write.err.badRequest"
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when post request have null key name") {
@@ -168,6 +216,12 @@ class StorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "key must not be empty"
         }
+
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.write.err.badRequest"
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when post request have empty key name") {
@@ -186,6 +240,12 @@ class StorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "key must not be empty"
         }
+
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.write.err.badRequest"
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when post request have invalid PBC apiKey") {
@@ -205,6 +265,10 @@ class StorageSpec : ShouldSpec({
             exception.statusCode shouldBe UNAUTHORIZED.value()
             exception.responseBody should beEmpty()
         }
+
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.write.err.unauthorized"
     }
 
     should("throw an exception when get request contain invalid payload key") {
@@ -228,6 +292,16 @@ class StorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "Invalid application or key"
         }
+
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.read.err.badRequest"
+        metrics shouldContain "pbc.module_storage.read.err.missingId"
+        metrics shouldContain "pbc.module_storage.read.request"
+        metrics shouldContain "pbc.module_storage.read.request.duration"
+
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when get request contain invalid application name") {
@@ -255,6 +329,16 @@ class StorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "\"message\":\"Invalid application: ${randomApplication}\""
         }
+
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.read.err.badRequest"
+        metrics shouldContain "pbc.module_storage.read.err.missingId"
+        metrics shouldContain "pbc.module_storage.read.request"
+        metrics shouldContain "pbc.module_storage.read.request.duration"
+
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when get request contain invalid apiKey") {
@@ -278,6 +362,13 @@ class StorageSpec : ShouldSpec({
             exception.statusCode shouldBe UNAUTHORIZED.value()
             exception.responseBody should beEmpty()
         }
+
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
+
+        metrics shouldContain "pbc.module_storage.read.err.unauthorized"
     }
 
     should("throw an exception when ttlsecond is zero") {
@@ -291,7 +382,8 @@ class StorageSpec : ShouldSpec({
 
         // when: POST module-storage endpoint is called
         val exception = shouldThrowExactly<ApiException> {
-            cacheApi.postStorageCache(payloadTransfer, apiKey) }
+            cacheApi.postStorageCache(payloadTransfer, apiKey)
+        }
 
         // then: Expire time exception is thrown
         assertSoftly {
@@ -299,6 +391,12 @@ class StorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "\"message\":\"ERR invalid expire time in setex"
         }
+
+        // and: pbc should populate with module_storage metrics
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.write.err.unknown"
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("not throw an exception when ttlsecond is null and config ttlseconds are present") {
@@ -320,5 +418,13 @@ class StorageSpec : ShouldSpec({
 
         // and: shouldn't contain information about application
         savedPayload.application?.should(beNull())
+
+        val metrics = cacheApi.getMetrics()
+        metrics shouldContain "pbc.module_storage.read.json"
+        metrics shouldContain "pbc.module_storage.read.request"
+        metrics shouldContain "pbc.module_storage.read.request.duration"
+
+        metrics shouldContain "pbc.module_storage.write.request"
+        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 })

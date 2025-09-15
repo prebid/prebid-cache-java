@@ -3,6 +3,8 @@ package org.prebid.cache.functional
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.ShouldSpec
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.statement.bodyAsText
@@ -122,11 +124,26 @@ class GeneralCacheSpec : ShouldSpec({
         val postResponse = prebidCacheApi.postCache(requestObject)
 
         // when: GET cache endpoint is called
-        val getCacheResponse = BaseSpec.getPrebidCacheApi().getCache(postResponse.responses[0].uuid)
+        val getCacheResponse = prebidCacheApi.getCache(postResponse.responses[0].uuid)
 
         // then: response content type is the same as request object type
         getCacheResponse.contentType()?.contentType shouldBe "application"
         getCacheResponse.contentType()?.contentSubtype shouldBe requestObject.puts[0].type.getValue()
+
+        //and: metrics shouldn't contain module_storage
+        val metrics = prebidCacheApi.getMetrics()
+
+        metrics shouldNotContain "pbc.module_storage.read.request"
+        metrics shouldNotContain "pbc.module_storage.read.json"
+        metrics shouldNotContain "pbc.module_storage.write.request"
+        metrics shouldNotContain "pbc.module_storage.write.request.duration"
+
+        //and: metrics should contain proper pbc.read/write metrics
+        metrics shouldContain "pbc.read.json"
+        metrics shouldContain "pbc.read.request.duration"
+        metrics shouldContain "pbc.read.request"
+        metrics shouldContain "pbc.write.request"
+        metrics shouldContain "pbc.write.request.duration"
 
         // and: transfer value is returned
         val responseTransferValue = objectMapper.readValue(getCacheResponse.bodyAsText(), TransferValue::class.java)
