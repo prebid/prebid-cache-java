@@ -3,7 +3,6 @@ package org.prebid.cache.functional
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.beEmpty
@@ -25,7 +24,7 @@ class RedisModuleStorageSpec : ShouldSpec({
     lateinit var applicationName: String
     lateinit var cacheApi: PrebidCacheApi
 
-    beforeEach {
+    beforeSpec {
         apiKey = getRandomString()
         applicationName = getRandomString().lowercase(Locale.getDefault())
         val config = prebidCacheConfig.getRedisModuleStorageConfig(applicationName, apiKey)
