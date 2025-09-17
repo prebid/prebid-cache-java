@@ -23,7 +23,7 @@ class AerospikeModuleStorageSpec : ShouldSpec({
     lateinit var applicationName: String
     lateinit var cacheApi: PrebidCacheApi
 
-    beforeEach {
+    beforeSpec {
         apiKey = getRandomString()
         applicationName = getRandomString().lowercase(Locale.getDefault())
         val config = prebidCacheConfig.getAerospikeModuleStorageConfig(applicationName, apiKey)
