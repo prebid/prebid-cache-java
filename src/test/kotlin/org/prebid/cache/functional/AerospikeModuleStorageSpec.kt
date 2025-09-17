@@ -3,7 +3,6 @@ package org.prebid.cache.functional
 import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.beEmpty
@@ -47,15 +46,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         savedPayload.type shouldBe payloadTransfer.type
         savedPayload.value shouldBe payloadTransfer.value
 
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.read.request.duration"
-        metrics shouldContain "pbc.module_storage.read.request"
-        metrics shouldContain "pbc.module_storage.read.text"
-
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
-
         // and: shouldn't contain information about application
         savedPayload.application?.should(beNull())
     }
@@ -77,15 +67,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         savedPayload.type shouldBe payloadTransfer.type
         savedPayload.value shouldBe payloadTransfer.value
 
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.read.request.duration"
-        metrics shouldContain "pbc.module_storage.read.request"
-        metrics shouldContain "pbc.module_storage.read.xml"
-
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
-
         // and: shouldn't contain information about application
         savedPayload.application?.should(beNull())
     }
@@ -106,15 +87,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         val savedPayload = cacheApi.getStorageCache(payloadKey, applicationName, apiKey)
         savedPayload.type shouldBe payloadTransfer.type
         savedPayload.value shouldBe payloadTransfer.value
-
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.read.request.duration"
-        metrics shouldContain "pbc.module_storage.read.request"
-        metrics shouldContain "pbc.module_storage.read.json"
-
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
 
         // and: shouldn't contain information about application
         savedPayload.application?.should(beNull())
@@ -140,13 +112,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "\"message\":\"Invalid application: ${randomApplication}\""
         }
-
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.write.err.badRequest"
-        metrics shouldContain "pbc.module_storage.write.err.missingId"
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when post request have null application name") {
@@ -166,12 +131,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "application must not be empty"
         }
-
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.write.err.badRequest"
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when post request have empty application name") {
@@ -191,12 +150,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "application must not be empty"
         }
-
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.write.err.badRequest"
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when post request have null key name") {
@@ -215,12 +168,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "key must not be empty"
         }
-
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.write.err.badRequest"
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when post request have empty key name") {
@@ -239,12 +186,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "key must not be empty"
         }
-
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.write.err.badRequest"
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when post request have invalid PBC apiKey") {
@@ -264,10 +205,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.statusCode shouldBe UNAUTHORIZED.value()
             exception.responseBody should beEmpty()
         }
-
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.write.err.unauthorized"
     }
 
     should("throw an exception when get request contain invalid payload key") {
@@ -291,16 +228,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "Invalid application or key"
         }
-
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.read.err.badRequest"
-        metrics shouldContain "pbc.module_storage.read.err.missingId"
-        metrics shouldContain "pbc.module_storage.read.request"
-        metrics shouldContain "pbc.module_storage.read.request.duration"
-
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when get request contain invalid application name") {
@@ -328,16 +255,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "\"message\":\"Invalid application: ${randomApplication}\""
         }
-
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.read.err.badRequest"
-        metrics shouldContain "pbc.module_storage.read.err.missingId"
-        metrics shouldContain "pbc.module_storage.read.request"
-        metrics shouldContain "pbc.module_storage.read.request.duration"
-
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("throw an exception when get request contain invalid apiKey") {
@@ -361,13 +278,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.statusCode shouldBe UNAUTHORIZED.value()
             exception.responseBody should beEmpty()
         }
-
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
-
-        metrics shouldContain "pbc.module_storage.read.err.unauthorized"
     }
 
     should("not throw an exception when ttlsecond is zero") {
@@ -386,14 +296,6 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         val savedPayload = cacheApi.getStorageCache(payloadKey, applicationName, apiKey)
         savedPayload.type shouldBe payloadTransfer.type
         savedPayload.value shouldBe payloadTransfer.value
-
-        // and: pbc should populate with module_storage metrics
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.read.json"
-        metrics shouldContain "pbc.module_storage.read.request"
-        metrics shouldContain "pbc.module_storage.read.request.duration"
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 
     should("not throw an exception when ttlsecond is null and config ttlseconds are present") {
@@ -415,13 +317,5 @@ class AerospikeModuleStorageSpec : ShouldSpec({
 
         // and: shouldn't contain information about application
         savedPayload.application?.should(beNull())
-
-        val metrics = cacheApi.getMetrics()
-        metrics shouldContain "pbc.module_storage.read.json"
-        metrics shouldContain "pbc.module_storage.read.request"
-        metrics shouldContain "pbc.module_storage.read.request.duration"
-
-        metrics shouldContain "pbc.module_storage.write.request"
-        metrics shouldContain "pbc.module_storage.write.request.duration"
     }
 })

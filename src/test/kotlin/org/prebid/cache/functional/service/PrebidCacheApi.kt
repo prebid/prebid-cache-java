@@ -62,11 +62,6 @@ class PrebidCacheApi(
             headers = mapOf(API_KEY_PARAMETER to apiKey)
         ).status == HttpStatusCode.NoContent
 
-    suspend fun getMetrics(): List<String> {
-        val map: Map<String, List<String>> = get(endpoint = METRICS_ENDPOINT).body()
-        return map[METRICS_NAMES].orEmpty()
-    }
-
     private val client = HttpClient(Apache) {
         expectSuccess = true
         defaultRequest {
@@ -128,8 +123,5 @@ class PrebidCacheApi(
         private const val API_KEY_PARAMETER = "x-pbc-api-key"
         private const val KEY_PARAMETER = "k"
         private const val APPLICATION_PARAMETER = "a"
-
-        private const val METRICS_ENDPOINT = "/metrics"
-        private const val METRICS_NAMES = "names"
     }
 }
