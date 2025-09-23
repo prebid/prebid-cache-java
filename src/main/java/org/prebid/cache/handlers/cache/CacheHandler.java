@@ -60,7 +60,7 @@ public abstract class CacheHandler extends MetricsHandler {
         // transform to error, if needed and send metrics
         return mono
                 .onErrorResume(throwable -> handleErrorMetrics(throwable, request))
-                .doOnEach(signal -> {
+                .doFinally(signal -> {
                     if (timerContext != null)
                         timerContext.stop();
                 });
