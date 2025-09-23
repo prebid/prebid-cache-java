@@ -73,7 +73,7 @@ public class PostStorageHandler {
                 .subscribeOn(Schedulers.parallel())
                 .flatMap(ignored -> ServerResponse.noContent().build())
                 .onErrorResume(error -> metricsRecorder.handleErrorMetrics(error, request))
-                .doOnEach(signal -> {
+                .doFinally(signal -> {
                     if (timerContext != null)
                         timerContext.stop();
                 });

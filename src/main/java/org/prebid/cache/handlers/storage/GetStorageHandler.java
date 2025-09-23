@@ -64,7 +64,7 @@ public class GetStorageHandler {
                 .flatMap(this::createServerResponse)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Invalid application or key")))
                 .onErrorResume(error -> metricsRecorder.handleErrorMetrics(error, request))
-                .doOnEach(signal -> {
+                .doFinally(signal -> {
                     if (timerContext != null)
                         timerContext.stop();
                 });
