@@ -23,7 +23,7 @@ class AerospikeModuleStorageSpec : ShouldSpec({
     lateinit var applicationName: String
     lateinit var cacheApi: PrebidCacheApi
 
-    beforeSpec {
+    beforeEach {
         apiKey = getRandomString()
         applicationName = getRandomString().lowercase(Locale.getDefault())
         val config = prebidCacheConfig.getAerospikeModuleStorageConfig(applicationName, apiKey)
@@ -48,6 +48,16 @@ class AerospikeModuleStorageSpec : ShouldSpec({
 
         // and: shouldn't contain information about application
         savedPayload.application?.should(beNull())
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.read.request"] shouldBe  1
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
+            metrics["pbc.module_storage.read.text"] shouldBe 1
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+        }
     }
 
     should("return the same xml transfer value which was saved to aerospike-module-storage") {
@@ -69,6 +79,16 @@ class AerospikeModuleStorageSpec : ShouldSpec({
 
         // and: shouldn't contain information about application
         savedPayload.application?.should(beNull())
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.read.request"] shouldBe  1
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
+            metrics["pbc.module_storage.read.xml"] shouldBe 1
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+        }
     }
 
     should("return the same json transfer value which was saved to aerospike-module-storage") {
@@ -90,6 +110,16 @@ class AerospikeModuleStorageSpec : ShouldSpec({
 
         // and: shouldn't contain information about application
         savedPayload.application?.should(beNull())
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.read.json"] shouldBe 1
+            metrics["pbc.module_storage.read.request"] shouldBe 1
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+        }
     }
 
     should("throw an exception when post request have nonexistent PBC application name") {
@@ -112,6 +142,15 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "\"message\":\"Invalid application: ${randomApplication}\""
         }
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.write.err.badRequest"] shouldBe 1
+            metrics["pbc.module_storage.write.err.missingId"] shouldBe 1
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+        }
     }
 
     should("throw an exception when post request have null application name") {
@@ -130,6 +169,14 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.statusCode shouldBe BAD_REQUEST.value()
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "application must not be empty"
+        }
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.write.err.badRequest"] shouldBe 2
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
         }
     }
 
@@ -150,6 +197,14 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "application must not be empty"
         }
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.write.err.badRequest"] shouldBe 2
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+        }
     }
 
     should("throw an exception when post request have null key name") {
@@ -167,6 +222,14 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.statusCode shouldBe BAD_REQUEST.value()
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "key must not be empty"
+        }
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.write.err.badRequest"] shouldBe 2
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
         }
     }
 
@@ -186,6 +249,14 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "key must not be empty"
         }
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.write.err.badRequest"] shouldBe 2
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+        }
     }
 
     should("throw an exception when post request have invalid PBC apiKey") {
@@ -204,6 +275,12 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         assertSoftly {
             exception.statusCode shouldBe UNAUTHORIZED.value()
             exception.responseBody should beEmpty()
+        }
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.write.err.unauthorized"] shouldBe 1
         }
     }
 
@@ -227,6 +304,18 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.statusCode shouldBe NOT_FOUND.value()
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "Invalid application or key"
+        }
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.read.err.badRequest"] shouldBe 1
+            metrics["pbc.module_storage.read.err.missingId"] shouldBe 1
+            metrics["pbc.module_storage.read.request"] shouldBe 1
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
+
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
         }
     }
 
@@ -255,6 +344,18 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.responseBody shouldContain "\"path\":\"/storage\""
             exception.responseBody shouldContain "\"message\":\"Invalid application: ${randomApplication}\""
         }
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.read.err.badRequest"] shouldBe 1
+            metrics["pbc.module_storage.read.err.missingId"] shouldBe 1
+            metrics["pbc.module_storage.read.request"] shouldBe 1
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
+
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+        }
     }
 
     should("throw an exception when get request contain invalid apiKey") {
@@ -278,6 +379,15 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             exception.statusCode shouldBe UNAUTHORIZED.value()
             exception.responseBody should beEmpty()
         }
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.read.err.unauthorized"] shouldBe 1
+
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+        }
     }
 
     should("not throw an exception when ttlsecond is zero") {
@@ -296,6 +406,17 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         val savedPayload = cacheApi.getStorageCache(payloadKey, applicationName, apiKey)
         savedPayload.type shouldBe payloadTransfer.type
         savedPayload.value shouldBe payloadTransfer.value
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.read.json"] shouldBe 1
+            metrics["pbc.module_storage.read.request"] shouldBe 1
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
+
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+        }
     }
 
     should("not throw an exception when ttlsecond is null and config ttlseconds are present") {
@@ -317,5 +438,16 @@ class AerospikeModuleStorageSpec : ShouldSpec({
 
         // and: shouldn't contain information about application
         savedPayload.application?.should(beNull())
+
+        // and: pbc should populate corresponding metrics
+        val metrics = cacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.module_storage.read.json"] shouldBe 1
+            metrics["pbc.module_storage.read.request"] shouldBe 1
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
+
+            metrics["pbc.module_storage.write.request"] shouldBe 1
+            metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+        }
     }
 })
