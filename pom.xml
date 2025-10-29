@@ -320,7 +320,6 @@
                     <configuration>
                         <!-- Project rooted path to CheckStyle configuration file. -->
                         <configLocation>checkstyle.xml</configLocation>
-                        <encoding>UTF-8</encoding>
                         <consoleOutput>true</consoleOutput>
                         <!-- true if project build should fails on any style violation. -->
                         <failsOnError>true</failsOnError>
