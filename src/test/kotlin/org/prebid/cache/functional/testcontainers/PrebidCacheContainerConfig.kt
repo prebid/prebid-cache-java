@@ -35,9 +35,18 @@ class PrebidCacheContainerConfig(
     ): Map<String, String> =
         getBaseConfig(allowExternalUuid, cacheWriteSecured) + getApacheIgniteConfig(ingineCacheName)
 
-    fun getBaseModuleStorageConfig(applicationName: String, apiKey: String): Map<String, String> =
+    fun getRedisModuleStorageConfig(applicationName: String, apiKey: String): Map<String, String> =
         getBaseConfig(allowExternalUuid = true, apiKey = apiKey) +
                 getModuleStorageRedisConfig(applicationName) + getRedisConfig()
+
+    fun getAerospikeModuleStorageConfig(
+        applicationName: String,
+        apiKey: String,
+        preventUuidDuplication: Boolean = false,
+        aerospikeNamespace: String = NAMESPACE
+    ): Map<String, String> = getBaseConfig(allowExternalUuid = true, apiKey = apiKey) +
+            getModuleStorageAerospikeConfig(applicationName, preventUuidDuplication) +
+            getAerospikeConfig(aerospikeNamespace)
 
     fun getCacheExpiryConfig(minExpiry: String = "15", maxExpiry: String = "28800"): Map<String, String> =
         mapOf(
@@ -92,12 +101,30 @@ class PrebidCacheContainerConfig(
 
     private fun getModuleStorageRedisConfig(
         applicationName: String,
-        timeoutMs: Long = 9999L,
     ): Map<String, String> =
         mapOf(
             "storage.redis.${applicationName}.port" to RedisContainer.PORT.toString(),
             "storage.redis.${applicationName}.host" to redisHost,
-            "storage.redis.${applicationName}.timeout" to timeoutMs.toString(),
+            "storage.redis.${applicationName}.timeout" to "9999",
+            "storage.default-ttl-seconds" to 1000L.toString()
+        )
+
+    private fun getModuleStorageAerospikeConfig(
+        applicationName: String,
+        preventUuidDuplication: Boolean = false,
+        aerospikeNamespace: String = NAMESPACE
+    ): Map<String, String> =
+        mapOf(
+            "storage.aerospike.${applicationName}.port" to AerospikeContainer.PORT.toString(),
+            "storage.aerospike.${applicationName}.host" to aerospikeHost,
+            "storage.aerospike.${applicationName}.cores" to "4",
+            "storage.aerospike.${applicationName}.timeout" to "9999",
+            "storage.aerospike.${applicationName}.password" to "",
+            "storage.aerospike.${applicationName}.first_backoff" to "300",
+            "storage.aerospike.${applicationName}.max_backoff" to "1000",
+            "storage.aerospike.${applicationName}.max_retry" to "3",
+            "storage.aerospike.${applicationName}.namespace" to aerospikeNamespace,
+            "storage.aerospike.${applicationName}.prevent-u-u-i-d-duplication" to preventUuidDuplication.toString(),
             "storage.default-ttl-seconds" to 1000L.toString()
         )
 

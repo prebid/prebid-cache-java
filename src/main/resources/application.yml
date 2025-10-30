@@ -34,6 +34,7 @@ cache:
 
 storage:
   redis: {}
+  aerospike: {}
   default-ttl-seconds: 300
 
 # logging

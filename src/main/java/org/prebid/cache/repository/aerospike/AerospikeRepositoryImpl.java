@@ -32,7 +32,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrapper, String> {
     @NotNull
-    private final AerospikePropertyConfiguration configuration;
+    private final AerospikeConfigurationProperties configuration;
     @NotNull
     private final AerospikeClient client;
     @NotNull

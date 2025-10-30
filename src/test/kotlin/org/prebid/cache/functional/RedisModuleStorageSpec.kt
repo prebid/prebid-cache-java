@@ -18,7 +18,7 @@ import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.UNAUTHORIZED
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 
-class StorageSpec : ShouldSpec({
+class RedisModuleStorageSpec : ShouldSpec({
 
     lateinit var apiKey: String
     lateinit var applicationName: String
@@ -27,7 +27,7 @@ class StorageSpec : ShouldSpec({
     beforeSpec {
         apiKey = getRandomString()
         applicationName = getRandomString().lowercase(Locale.getDefault())
-        val config = prebidCacheConfig.getBaseModuleStorageConfig(applicationName, apiKey)
+        val config = prebidCacheConfig.getRedisModuleStorageConfig(applicationName, apiKey)
         cacheApi = BaseSpec.getPrebidCacheApi(config)
     }
 
@@ -104,7 +104,8 @@ class StorageSpec : ShouldSpec({
 
         // when: POST module-storage endpoint is called
         val exception = shouldThrowExactly<ApiException> {
-            cacheApi.postStorageCache(payloadTransfer, apiKey) }
+            cacheApi.postStorageCache(payloadTransfer, apiKey)
+        }
 
         // then: Not found exception is thrown
         assertSoftly {
@@ -291,7 +292,8 @@ class StorageSpec : ShouldSpec({
 
         // when: POST module-storage endpoint is called
         val exception = shouldThrowExactly<ApiException> {
-            cacheApi.postStorageCache(payloadTransfer, apiKey) }
+            cacheApi.postStorageCache(payloadTransfer, apiKey)
+        }
 
         // then: Expire time exception is thrown
         assertSoftly {

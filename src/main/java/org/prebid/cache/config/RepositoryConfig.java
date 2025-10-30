@@ -11,7 +11,7 @@ import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.CircuitBreakerSecuredReactiveRepository;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.prebid.cache.repository.TimeOutCapableReactiveRepository;
-import org.prebid.cache.repository.aerospike.AerospikePropertyConfiguration;
+import org.prebid.cache.repository.aerospike.AerospikeConfigurationProperties;
 import org.prebid.cache.repository.aerospike.AerospikeRepositoryImpl;
 import org.prebid.cache.repository.ignite.IgniteRepositoryImpl;
 import org.prebid.cache.repository.redis.RedisRepositoryImpl;
@@ -35,7 +35,7 @@ public class RepositoryConfig {
 
     @Bean
     @ConditionalOnProperty(prefix = "spring.aerospike", name = {"host"})
-    ReactiveRepository<PayloadWrapper, String> aerospikeRepository(AerospikePropertyConfiguration configuration,
+    ReactiveRepository<PayloadWrapper, String> aerospikeRepository(AerospikeConfigurationProperties configuration,
                                                                    AerospikeClient client,
                                                                    EventLoops eventLoops,
                                                                    Policy policy) {

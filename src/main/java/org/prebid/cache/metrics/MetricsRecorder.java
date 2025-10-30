@@ -66,6 +66,11 @@ public class MetricsRecorder {
         meterForTag(prefix, measurementTag).increment();
     }
 
+    public MetricsRecorderTimer createRequestTimerForTag(final String prefix) {
+        return new MetricsRecorderTimer(
+                MeasurementTag.REQUEST_DURATION.getTag().replaceAll(PREFIX_PLACEHOLDER, prefix));
+    }
+
     public MetricsRecorderTimer createRequestTimerForServiceType(final ServiceType serviceType) {
         if (serviceType.equals(ServiceType.FETCH)) {
             return new MetricsRecorderTimer(

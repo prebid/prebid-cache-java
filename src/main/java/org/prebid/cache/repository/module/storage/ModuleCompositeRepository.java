@@ -1,4 +1,4 @@
-package org.prebid.cache.repository.redis.module.storage;
+package org.prebid.cache.repository.module.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.prebid.cache.exceptions.ResourceNotFoundException;

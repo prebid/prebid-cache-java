@@ -27,15 +27,22 @@ class AerospikeCacheSpec : ShouldSpec({
         // given: Prebid cache config
         val config = prebidCacheConfig.getBaseAerospikeConfig(true)
         val cachePrefix = config["cache.prefix"]
+        val prebidCacheApi = BaseSpec.getPrebidCacheApi(config)
 
         // when: GET cache endpoint with random UUID is called
         val randomUuid = getRandomUuid()
-        val exception = shouldThrowExactly<ApiException> { BaseSpec.getPrebidCacheApi(config).getCache(randomUuid) }
+        val exception = shouldThrowExactly<ApiException> { prebidCacheApi.getCache(randomUuid) }
 
         // then: Not Found exception is thrown
         assertSoftly {
             exception.statusCode shouldBe NOT_FOUND.value()
             exception.responseBody shouldContain "\"message\":\"Resource Not Found: uuid $cachePrefix$randomUuid\""
+        }
+
+        // and: pbc should populate corresponding metrics
+        val metrics = prebidCacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.read.err.missingId"] shouldBe 1
         }
     }
 
@@ -55,6 +62,13 @@ class AerospikeCacheSpec : ShouldSpec({
         assertSoftly {
             exception.statusCode shouldBe INTERNAL_SERVER_ERROR.value()
             exception.responseBody shouldContain "Namespace not found in partition map: $unmatchedNamespace"
+        }
+
+        // and: pbc should populate corresponding metrics
+        val metrics = prebidCacheApi.getMetrics()
+        assertSoftly {
+            metrics["pbc.write.err.db"] shouldBe 1
+            metrics["pbc.write.err.unknown"] shouldBe 1
         }
 
         // cleanup

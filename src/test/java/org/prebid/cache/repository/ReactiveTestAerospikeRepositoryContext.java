@@ -9,7 +9,7 @@ import com.aerospike.client.policy.Policy;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import org.prebid.cache.model.PayloadWrapper;
-import org.prebid.cache.repository.aerospike.AerospikePropertyConfiguration;
+import org.prebid.cache.repository.aerospike.AerospikeConfigurationProperties;
 import org.prebid.cache.repository.aerospike.AerospikeRepositoryImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,8 +25,8 @@ public class ReactiveTestAerospikeRepositoryContext {
     }
 
     @Bean
-    AerospikePropertyConfiguration aerospikePropertyConfiguration() {
-        return new AerospikePropertyConfiguration();
+    AerospikeConfigurationProperties aerospikePropertyConfiguration() {
+        return new AerospikeConfigurationProperties();
     }
 
     @Bean
