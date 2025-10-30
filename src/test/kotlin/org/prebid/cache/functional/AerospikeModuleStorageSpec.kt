@@ -12,6 +12,7 @@ import org.prebid.cache.functional.BaseSpec.Companion.prebidCacheConfig
 import org.prebid.cache.functional.model.request.PayloadTransfer
 import org.prebid.cache.functional.service.ApiException
 import org.prebid.cache.functional.service.PrebidCacheApi
+import org.prebid.cache.functional.util.getRandomLong
 import org.prebid.cache.functional.util.getRandomString
 import org.springframework.http.HttpStatus.BAD_REQUEST
 import org.springframework.http.HttpStatus.NOT_FOUND
@@ -97,7 +98,7 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         val payloadTransfer = PayloadTransfer.getDefaultJsonPayloadTransfer().apply {
             key = payloadKey
             application = applicationName
-            ttlseconds = 300L
+            ttlseconds = getRandomLong(300, 1000)
         }
 
         // when: POST module-storage endpoint is called

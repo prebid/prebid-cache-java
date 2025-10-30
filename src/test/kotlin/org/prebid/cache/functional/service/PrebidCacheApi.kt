@@ -19,6 +19,7 @@ import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.jackson
+import org.prebid.cache.functional.model.request.MetricDetail
 import org.prebid.cache.functional.model.request.PayloadTransfer
 import org.prebid.cache.functional.model.request.RequestObject
 import org.prebid.cache.functional.model.response.ResponseObject
@@ -139,22 +140,4 @@ class PrebidCacheApi(
 
         private const val METRICS_ENDPOINT = "/metrics"
     }
-
-    data class MetricDetail(
-        val name: String,
-        val description: String? = null,
-        val baseUnit: String? = null,
-        val measurements: List<Measurement>,
-        val availableTags: List<AvailableTag>
-    )
-
-    data class Measurement(
-        val statistic: String,
-        val value: Number
-    )
-
-    data class AvailableTag(
-        val tag: String,
-        val values: List<String>
-    )
 }

@@ -42,10 +42,9 @@ class PrebidCacheContainerConfig(
     fun getAerospikeModuleStorageConfig(
         applicationName: String,
         apiKey: String,
-        preventUuidDuplication: Boolean = false,
         aerospikeNamespace: String = NAMESPACE
     ): Map<String, String> = getBaseConfig(allowExternalUuid = true, apiKey = apiKey) +
-            getModuleStorageAerospikeConfig(applicationName, preventUuidDuplication) +
+            getModuleStorageAerospikeConfig(applicationName) +
             getAerospikeConfig(aerospikeNamespace)
 
     fun getCacheExpiryConfig(minExpiry: String = "15", maxExpiry: String = "28800"): Map<String, String> =
@@ -112,7 +111,6 @@ class PrebidCacheContainerConfig(
     private fun getModuleStorageAerospikeConfig(
         applicationName: String,
         preventUuidDuplication: Boolean = false,
-        aerospikeNamespace: String = NAMESPACE
     ): Map<String, String> =
         mapOf(
             "storage.aerospike.${applicationName}.port" to AerospikeContainer.PORT.toString(),
@@ -123,7 +121,7 @@ class PrebidCacheContainerConfig(
             "storage.aerospike.${applicationName}.first_backoff" to "300",
             "storage.aerospike.${applicationName}.max_backoff" to "1000",
             "storage.aerospike.${applicationName}.max_retry" to "3",
-            "storage.aerospike.${applicationName}.namespace" to aerospikeNamespace,
+            "storage.aerospike.${applicationName}.namespace" to NAMESPACE,
             "storage.aerospike.${applicationName}.prevent-u-u-i-d-duplication" to preventUuidDuplication.toString(),
             "storage.default-ttl-seconds" to 1000L.toString()
         )
