@@ -122,7 +122,7 @@ class GeneralCacheSpec : ShouldSpec({
         val postResponse = prebidCacheApi.postCache(requestObject)
 
         // when: GET cache endpoint is called
-        val getCacheResponse = BaseSpec.getPrebidCacheApi().getCache(postResponse.responses[0].uuid)
+        val getCacheResponse = prebidCacheApi.getCache(postResponse.responses[0].uuid)
 
         // then: response content type is the same as request object type
         getCacheResponse.contentType()?.contentType shouldBe "application"

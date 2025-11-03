@@ -19,6 +19,7 @@ import io.ktor.http.ContentType.Application.Json
 import io.ktor.http.HttpHeaders.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.jackson.jackson
+import org.prebid.cache.functional.model.request.MetricDetail
 import org.prebid.cache.functional.model.request.PayloadTransfer
 import org.prebid.cache.functional.model.request.RequestObject
 import org.prebid.cache.functional.model.response.ResponseObject
@@ -113,6 +114,19 @@ class PrebidCacheApi(
             }
         }
 
+    suspend fun getMetrics(): Map<String, Number> {
+        val response: Map<String, List<String>> = get(endpoint = METRICS_ENDPOINT).body()
+        val metricNames = response["names"] ?: emptyList()
+        val results: List<Pair<String, Number>> = metricNames.map { name ->
+                val detail: MetricDetail = get(endpoint = "$METRICS_ENDPOINT/$name").body()
+                val countValue = detail.measurements
+                    .firstOrNull { it.statistic == "COUNT" }
+                    ?.value?.toInt() ?: 0
+                name to countValue
+        }
+        return results.toMap()
+    }
+
     companion object {
         private const val CACHE_ENDPOINT = "/cache"
         private const val UUID_QUERY_PARAMETER = "uuid"
@@ -123,5 +137,7 @@ class PrebidCacheApi(
         private const val API_KEY_PARAMETER = "x-pbc-api-key"
         private const val KEY_PARAMETER = "k"
         private const val APPLICATION_PARAMETER = "a"
+
+        private const val METRICS_ENDPOINT = "/metrics"
     }
 }
