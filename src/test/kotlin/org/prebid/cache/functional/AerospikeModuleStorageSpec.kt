@@ -53,11 +53,15 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         // and: pbc should populate corresponding metrics
         val metrics = cacheApi.getMetrics()
         assertSoftly {
-            metrics["pbc.module_storage.read.request"] shouldBe  1
-            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
+            metrics["pbc.module_storage.read.request"] shouldBe 1
             metrics["pbc.module_storage.read.text"] shouldBe 1
             metrics["pbc.module_storage.write.request"] shouldBe 1
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
         }
     }
 
@@ -84,11 +88,15 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         // and: pbc should populate corresponding metrics
         val metrics = cacheApi.getMetrics()
         assertSoftly {
-            metrics["pbc.module_storage.read.request"] shouldBe  1
-            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
+            metrics["pbc.module_storage.read.request"] shouldBe 1
             metrics["pbc.module_storage.read.xml"] shouldBe 1
             metrics["pbc.module_storage.write.request"] shouldBe 1
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
         }
     }
 
@@ -117,9 +125,14 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         assertSoftly {
             metrics["pbc.module_storage.read.json"] shouldBe 1
             metrics["pbc.module_storage.read.request"] shouldBe 1
-            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
             metrics["pbc.module_storage.write.request"] shouldBe 1
+
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
         }
     }
 
@@ -150,6 +163,10 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             metrics["pbc.module_storage.write.err.badRequest"] shouldBe 1
             metrics["pbc.module_storage.write.err.missingId"] shouldBe 1
             metrics["pbc.module_storage.write.request"] shouldBe 1
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
         }
     }
@@ -177,6 +194,10 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         assertSoftly {
             metrics["pbc.module_storage.write.err.badRequest"] shouldBe 2
             metrics["pbc.module_storage.write.request"] shouldBe 1
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
         }
     }
@@ -204,6 +225,10 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         assertSoftly {
             metrics["pbc.module_storage.write.err.badRequest"] shouldBe 2
             metrics["pbc.module_storage.write.request"] shouldBe 1
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
         }
     }
@@ -230,6 +255,10 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         assertSoftly {
             metrics["pbc.module_storage.write.err.badRequest"] shouldBe 2
             metrics["pbc.module_storage.write.request"] shouldBe 1
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
         }
     }
@@ -256,6 +285,10 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         assertSoftly {
             metrics["pbc.module_storage.write.err.badRequest"] shouldBe 2
             metrics["pbc.module_storage.write.request"] shouldBe 1
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
         }
     }
@@ -313,10 +346,14 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             metrics["pbc.module_storage.read.err.badRequest"] shouldBe 1
             metrics["pbc.module_storage.read.err.missingId"] shouldBe 1
             metrics["pbc.module_storage.read.request"] shouldBe 1
-            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
 
             metrics["pbc.module_storage.write.request"] shouldBe 1
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
         }
     }
 
@@ -352,10 +389,14 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             metrics["pbc.module_storage.read.err.badRequest"] shouldBe 1
             metrics["pbc.module_storage.read.err.missingId"] shouldBe 1
             metrics["pbc.module_storage.read.request"] shouldBe 1
-            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
 
             metrics["pbc.module_storage.write.request"] shouldBe 1
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
         }
     }
 
@@ -387,6 +428,10 @@ class AerospikeModuleStorageSpec : ShouldSpec({
             metrics["pbc.module_storage.read.err.unauthorized"] shouldBe 1
 
             metrics["pbc.module_storage.write.request"] shouldBe 1
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
         }
     }
@@ -413,10 +458,14 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         assertSoftly {
             metrics["pbc.module_storage.read.json"] shouldBe 1
             metrics["pbc.module_storage.read.request"] shouldBe 1
-            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
 
             metrics["pbc.module_storage.write.request"] shouldBe 1
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
         }
     }
 
@@ -445,10 +494,14 @@ class AerospikeModuleStorageSpec : ShouldSpec({
         assertSoftly {
             metrics["pbc.module_storage.read.json"] shouldBe 1
             metrics["pbc.module_storage.read.request"] shouldBe 1
-            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
 
             metrics["pbc.module_storage.write.request"] shouldBe 1
+        }
+
+        // and: pbc should populate time metrics
+        assertSoftly {
             metrics["pbc.module_storage.write.request.duration"] shouldBe 2
+            metrics["pbc.module_storage.read.request.duration"] shouldBe 2
         }
     }
 })
