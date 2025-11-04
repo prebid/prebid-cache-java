@@ -10,7 +10,7 @@ Project configuration is managed through the use of YAML configuration (see reso
 This section covers the mandatory pre-requisites needed to be able to run the application.
 
 * Windows, Linux, AWS, GCP or macOS
-* JDK 8+
+* JDK 21 (the higher versions haven't been tested)
 * Maven
 * Git
 * Redis (or a custom cache implementation)
@@ -113,8 +113,10 @@ mvn clean package
 
 (4). Run Spring Boot JAR (_from project root_)
 
+Note: at least one storage backend must be configured to make the application start up successfully. For the local start-up the `local` profile has the Aerospike configured with default settings.
+
 ```bash
-java -jar target/prebid-cache.jar
+java -Dspring.profiles.active=manage,local -jar target/prebid-cache.jar
 ```
 
 ### _Spring Profiles_
@@ -165,15 +167,15 @@ The `Apache Ignite` requires additional VM parameters to be added to support Jav
 ```
 
 ### _Cache Configuration_
-Prebid cache uses Aerospike as a default cache implementation but also supports Redis and Apache Ignite. For switching from Aerospike 
-to Redis replace next:
+Enable **one and only one** backend in your application properties (Redis, Aerospike, or Apache Ignite). If none or more than one are configured, startup will fail.
+Prebid cache uses Aerospike as a default cache implementation. 
 
-_application.yml:_
+Pick exactly one of the following in the _application.yml:_
 ```yaml
  spring.aerospike.host: value
 ```  
 
-with 
+or 
 
 ```yaml
  spring.redis.host: value
@@ -185,7 +187,28 @@ or
  spring.ignite.host: value
 ```
 
-For configuring single redis node, please use next properties:
+For configuring Aerospike backend, you can start with the following local-profile default properties:
+```yaml
+ spring:
+     aerospike:
+         port: 3000
+         host: localhost
+         cores: 4
+         password:
+         first_backoff: 300
+         max_backoff: 1000
+         max_retry: 3
+         namespace: "prebid_cache"
+         prevent_UUID_duplication: true
+         socket_timeout: 30000
+         total_timeout: 1000
+         connect_timeout: 0
+         min_conns_per_node: 0
+         max_conns_per_node: 100
+         read_policy: sequence
+```
+
+For configuring single Redis node, please use next properties:
 
 ```yaml
  spring:
@@ -195,7 +218,7 @@ For configuring single redis node, please use next properties:
      port: value
 ```  
 
-or
+For configuring Ignite backend, please use next properties:
 ```yaml
  spring:
   ignite:
@@ -384,7 +407,7 @@ _src/main/resources/log4j-dev.xml_:
 ```
 
 ### _Circuit Breaker_
-To make prebid-cache more robust  in face of network disruption or dependent services outage circuit breaker is available and should be configured at application.yml. 
+To make prebid-cache more robust in face of network disruption or dependent services outage circuit breaker is available and should be configured at application.yml. 
 
 _src/main/resources/application.yml_:
 ```yaml
