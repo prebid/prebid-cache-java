@@ -11,9 +11,9 @@ import org.testcontainers.utility.DockerImageName
 abstract class ContainerDependencies {
 
     companion object {
-        private const val redisImageName = "redis:6.2.6-alpine"
-        private const val aerospikeImageName = "aerospike:ce-5.7.0.11"
-        private const val apacheIgniteImageName = "apacheignite/ignite:2.16.0"
+        private const val redisImageName = "redis:8.8.0-alpine"
+        private const val aerospikeImageName = "aerospike:ce-8.1.2.2"
+        private const val apacheIgniteImageName = "apacheignite/ignite:2.18.0"
         private const val prebidCacheImageName = "prebid-cache:latest"
         private const val mockServerImageVersion = "mockserver/mockserver:5.15.0"
 

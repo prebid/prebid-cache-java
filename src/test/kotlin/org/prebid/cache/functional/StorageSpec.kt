@@ -297,7 +297,7 @@ class StorageSpec : ShouldSpec({
         assertSoftly {
             exception.statusCode shouldBe INTERNAL_SERVER_ERROR.value()
             exception.responseBody shouldContain "\"path\":\"/storage\""
-            exception.responseBody shouldContain "\"message\":\"ERR invalid expire time in setex"
+            exception.responseBody shouldContain "\"message\":\"ERR invalid expire time in 'setex' command\""
         }
     }
 

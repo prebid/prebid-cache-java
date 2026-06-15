@@ -28,8 +28,8 @@ public class ThrowableTranslator {
     }
 
     private HttpStatus getStatus(final Throwable error) {
-        if (error instanceof ErrorResponse) {
-            return Optional.of((ErrorResponse) error)
+        if (error instanceof ErrorResponse response) {
+            return Optional.of(response)
                     .map(ErrorResponse::getStatusCode)
                     .map(HttpStatusCode::value)
                     .map(HttpStatus::resolve)

@@ -1,4 +1,4 @@
 server.port: 5000
 
 # redis
-spring.redis.host: ${SPRING_REDIS_HOST}
+spring.data.redis.host: ${SPRING_REDIS_HOST}

@@ -50,7 +50,7 @@ class RedisCacheSpec : ShouldSpec({
         // then: Internal Server Error exception is thrown
         assertSoftly {
             exception.statusCode shouldBe INTERNAL_SERVER_ERROR.value()
-            exception.responseBody shouldContain "\"message\":\"ERR invalid expire time in setex\""
+            exception.responseBody shouldContain "\"message\":\"ERR invalid expire time in 'setex' command\""
         }
 
         // cleanup

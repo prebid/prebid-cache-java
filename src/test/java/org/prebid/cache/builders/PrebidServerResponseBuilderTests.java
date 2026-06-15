@@ -2,7 +2,6 @@ package org.prebid.cache.builders;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.exceptions.BadRequestException;
 import org.prebid.cache.exceptions.RepositoryException;
 import org.prebid.cache.exceptions.ResourceNotFoundException;
@@ -16,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.reactive.function.server.MockServerRequest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -31,7 +29,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
-@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes={PrebidServerResponseBuilder.class, ApiConfig.class})
 @SpringBootTest
 class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests {

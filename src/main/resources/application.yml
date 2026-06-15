@@ -64,18 +64,18 @@ circuitbreaker:
 
 # endpoint actuators
 management.health.defaults.enabled: false
-management.endpoints.enabled-by-default: false
+management.endpoints.access.default: none
 management.endpoints.web.base-path: /
 management.health.diskspace.enabled: true
 management.health.redis.enabled: false
 management.endpoints.web.exposure.include: info, health, metrics, env, configprops
-management.endpoint.info.enabled: true
-management.endpoint.health.enabled: true
-management.endpoint.metrics.enabled: true
-management.endpoint.env.enabled: true
-management.endpoint.configprops.enabled: true
+management.endpoint.info.access: read-only
+management.endpoint.health.access: read-only
+management.endpoint.metrics.access: read-only
+management.endpoint.env.access: read-only
+management.endpoint.configprops.access: read-only
 management.endpoint.health.show-details: always
-management.endpoint.shutdown.enabled: false
+management.endpoint.shutdown.access: none
 management.endpoint.configprops.keys-to-sanitize: password,secret,key,token,.*credentials.*,vcap_services
 management.endpoint.info.cache.time-to-live: 5s
 management.endpoint.health.cache.time-to-live: 5s
@@ -146,8 +146,8 @@ logging.config: classpath:log4j2-qa.xml
 ---
 # prod
 spring.config.activate.on-profile: prod
-management.endpoint.metrics.enabled: false
-management.endpoint.env.enabled: false
-management.endpoint.configprops.enabled: false
+management.endpoint.metrics.access: none
+management.endpoint.env.access: none
+management.endpoint.configprops.access: none
 logging.level.root: warn
 logging.config: classpath:log4j2-prod.xml

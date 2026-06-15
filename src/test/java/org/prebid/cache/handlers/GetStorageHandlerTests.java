@@ -4,7 +4,6 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.handlers.storage.GetStorageHandler;
 import org.prebid.cache.model.Payload;
@@ -14,18 +13,16 @@ import org.prebid.cache.routers.ApiConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.reactive.function.server.MockServerRequest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.given;
 
-@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         GetStorageHandler.class,
         PrebidServerResponseBuilder.class,
@@ -41,7 +38,7 @@ public class GetStorageHandlerTests {
     @Autowired
     PrebidServerResponseBuilder responseBuilder;
 
-    @MockBean
+    @MockitoBean
     ModuleCompositeRepository moduleCompositeRepository;
 
     GetStorageHandler handler;

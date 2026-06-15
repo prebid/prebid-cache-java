@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Configuration
@@ -21,10 +22,15 @@ public class ModuleCompositeRepositoryConfiguration {
 
     @Bean
     ModuleCompositeRepository moduleCompositeRepository(ModuleCompositeRedisConfigurationProperties properties) {
-        final Map<String, ReactiveRepository<PayloadWrapper, String>> applicationToSource = properties.getRedis()
-                .entrySet().stream()
-                .map(entry -> Map.entry(entry.getKey(), getReactiveRepository(entry.getValue())))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        final Map<String, ReactiveRepository<PayloadWrapper, String>> applicationToSource =
+                Optional.ofNullable(properties.getRedis())
+                        .map(redis ->
+                                redis.entrySet()
+                                        .stream()
+                                        .collect(Collectors.toMap(
+                                                Map.Entry::getKey,
+                                                entry -> getReactiveRepository(entry.getValue()))))
+                        .orElse(Map.of());
 
         return new ModuleCompositeRepository(applicationToSource);
     }

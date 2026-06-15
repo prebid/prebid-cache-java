@@ -7,7 +7,6 @@ import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.apache.http.client.utils.URIBuilder;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.exceptions.UnsupportedMediaTypeException;
 import org.prebid.cache.handlers.ErrorHandler;
@@ -20,7 +19,6 @@ import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.prebid.cache.routers.ApiConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,6 +28,7 @@ import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.netty.http.client.HttpClient;
@@ -49,7 +48,6 @@ public class GetCacheHandler extends CacheHandler {
     private final Map<String, WebClient> clientsCache;
     private static final String UNSUPPORTED_MEDIATYPE = "Unsupported Media Type.";
 
-    @Autowired
     public GetCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
                            final CacheConfig config,
                            final ApiConfig apiConfig,
@@ -108,10 +106,11 @@ public class GetCacheHandler extends CacheHandler {
     private String resolveCacheUrl(final ServerRequest request) {
         final var cacheHostParam = request.queryParam(CACHE_HOST_KEY).orElse(null);
         if (StringUtils.isNotBlank(cacheHostParam)) {
-            return new URIBuilder()
-                    .setHost(cacheHostParam)
-                    .setPath(apiConfig.getCachePath())
-                    .setScheme(config.getHostParamProtocol())
+            return UriComponentsBuilder.newInstance()
+                    .host(cacheHostParam)
+                    .path(apiConfig.getCachePath())
+                    .scheme(config.getHostParamProtocol())
+                    .build(false)
                     .toString();
         }
 
@@ -181,7 +180,7 @@ public class GetCacheHandler extends CacheHandler {
     private Mono<ServerResponse> createServerResponse(final PayloadWrapper wrapper, final ServerRequest request) {
         if (wrapper.getPayload().getType().equals(PayloadType.JSON.toString())) {
             metricsRecorder.markMeterForTag(this.metricTagPrefix, MeasurementTag.JSON);
-            return builder.createResponseMono(request, MediaType.APPLICATION_JSON_UTF8, wrapper);
+            return builder.createResponseMono(request, MediaType.APPLICATION_JSON, wrapper);
         } else if (wrapper.getPayload().getType().equals(PayloadType.XML.toString())) {
             metricsRecorder.markMeterForTag(this.metricTagPrefix, MeasurementTag.XML);
             return builder.createResponseMono(request, MediaType.APPLICATION_XML, wrapper);

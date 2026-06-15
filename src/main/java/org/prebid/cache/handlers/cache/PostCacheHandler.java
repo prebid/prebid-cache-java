@@ -1,7 +1,6 @@
 package org.prebid.cache.handlers.cache;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import io.netty.channel.ChannelOption;
@@ -26,7 +25,6 @@ import org.prebid.cache.model.ResponseObject;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.prebid.cache.routers.ApiConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -63,13 +61,12 @@ public class PostCacheHandler extends CacheHandler {
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
     private final Function<PayloadWrapper, Map<String, String>> payloadWrapperToMapTransformer = payload ->
-            ImmutableMap.of(UUID_KEY, payload.getId());
+            Map.of(UUID_KEY, payload.getId());
     private final Map<String, WebClient> webClients = new HashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final CircuitBreaker circuitBreaker;
     private final ApiConfig apiConfig;
 
-    @Autowired
     public PostCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
                             final CacheConfig config,
                             final MetricsRecorder metricsRecorder,
@@ -145,7 +142,7 @@ public class PostCacheHandler extends CacheHandler {
                     if (response.getResponses().isEmpty()) {
                         return ErrorHandler.createNoElementsFound();
                     } else {
-                        return builder.createResponseMono(request, MediaType.APPLICATION_JSON_UTF8, response);
+                        return builder.createResponseMono(request, MediaType.APPLICATION_JSON, response);
                     }
                 });
 
