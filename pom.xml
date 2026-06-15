@@ -51,7 +51,6 @@
         <disruptor.version>3.4.4</disruptor.version>
         <lombok.version>1.18.46</lombok.version>
         <metrics-graphite.version>4.2.17</metrics-graphite.version>
-        <reflections.version>0.10.2</reflections.version>
         <aerospike-client.version>9.0.5</aerospike-client.version>
         <ignite-client.version>2.17.0</ignite-client.version>
         <reactor-extra.version>3.5.1</reactor-extra.version>
@@ -62,7 +61,6 @@
         <awaitility.version>4.2.0</awaitility.version>
         <resilience4j.version>2.1.0</resilience4j.version>
         <log4j2.version>2.20.0</log4j2.version>
-        <javax.validation-api>2.0.1.Final</javax.validation-api>
 
         <!-- Functional Tests -->
         <kotest.version>5.9.1</kotest.version>
@@ -112,10 +110,6 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.lettuce</groupId>
-            <artifactId>lettuce-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
@@ -149,7 +143,7 @@
         </dependency>
         <dependency>
             <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-spring-boot2</artifactId>
+            <artifactId>resilience4j-spring-boot3</artifactId>
             <version>${resilience4j.version}</version>
         </dependency>
         <dependency>
@@ -170,12 +164,6 @@
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
             <version>${wiremock.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>${reflections.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
