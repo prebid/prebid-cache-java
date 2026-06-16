@@ -51,8 +51,8 @@
         <disruptor.version>3.4.4</disruptor.version>
         <lombok.version>1.18.46</lombok.version>
         <metrics-graphite.version>4.2.17</metrics-graphite.version>
-        <aerospike-client.version>9.0.5</aerospike-client.version>
-        <ignite-client.version>2.17.0</ignite-client.version>
+        <aerospike-client.version>9.3.0</aerospike-client.version>
+        <ignite-client.version>2.18.0</ignite-client.version>
         <reactor-extra.version>3.5.1</reactor-extra.version>
         <wiremock.version>3.3.1</wiremock.version>
         <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
