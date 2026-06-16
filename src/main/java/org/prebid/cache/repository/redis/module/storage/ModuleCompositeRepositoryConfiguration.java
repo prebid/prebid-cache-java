@@ -13,6 +13,7 @@ import org.prebid.cache.repository.redis.RedisUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -21,8 +22,14 @@ public class ModuleCompositeRepositoryConfiguration {
 
     @Bean
     ModuleCompositeRepository moduleCompositeRepository(ModuleCompositeRedisConfigurationProperties properties) {
-        final Map<String, ReactiveRepository<PayloadWrapper, String>> applicationToSource = properties.getRedis()
-                .entrySet().stream()
+        final Map<String, RedisConfigurationProperties> redisConfig = properties.getRedis();
+
+        if (redisConfig == null || redisConfig.isEmpty()) {
+            return new ModuleCompositeRepository(Collections.emptyMap());
+        }
+
+        final Map<String, ReactiveRepository<PayloadWrapper, String>> applicationToSource = redisConfig.entrySet()
+                .stream()
                 .map(entry -> Map.entry(entry.getKey(), getReactiveRepository(entry.getValue())))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 

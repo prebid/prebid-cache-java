@@ -6,7 +6,6 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
 import org.prebid.cache.config.CircuitBreakerPropertyConfiguration;
 import org.prebid.cache.exceptions.DuplicateKeyException;
@@ -22,13 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.reactive.function.server.MockServerRequest;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -49,7 +47,6 @@ import static org.mockito.BDDMockito.given;
 import static org.prebid.cache.util.AwaitilityUtil.awaitAndVerify;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
-@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {
         PostCacheHandler.class,
         PrebidServerResponseBuilder.class,
@@ -75,13 +72,13 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     @Autowired
     CircuitBreaker webClientCircuitBreaker;
 
-    @MockBean
+    @MockitoBean
     Supplier<Date> currentDateProvider;
 
-    @MockBean
+    @MockitoBean
     ReactiveRepository<PayloadWrapper, String> repository;
 
-    @MockBean
+    @MockitoBean
     ApiConfig apiConfig;
 
     @Value("${sampling.rate:2.0}")
@@ -125,7 +122,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final MockServerRequest requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
-                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(request);
 
         final Mono<ServerResponse> responseMono = handler.save(requestMono);
@@ -153,7 +150,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final MockServerRequest requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
-                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(request);
 
         final Mono<ServerResponse> responseMono = handler.save(requestMono);
@@ -195,7 +192,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final MockServerRequest requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
-                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(request);
 
         final Mono<ServerResponse> responseMono = handler.save(requestMono);
@@ -235,7 +232,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         final Mono<RequestObject> request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final MockServerRequest requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
-                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(request);
 
         final Mono<ServerResponse> responseMono = handler.save(requestMono);
@@ -300,7 +297,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         final var request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final var requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
-                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .body(request);
 
         StepVerifier.create(handler.save(requestMono))
@@ -328,7 +325,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
         final var request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
         final var requestMono = MockServerRequest.builder()
                 .method(HttpMethod.POST)
-                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_UTF8_VALUE)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .header("x-pbc-api-key", "api-key")
                 .body(request);
 

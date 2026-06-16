@@ -21,18 +21,17 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.3</version>
-        <relativePath />
+        <version>3.5.15</version>
+        <relativePath/>
     </parent>
 
     <properties>
+        <java.version>25</java.version>
+        <main.class>org.prebid.cache.PBCacheApplication</main.class>
+
         <skipUnitTests>false</skipUnitTests>
         <skipFunctionalTests>false</skipFunctionalTests>
         <useFixedContainerPorts>false</useFixedContainerPorts>
-
-        <project.build.resources.directory>src/main/resources</project.build.resources.directory>
-        <main.class>org.prebid.cache.PBCacheApplication</main.class>
-        <junit-jupiter.version>5.9.2</junit-jupiter.version>
 
         <!-- used for rpm packaging -->
         <build.number>0</build.number>
@@ -41,43 +40,33 @@
         <ci.repository.revision.number>manual</ci.repository.revision.number>
         <mvn.build.timestamp.format>yyyy-MM-dd HH:mm</mvn.build.timestamp.format>
 
-        <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
-        <maven-clean-plugin.version>3.2.0</maven-clean-plugin.version>
-        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
-        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+        <maven-clean-plugin.version>3.5.0</maven-clean-plugin.version>
+        <maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
+        <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <maven-release-plugin.version>3.0.0-M5</maven-release-plugin.version>
-        <rest-maven-plugin.version>0.1.4</rest-maven-plugin.version>
-        <spring-boot-maven-plugin.version>3.2.3</spring-boot-maven-plugin.version>
-        <lettuce-core.version>6.5.1.RELEASE</lettuce-core.version>
         <gson.version>2.10.1</gson.version>
-        <guava.version>32.0.0-jre</guava.version>
-        <caffeine.version>3.1.8</caffeine.version>
         <disruptor.version>3.4.4</disruptor.version>
-        <lombok.version>1.18.30</lombok.version>
+        <lombok.version>1.18.46</lombok.version>
         <metrics-graphite.version>4.2.17</metrics-graphite.version>
-        <javax.el-api.version>3.0.0</javax.el-api.version>
-        <reflections.version>0.10.2</reflections.version>
-        <aerospike-client.version>9.0.5</aerospike-client.version>
-        <ignite-client.version>2.17.0</ignite-client.version>
+        <aerospike-client.version>9.3.0</aerospike-client.version>
+        <ignite-client.version>2.18.0</ignite-client.version>
         <reactor-extra.version>3.5.1</reactor-extra.version>
-        <!-- Wiremock 3.4.0+ has incompatibility with the mockserver client (do we really need both?) -->
         <wiremock.version>3.3.1</wiremock.version>
-        <checkstyle-plugin.version>3.3.0</checkstyle-plugin.version>
-        <checkstyle.version>10.12.1</checkstyle.version>
-        <jacoco-plugin.version>0.8.12</jacoco-plugin.version>
+        <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
+        <checkstyle.version>13.5.0</checkstyle.version>
+        <jacoco-plugin.version>0.8.15</jacoco-plugin.version>
         <awaitility.version>4.2.0</awaitility.version>
         <resilience4j.version>2.1.0</resilience4j.version>
         <log4j2.version>2.20.0</log4j2.version>
-        <javax.validation-api>2.0.1.Final</javax.validation-api>
 
         <!-- Functional Tests -->
-        <kotest.version>5.8.0</kotest.version>
-        <kotlin.version>1.9.22</kotlin.version>
-        <kotlinx-coroutines-core-jvm.version>1.8.0</kotlinx-coroutines-core-jvm.version>
-        <testcontainers.version>1.20.0</testcontainers.version>
+        <kotest.version>5.9.1</kotest.version>
+        <kotlin.version>2.4.0</kotlin.version>
+        <kotlinx-coroutines-core-jvm.version>1.11.0</kotlinx-coroutines-core-jvm.version>
+        <testcontainers.version>1.21.4</testcontainers.version>
         <mockserver-client.version>5.15.0</mockserver-client.version>
         <ktor.version>2.3.13</ktor.version>
         <jackson-kotlin-module.version>2.16.1</jackson-kotlin-module.version>
@@ -121,19 +110,9 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.lettuce</groupId>
-            <artifactId>lettuce-core</artifactId>
-            <version>${lettuce-core.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>${gson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>
@@ -158,35 +137,22 @@
             <version>${micrometer.version}</version>
         </dependency>
         <dependency>
-            <groupId>javax.el</groupId>
-            <artifactId>javax.el-api</artifactId>
-            <version>${javax.el-api.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.github.resilience4j</groupId>
             <artifactId>resilience4j-reactor</artifactId>
             <version>${resilience4j.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.resilience4j</groupId>
-            <artifactId>resilience4j-spring-boot2</artifactId>
+            <artifactId>resilience4j-spring-boot3</artifactId>
             <version>${resilience4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit-jupiter.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-params</artifactId>
-            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -198,17 +164,6 @@
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
             <version>${wiremock.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.github.cjnygard</groupId>
-            <artifactId>rest-maven-plugin</artifactId>
-            <version>${rest-maven-plugin.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>${reflections.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -300,7 +255,6 @@
             <version>${jackson-kotlin-module.version}</version>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -320,7 +274,6 @@
                     <configuration>
                         <!-- Project rooted path to CheckStyle configuration file. -->
                         <configLocation>checkstyle.xml</configLocation>
-                        <encoding>UTF-8</encoding>
                         <consoleOutput>true</consoleOutput>
                         <!-- true if project build should fails on any style violation. -->
                         <failsOnError>true</failsOnError>
@@ -359,6 +312,9 @@
                     <systemPropertyVariables>
                         <launchContainers>false</launchContainers>
                     </systemPropertyVariables>
+                    <excludeJUnit5Engines>
+                        <engine>kotest</engine>
+                    </excludeJUnit5Engines>
                 </configuration>
             </plugin>
             <plugin>
@@ -366,14 +322,19 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
+                    <release>${java.version}</release>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>${spring-boot-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>

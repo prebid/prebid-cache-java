@@ -1,7 +1,6 @@
 package org.prebid.cache;
 
 import org.prebid.cache.config.CorsConfig;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.web.reactive.config.CorsRegistry;
@@ -11,7 +10,6 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
 public class PBCacheApplication implements WebFluxConfigurer {
     private final CorsConfig corsConfig;
 
-    @Autowired
     public PBCacheApplication(final CorsConfig corsConfig) {
         this.corsConfig = corsConfig;
     }
@@ -30,4 +28,3 @@ public class PBCacheApplication implements WebFluxConfigurer {
         }
     }
 }
-

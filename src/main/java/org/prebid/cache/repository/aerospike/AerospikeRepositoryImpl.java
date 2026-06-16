@@ -97,8 +97,8 @@ public class AerospikeRepositoryImpl implements ReactiveRepository<PayloadWrappe
 
         return Retry.backoff(maxAttempts, minBackoff)
                 .maxBackoff(maxBackoff)
-                .filter(e -> e instanceof AerospikeException
-                        && getRetryCodes().contains(((AerospikeException) e).getResultCode()))
+                .filter(e -> e instanceof AerospikeException ae
+                        && getRetryCodes().contains(ae.getResultCode()))
                 .doAfterRetry(signal -> log.warn("Retrying context {}", signal.retryContextView()));
     }
 
