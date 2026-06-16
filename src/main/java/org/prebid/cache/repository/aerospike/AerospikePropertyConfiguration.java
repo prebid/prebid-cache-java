@@ -42,9 +42,9 @@ public class AerospikePropertyConfiguration {
     private int maxRetry;
     private String namespace;
     private boolean preventUUIDDuplication;
-    private int socketTimeout;
-    private int totalTimeout;
-    private int connectTimeout;
+    private int socketTimeout = 30000;
+    private int totalTimeout = 1000;
+    private int connectTimeout = 0;
     private int minConnsPerNode;
     private int maxConnsPerNode = 100;
     private Replica readPolicy = Replica.SEQUENCE;
