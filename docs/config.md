@@ -44,6 +44,7 @@ The next sections describes how to set up project configuration.
 - `circuitbreaker.closed_state_calls_number` - size of circuit breaker sliding window.
 - `circuitbreaker.half_open_state_calls_number` - number of calls in half open state.
 - `sampling.rate` - logging sampling rate
+- `server.max-http-body-size-kb` - sets max HTTP body size in kb. Default is 256 kb. Improper usage might lead to application running out of memory.
 
 ### Storage
 - `storage.default-ttl-seconds` - set the default ttl for the data
