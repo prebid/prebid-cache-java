@@ -58,11 +58,11 @@ class SecondaryCacheSpec : ShouldSpec({
         // and: Request to secondary cache was sent
         val secondaryCacheRecordedRequests =
             webCacheContainerClient.getSecondaryCacheRecordedRequests(requestObject.puts[0].key!!)
-        secondaryCacheRecordedRequests?.size shouldBe 1
+        secondaryCacheRecordedRequests.size shouldBe 1
 
         // and: Request contained secondaryCache=yes query parameter
-        secondaryCacheRecordedRequests!!.first().queryStringParameters
-            ?.containsEntry("secondaryCache", "yes") shouldBe true
+        secondaryCacheRecordedRequests.first()
+            .queryParameter("secondaryCache").containsValue("yes") shouldBe true
 
         // and: Secondary cache request body matched to the Prebid Cache request object
         val secondaryCacheRequest =
@@ -88,11 +88,11 @@ class SecondaryCacheSpec : ShouldSpec({
         // and: Request to secondary cache was sent
         val secondaryCacheRecordedRequests =
             webCacheContainerClient.getSecondaryCacheRecordedRequests(requestObject.puts[0].key!!)
-        secondaryCacheRecordedRequests?.size shouldBe 1
+        secondaryCacheRecordedRequests.size shouldBe 1
 
         // and: Secondary cache request 'expiry' parameter matches to the PBC request 'ttlseconds' parameter
         val secondaryCacheRequest =
-            objectMapper.readValue(secondaryCacheRecordedRequests!!.first().bodyAsString, RequestObject::class.java)
+            objectMapper.readValue(secondaryCacheRecordedRequests.first().bodyAsString, RequestObject::class.java)
         secondaryCacheRequest.puts.size shouldBe 1
         secondaryCacheRequest.puts[0].expiry shouldBe requestObject.puts[0].ttlseconds
     }
@@ -115,11 +115,11 @@ class SecondaryCacheSpec : ShouldSpec({
         // and: Request to secondary cache was sent
         val secondaryCacheRecordedRequests =
             webCacheContainerClient.getSecondaryCacheRecordedRequests(requestObject.puts[0].key!!)
-        secondaryCacheRecordedRequests?.size shouldBe 1
+        secondaryCacheRecordedRequests.size shouldBe 1
 
         // and: Secondary cache request 'expiry' parameter matches to the Prebid Cache 'cache.expiry.sec' config property
         val secondaryCacheRequest =
-            objectMapper.readValue(secondaryCacheRecordedRequests!!.first().bodyAsString, RequestObject::class.java)
+            objectMapper.readValue(secondaryCacheRecordedRequests.first().bodyAsString, RequestObject::class.java)
         secondaryCacheRequest.puts.size shouldBe 1
         secondaryCacheRequest.puts[0].expiry shouldBe specPrebidCacheConfig["cache.expiry.sec"]?.toLong()
     }
@@ -145,11 +145,11 @@ class SecondaryCacheSpec : ShouldSpec({
         // and: Request to secondary cache was sent
         val secondaryCacheRecordedRequests =
             webCacheContainerClient.getSecondaryCacheRecordedRequests(requestObject.puts[0].key!!)
-        secondaryCacheRecordedRequests?.size shouldBe 1
+        secondaryCacheRecordedRequests.size shouldBe 1
 
         // and: Secondary cache request 'expiry' parameter matches to the Prebid Cache 'cache.max.expiry' config property
         val secondaryCacheRequest =
-            objectMapper.readValue(secondaryCacheRecordedRequests!!.first().bodyAsString, RequestObject::class.java)
+            objectMapper.readValue(secondaryCacheRecordedRequests.first().bodyAsString, RequestObject::class.java)
         secondaryCacheRequest.puts.size shouldBe 1
         secondaryCacheRequest.puts[0].expiry shouldBe configCacheMaxExpiry
     }
@@ -175,11 +175,11 @@ class SecondaryCacheSpec : ShouldSpec({
         // and: Request to secondary cache was sent
         val secondaryCacheRecordedRequests =
             webCacheContainerClient.getSecondaryCacheRecordedRequests(requestObject.puts[0].key!!)
-        secondaryCacheRecordedRequests?.size shouldBe 1
+        secondaryCacheRecordedRequests.size shouldBe 1
 
         // and: Secondary cache request 'expiry' parameter matches to the Prebid Cache 'cache.min.expiry' config property
         val secondaryCacheRequest =
-            objectMapper.readValue(secondaryCacheRecordedRequests!!.first().bodyAsString, RequestObject::class.java)
+            objectMapper.readValue(secondaryCacheRecordedRequests.first().bodyAsString, RequestObject::class.java)
         secondaryCacheRequest.puts.size shouldBe 1
         secondaryCacheRequest.puts[0].expiry shouldBe configCacheMinExpiry
     }
