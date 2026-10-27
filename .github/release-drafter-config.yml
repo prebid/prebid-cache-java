@@ -3,6 +3,7 @@ no-changes-template: '- No changes'
 template: |
   ## What’s Changed
   $CHANGES
-
+  
   ## Contributors
+  
   $CONTRIBUTORS
