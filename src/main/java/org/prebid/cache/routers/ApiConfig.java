@@ -8,6 +8,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.Map;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -27,6 +29,8 @@ public class ApiConfig {
 
     @NotEmpty
     private String apiKey;
+
+    private Map<String, String> userKeys;
 
     // workaround for supporting transition period of deprecated path property
     public void setPath(String path) {
