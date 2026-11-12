@@ -22,6 +22,8 @@ public class ApiConfig {
     private boolean cacheWriteSecured;
     private boolean externalUUIDSecured;
 
+    private boolean sandboxXmlResponses;
+
     @NotEmpty
     private String storagePath;
 

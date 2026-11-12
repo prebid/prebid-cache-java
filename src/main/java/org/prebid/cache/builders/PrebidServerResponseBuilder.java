@@ -1,10 +1,10 @@
 package org.prebid.cache.builders;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.prebid.cache.model.ErrorResponse;
 import org.prebid.cache.model.PayloadWrapper;
 import org.prebid.cache.model.ResponseObject;
+import org.prebid.cache.routers.ApiConfig;
 import org.prebid.cache.translators.ThrowableTranslator;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
@@ -25,13 +25,14 @@ import static org.springframework.http.HttpHeaders.DATE;
 import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 import static org.springframework.web.reactive.function.server.ServerResponse.status;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
 public class PrebidServerResponseBuilder {
 
     private static final String HEADER_CONNECTION_KEEPALIVE = "keep-alive";
     private static final String HEADER_CONNECTION_CLOSE = "close";
+
+    private final ApiConfig apiConfig;
 
     public Mono<ServerResponse> createResponseMono(final ServerRequest request,
                                                    final MediaType mediaType,
@@ -52,7 +53,10 @@ public class PrebidServerResponseBuilder {
                 .header(DATE, now)
                 .varyBy(ACCEPT_ENCODING)
                 .cacheControl(CacheControl.noCache());
-        applyHeaders(builder, request);
+
+        applyConnectionHeaders(builder, request);
+        applySandboxingHeaders(builder, mediaType);
+
         return builder;
     }
 
@@ -73,18 +77,18 @@ public class PrebidServerResponseBuilder {
                 );
     }
 
-    private static ServerResponse.BodyBuilder addHeaders(final ServerResponse.BodyBuilder builder,
-                                                         final ServerRequest request) {
+    private ServerResponse.BodyBuilder addHeaders(final ServerResponse.BodyBuilder builder,
+                                                  final ServerRequest request) {
         ServerResponse.BodyBuilder headers =
                 builder.header(DATE, ZonedDateTime.now().format(DateTimeFormatter.RFC_1123_DATE_TIME))
                         .varyBy(ACCEPT_ENCODING)
                         .cacheControl(CacheControl.noCache());
 
-        return applyHeaders(headers, request);
+        return applyConnectionHeaders(headers, request);
     }
 
-    private static ServerResponse.BodyBuilder applyHeaders(final ServerResponse.BodyBuilder builder,
-                                                           final ServerRequest request) {
+    private ServerResponse.BodyBuilder applyConnectionHeaders(final ServerResponse.BodyBuilder builder,
+                                                              final ServerRequest request) {
 
         final List<String> connectionHeaders = request.headers().header(CONNECTION);
         if (hasConnectionValue(connectionHeaders, HEADER_CONNECTION_KEEPALIVE)) {
@@ -100,6 +104,13 @@ public class PrebidServerResponseBuilder {
         return !connectionHeaders.isEmpty() && connectionHeaders.stream()
                 .map(String::toLowerCase)
                 .allMatch(Predicate.isEqual(value));
+    }
+
+    private void applySandboxingHeaders(ServerResponse.BodyBuilder builder, MediaType mediaType) {
+        if (MediaType.APPLICATION_XML.equals(mediaType) && apiConfig.isSandboxXmlResponses()) {
+            builder.header("Content-Security-Policy", "sandbox; default-src 'none'");
+            builder.header("X-Content-Type-Options", "nosniff");
+        }
     }
 
 }
