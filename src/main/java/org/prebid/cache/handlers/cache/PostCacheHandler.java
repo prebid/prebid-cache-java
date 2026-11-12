@@ -5,6 +5,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -50,9 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
-
-import static org.apache.commons.collections4.MapUtils.emptyIfNull;
-import static org.apache.commons.collections4.MapUtils.invertMap;
 
 @Component
 @Slf4j
@@ -101,7 +99,7 @@ public class PostCacheHandler extends CacheHandler {
         this.metricTagPrefix = "write";
         this.circuitBreaker = webClientCircuitBreaker;
         this.apiConfig = apiConfig;
-        this.userKeys = invertMap(emptyIfNull(apiConfig.getUserKeys()));
+        this.userKeys = MapUtils.invertMap(MapUtils.emptyIfNull(apiConfig.getUserKeys()));
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
@@ -185,14 +183,11 @@ public class PostCacheHandler extends CacheHandler {
     }
 
     private boolean validateUserKey(ServerRequest request) {
-        final String userKey = ObjectUtils.firstNonNull(request.headers().firstHeader(USER_KEY_PARAM),
+        final String userKey = ObjectUtils.firstNonNull(
+                request.headers().firstHeader(USER_KEY_PARAM),
                 request.queryParams().getFirst(USER_KEY_PARAM));
 
-        if (StringUtils.isEmpty(userKey)) {
-            return false;
-        }
-
-        final String user = userKeys.get(userKey);
+        final String user = StringUtils.isNotEmpty(userKey) ? userKeys.get(userKey) : null;
         if (user != null) {
             metricsRecorder.markMeterForUserTag(metricTagPrefix, user, MeasurementTag.REQUEST_USER);
             return true;
