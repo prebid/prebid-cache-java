@@ -5,6 +5,8 @@ import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.reactor.circuitbreaker.operator.CircuitBreakerOperator;
 import io.netty.channel.ChannelOption;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.prebid.cache.builders.PrebidServerResponseBuilder;
@@ -57,6 +59,7 @@ public class PostCacheHandler extends CacheHandler {
     private static final String UUID_KEY = "uuid";
     private static final String SECONDARY_CACHE_KEY = "secondaryCache";
     private static final String API_KEY_HEADER = "x-pbc-api-key";
+    private static final String USER_KEY_PARAM = "x-pbc-user-key";
 
     private final ReactiveRepository<PayloadWrapper, String> repository;
     private final CacheConfig config;
@@ -66,6 +69,7 @@ public class PostCacheHandler extends CacheHandler {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final CircuitBreaker circuitBreaker;
     private final ApiConfig apiConfig;
+    private final Map<String, String> userKeys;
 
     public PostCacheHandler(final ReactiveRepository<PayloadWrapper, String> repository,
                             final CacheConfig config,
@@ -95,15 +99,14 @@ public class PostCacheHandler extends CacheHandler {
         this.metricTagPrefix = "write";
         this.circuitBreaker = webClientCircuitBreaker;
         this.apiConfig = apiConfig;
+        this.userKeys = MapUtils.invertMap(MapUtils.emptyIfNull(apiConfig.getUserKeys()));
     }
 
     public Mono<ServerResponse> save(final ServerRequest request) {
-        final boolean isValidApiKey = isValidApiKey(request);
-        if (isValidApiKey) {
-            metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.REQUEST_TRUSTED);
-        }
+        final boolean isValidApiKey = validateApiKey(request);
+        final boolean isValidUserKey = validateUserKey(request);
 
-        if (apiConfig.isCacheWriteSecured() && !isValidApiKey) {
+        if (apiConfig.isCacheWriteSecured() && !(isValidApiKey || isValidUserKey)) {
             metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.ERROR_UNAUTHORIZED);
             return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -168,8 +171,29 @@ public class PostCacheHandler extends CacheHandler {
         sink.next(payload);
     }
 
-    private boolean isValidApiKey(final ServerRequest request) {
-        return StringUtils.equals(request.headers().firstHeader(API_KEY_HEADER), apiConfig.getApiKey());
+    private boolean validateApiKey(final ServerRequest request) {
+        final boolean isValidApiKey = apiConfig.getApiKey() != null
+                && StringUtils.equals(request.headers().firstHeader(API_KEY_HEADER), apiConfig.getApiKey());
+
+        if (isValidApiKey) {
+            metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.REQUEST_TRUSTED);
+        }
+
+        return isValidApiKey;
+    }
+
+    private boolean validateUserKey(ServerRequest request) {
+        final String userKey = ObjectUtils.firstNonNull(
+                request.headers().firstHeader(USER_KEY_PARAM),
+                request.queryParams().getFirst(USER_KEY_PARAM));
+
+        final String user = StringUtils.isNotEmpty(userKey) ? userKeys.get(userKey) : null;
+        if (user != null) {
+            metricsRecorder.markMeterForUserTag(metricTagPrefix, user, MeasurementTag.REQUEST_USER);
+            return true;
+        }
+
+        return false;
     }
 
     private Function<PayloadTransfer, PayloadWrapper> payloadWrapperTransformer() {

@@ -15,6 +15,7 @@ public class MetricsRecorder {
 
     protected static final String PREFIX_PLACEHOLDER = "\\$\\{prefix\\}";
     protected static final String TTL_BUCKET_PLACEHOLDER = "\\$\\{ttlBucket\\}";
+    protected static final String USER_PLACEHOLDER = "\\$\\{user\\}";
 
     public MetricsRecorder(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
@@ -62,8 +63,18 @@ public class MetricsRecorder {
         return meterRegistry.counter(measurementTag.getTag().replaceAll(PREFIX_PLACEHOLDER, prefix));
     }
 
+    private Counter meterForUserTag(String prefix, String user, MeasurementTag measurementTag) {
+        return meterRegistry.counter(measurementTag.getTag()
+                .replaceAll(PREFIX_PLACEHOLDER, prefix)
+                .replaceAll(USER_PLACEHOLDER, user));
+    }
+
     public void markMeterForTag(final String prefix, final MeasurementTag measurementTag) {
         meterForTag(prefix, measurementTag).increment();
+    }
+
+    public void markMeterForUserTag(String prefix, String user, MeasurementTag measurementTag) {
+        meterForUserTag(prefix, user, measurementTag).increment();
     }
 
     public MetricsRecorderTimer createRequestTimerForServiceType(final ServiceType serviceType) {
