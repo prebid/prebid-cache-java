@@ -9,8 +9,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.contentType
-import org.mockserver.model.MediaType.APPLICATION_JSON_UTF_8
-import org.mockserver.model.MediaType.APPLICATION_XML
 import org.prebid.cache.functional.mapper.objectMapper
 import org.prebid.cache.functional.model.request.MediaType.JSON
 import org.prebid.cache.functional.model.request.MediaType.XML
@@ -25,6 +23,7 @@ import org.prebid.cache.functional.util.getRandomUuid
 import org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR
 import org.springframework.http.HttpStatus.NOT_FOUND
 import org.springframework.http.HttpStatus.OK
+import org.springframework.http.MediaType
 
 class ProxyCacheHostSpec : ShouldSpec({
 
@@ -109,8 +108,8 @@ class ProxyCacheHostSpec : ShouldSpec({
         // then: PBC called proxy cache host
         webCacheContainerClient.getProxyCacheHostRecordedRequestCount() shouldBe initialProxyCacheHostRequestCount + 1
 
-        val proxyCacheHostRequest = webCacheContainerClient.getProxyCacheHostRecordedRequests()!!.last()
-        proxyCacheHostRequest.queryStringParameters?.containsEntry("uuid", requestUuid) shouldBe true
+        val proxyCacheHostRequest = webCacheContainerClient.getProxyCacheHostRecordedRequests().last()
+        proxyCacheHostRequest.queryParameter("uuid").containsValue(requestUuid) shouldBe true
     }
 
     should("return a response body as a plain String requested from proxy cache host") {
@@ -127,8 +126,8 @@ class ProxyCacheHostSpec : ShouldSpec({
 
     should("return a response body as a JSON or XML object requested from proxy cache host") {
         forAll(
-            row(TransferValue.getDefaultJsonValue(), APPLICATION_JSON_UTF_8, JSON),
-            row(TransferValue.getDefaultXmlValue(), APPLICATION_XML, XML)
+            row(TransferValue.getDefaultJsonValue(), MediaType.APPLICATION_JSON, JSON),
+            row(TransferValue.getDefaultXmlValue(), MediaType.APPLICATION_XML, XML)
         ) { proxyCacheResponseBody, proxyCacheResponseMediaType, prebidCacheResponseMediaType ->
             // given: Proxy cache host response is set up to return a JSON response body
             webCacheContainerClient.setProxyCacheHostResponse(

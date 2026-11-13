@@ -15,7 +15,7 @@ abstract class ContainerDependencies {
         private const val aerospikeImageName = "aerospike:ce-8.1.2.2"
         private const val apacheIgniteImageName = "apacheignite/ignite:2.18.0"
         private const val prebidCacheImageName = "prebid-cache:latest"
-        private const val mockServerImageVersion = "mockserver/mockserver:5.15.0"
+        private const val wireMockImageVersion = "wiremock/wiremock:3.13.0"
 
         private val launchContainers = System.getProperty("launchContainers")?.toBoolean() ?: true
 
@@ -24,7 +24,7 @@ abstract class ContainerDependencies {
         val aerospikeContainer: AerospikeContainer = AerospikeContainer(aerospikeImageName).withNetwork(network)
         val apacheIgniteContainer: ApacheIgniteContainer = ApacheIgniteContainer(apacheIgniteImageName).withNetwork(network)
         val webCacheContainer: WebCacheContainer =
-            WebCacheContainer(DockerImageName.parse(mockServerImageVersion)).withNetwork(network) as WebCacheContainer
+            WebCacheContainer(DockerImageName.parse(wireMockImageVersion)).withNetwork(network) as WebCacheContainer
         val prebidCacheContainerPool = PrebidCacheContainerPool(prebidCacheImageName)
 
         fun startCacheServerContainers() {
