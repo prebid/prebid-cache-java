@@ -7,7 +7,7 @@ public enum MeasurementTag {
     REQUEST_DURATION("pbc.${prefix}.request.duration"),
     REQUEST("pbc.${prefix}.request"),
     REQUEST_TRUSTED("pbc.${prefix}.trustedRequest"),
-    REQUEST_USER("pbc.${prefix}.${user}.request"),
+    REQUEST_USER("pbc.${prefix}.user.${user}.request"),
     REQUEST_INVALID("pbc.request.invalid"),
     ERROR_UNKNOWN("pbc.${prefix}.err.unknown"),
     ERROR_TIMED_OUT("pbc.${prefix}.err.timedOut"),
