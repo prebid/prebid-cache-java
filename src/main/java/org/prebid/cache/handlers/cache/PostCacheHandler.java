@@ -27,6 +27,7 @@ import org.prebid.cache.model.ResponseObject;
 import org.prebid.cache.repository.CacheConfig;
 import org.prebid.cache.repository.ReactiveRepository;
 import org.prebid.cache.routers.ApiConfig;
+import org.prebid.cache.routers.ApiRouter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -106,7 +107,7 @@ public class PostCacheHandler extends CacheHandler {
         final boolean isValidApiKey = validateApiKey(request);
         final boolean isValidUserKey = validateUserKey(request);
 
-        if (apiConfig.isCacheWriteSecured() && !(isValidApiKey || isValidUserKey)) {
+        if (apiConfig.isCacheWriteSecured() && !isValidApiKey && !isValidUserKey) {
             metricsRecorder.markMeterForTag(metricTagPrefix, MeasurementTag.ERROR_UNAUTHORIZED);
             return ServerResponse.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -185,7 +186,8 @@ public class PostCacheHandler extends CacheHandler {
     private boolean validateUserKey(ServerRequest request) {
         final String userKey = ObjectUtils.firstNonNull(
                 request.headers().firstHeader(USER_KEY_PARAM),
-                request.queryParams().getFirst(USER_KEY_PARAM));
+                request.queryParams().getFirst(USER_KEY_PARAM),
+                request.pathVariables().get(ApiRouter.USER_CACHE_PATH_PARAM));
 
         final String user = StringUtils.isNotEmpty(userKey) ? userKeys.get(userKey) : null;
         if (user != null) {
