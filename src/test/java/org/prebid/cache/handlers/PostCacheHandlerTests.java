@@ -393,6 +393,34 @@ class PostCacheHandlerTests extends CacheHandlerTests {
     }
 
     @Test
+    void testWriteAuthorizationWithValidUserKeyPathParameter() {
+        given(apiConfig.isCacheWriteSecured()).willReturn(true);
+        given(apiConfig.getUserKeys()).willReturn(Map.of("user-name", "user-key"));
+        given(repository.save(PAYLOAD_WRAPPER)).willReturn(Mono.just(PAYLOAD_WRAPPER));
+
+        final var handler = new PostCacheHandler(
+                repository,
+                cacheConfig,
+                metricsRecorder,
+                builder,
+                webClientCircuitBreaker,
+                samplingRate,
+                apiConfig);
+
+        final var request = Mono.just(RequestObject.of(Collections.singletonList(PAYLOAD_TRANSFER)));
+        final var requestMono = MockServerRequest.builder()
+                .method(HttpMethod.POST)
+                .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .pathVariable("user", "user-key")
+                .body(request);
+
+        StepVerifier.create(handler.save(requestMono))
+                .consumeNextWith(serverResponse -> assertEquals(200, serverResponse.statusCode().value()))
+                .expectComplete()
+                .verify();
+    }
+
+    @Test
     void testWriteAuthorizationWithValidUserKeyShouldPrioritizeHeader() {
         given(apiConfig.isCacheWriteSecured()).willReturn(true);
         given(apiConfig.getUserKeys()).willReturn(Map.of("user-name", "user-key"));
@@ -413,6 +441,7 @@ class PostCacheHandlerTests extends CacheHandlerTests {
                 .header(CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .header("x-pbc-user-key", "user-key")
                 .queryParam("x-pbc-user-key", "invalid")
+                .pathVariable("user", "invalid")
                 .body(request);
 
         StepVerifier.create(handler.save(requestMono))
