@@ -35,17 +35,17 @@ public class ApiRouter {
 
         return route(
                 POST(apiConfig.getCachePath())
-                        .or(POST(apiConfig.getCachePath() + "/" + USER_CACHE_PATH_PARAM))
+                        .or(POST(apiConfig.getCachePath() + "/" + "{" + USER_CACHE_PATH_PARAM + "}"))
                         .and(accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8, MediaType.TEXT_PLAIN)),
                 postCacheHandler::save)
                 .andRoute(
                         GET(apiConfig.getCachePath())
-                                .or(GET(apiConfig.getCachePath() + "/" + USER_CACHE_PATH_PARAM))
+                                .or(GET(apiConfig.getCachePath() + "/" + "{" + USER_CACHE_PATH_PARAM + "}"))
                                 .and(accept(MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON_UTF8)),
                         getCacheHandler::fetch)
                 .andRoute(
                         GET(apiConfig.getCachePath())
-                                .or(GET(apiConfig.getCachePath() + "/" + USER_CACHE_PATH_PARAM))
+                                .or(GET(apiConfig.getCachePath() + "/" + "{" + USER_CACHE_PATH_PARAM + "}"))
                                 .and(accept(MediaType.APPLICATION_XML)),
                         getCacheHandler::fetch)
                 .andRoute(
