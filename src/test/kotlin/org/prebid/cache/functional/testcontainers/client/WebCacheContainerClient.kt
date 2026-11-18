@@ -1,67 +1,80 @@
 package org.prebid.cache.functional.testcontainers.client
 
-import org.mockserver.client.MockServerClient
-import org.mockserver.matchers.Times
-import org.mockserver.mock.Expectation
-import org.mockserver.model.HttpRequest
-import org.mockserver.model.HttpRequest.request
-import org.mockserver.model.HttpResponse.response
-import org.mockserver.model.JsonPathBody.jsonPath
-import org.mockserver.model.MediaType
-import org.mockserver.model.MediaType.APPLICATION_JSON_UTF_8
+import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
+import com.github.tomakehurst.wiremock.client.WireMock.get
+import com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath
+import com.github.tomakehurst.wiremock.client.WireMock.post
+import com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor
+import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import com.github.tomakehurst.wiremock.stubbing.Scenario
+import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import com.github.tomakehurst.wiremock.verification.LoggedRequest
+import java.util.UUID
 import org.prebid.cache.functional.testcontainers.container.WebCacheContainer.Companion.WEB_CACHE_PATH
-import org.springframework.http.HttpMethod.GET
-import org.springframework.http.HttpMethod.POST
 import org.springframework.http.HttpStatus
 import org.springframework.http.HttpStatus.OK
+import org.springframework.http.MediaType
 
 class WebCacheContainerClient(mockServerHost: String, mockServerPort: Int) {
 
-    private val mockServerClient: MockServerClient
+    private val wireMockClient = WireMock(mockServerHost, mockServerPort)
+    private var proxyCacheHostStub: StubMapping? = null
 
-    init {
-        mockServerClient = MockServerClient(mockServerHost, mockServerPort)
-    }
-
-    fun getProxyCacheHostRecordedRequests(): Array<out HttpRequest>? =
-        mockServerClient.retrieveRecordedRequests(getProxyCacheHostRequest())
+    fun getProxyCacheHostRecordedRequests(): List<LoggedRequest> =
+        wireMockClient.find(getProxyCacheHostRequest())
 
     fun getProxyCacheHostRecordedRequestCount(): Int =
-        getProxyCacheHostRecordedRequests()?.size ?: 0
+        getProxyCacheHostRecordedRequests().size
 
     fun setProxyCacheHostResponse(
         httpStatus: HttpStatus = OK,
-        body: String = "",
-        mediaType: MediaType = APPLICATION_JSON_UTF_8
-    ): Array<out Expectation>? =
-        mockServerClient.`when`(getProxyCacheHostRequest(), Times.exactly(1))
-            .respond(
-                response().withStatusCode(httpStatus.value())
-                    .withBody(body, mediaType)
-            )
+        body: String = "{}",
+        mediaType: MediaType = MediaType.APPLICATION_JSON
+    ): StubMapping {
+        proxyCacheHostStub?.let { wireMockClient.removeStubMapping(it) }
 
-    fun getSecondaryCacheRecordedRequests(uuidKey: String): Array<out HttpRequest>? {
-        val secondaryCacheRequest = getSecondaryCacheRequest(uuidKey)
-        waitUntil({ mockServerClient.retrieveRecordedRequests(secondaryCacheRequest)!!.isNotEmpty() })
-        return mockServerClient.retrieveRecordedRequests(secondaryCacheRequest)
+        return wireMockClient.register(
+            get(urlPathEqualTo("/$WEB_CACHE_PATH"))
+                .inScenario("proxy-cache-host-${UUID.randomUUID()}")
+                .whenScenarioStateIs(Scenario.STARTED)
+                .willReturn(
+                    aResponse()
+                        .withStatus(httpStatus.value())
+                        .withBody(body)
+                        .withHeader("Content-Type", mediaType.toString())
+                        .withHeader("Connection", "close")
+                )
+                .willSetStateTo("CONSUMED")
+        ).also { proxyCacheHostStub = it }
     }
 
-    fun initSecondaryCacheResponse(): Array<out Expectation>? =
-        mockServerClient.`when`(getSecondaryCacheRequest())
-            .respond(response().withStatusCode(OK.value()))
+    fun getSecondaryCacheRecordedRequests(uuidKey: String): List<LoggedRequest> {
+        val secondaryCacheRequest = getSecondaryCacheRequest(uuidKey)
+        waitUntil({ wireMockClient.find(secondaryCacheRequest).isNotEmpty() })
+        return wireMockClient.find(secondaryCacheRequest)
+    }
 
-    private fun getProxyCacheHostRequest(): HttpRequest =
-        request().withMethod(GET.name())
-            .withPath("/$WEB_CACHE_PATH")
+    fun initSecondaryCacheResponse(): StubMapping =
+        wireMockClient.register(
+            post(urlPathEqualTo("/$WEB_CACHE_PATH"))
+                .willReturn(
+                    aResponse()
+                        .withStatus(OK.value())
+                        .withHeader("Connection", "close")
+                )
+        )
 
-    private fun getSecondaryCacheRequest(): HttpRequest =
-        request().withMethod(POST.name())
-            .withPath("/$WEB_CACHE_PATH")
+    private fun getProxyCacheHostRequest() =
+        getRequestedFor(urlPathEqualTo("/$WEB_CACHE_PATH"))
 
-    private fun getSecondaryCacheRequest(uuidKey: String): HttpRequest =
-        request().withMethod(POST.name())
-            .withPath("/$WEB_CACHE_PATH")
-            .withBody(jsonPath("\$.puts[?(@.key == '$uuidKey')]"))
+    private fun getSecondaryCacheRequest() =
+        postRequestedFor(urlPathEqualTo("/$WEB_CACHE_PATH"))
+
+    private fun getSecondaryCacheRequest(uuidKey: String) =
+        getSecondaryCacheRequest()
+            .withRequestBody(matchingJsonPath("$.puts[?(@.key == '$uuidKey')]"))
 
     private fun waitUntil(closure: () -> Boolean, timeoutMs: Long = 5000, pollInterval: Long = 100) {
         val startTime = System.currentTimeMillis()
