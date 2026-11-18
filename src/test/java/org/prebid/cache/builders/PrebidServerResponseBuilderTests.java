@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.reactive.function.server.MockServerRequest;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -24,14 +25,17 @@ import reactor.test.StepVerifier;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_JSON_UTF8;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
-@ContextConfiguration(classes={PrebidServerResponseBuilder.class, ApiConfig.class})
+@ContextConfiguration(classes = {PrebidServerResponseBuilder.class, ApiConfig.class})
 @SpringBootTest
 class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests {
+
+    @MockitoBean
+    ApiConfig apiConfig;
 
     @Autowired
     PrebidServerResponseBuilder builder;
@@ -42,7 +46,7 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests {
             return builder.createResponseMono(request, mediaType, jsonPayloadWrapper);
         } else if (isJsonUTF8(mediaType)) {
             return builder.createResponseMono(request, mediaType, jsonUTF8PayloadWrapper);
-        }else if (isXml(mediaType)) {
+        } else if (isXml(mediaType)) {
             return builder.createResponseMono(request, mediaType, xmlPayloadWrapper);
         }
         return null;
@@ -61,24 +65,29 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests {
 
     private void verifyServerResponse(MediaType mediaType, HttpHeaders requestHeaders, HttpHeaders expectedHeaders) {
         final var request = MockServerRequest.builder().headers(requestHeaders).build();
-        final Consumer<Signal<ServerResponse>> consumer = signal -> {
-            assertTrue(signal.isOnComplete());
 
-            final ServerResponse response = signal.get();
-            assertEquals(200, response.statusCode().value());
-            assertEquals(response.headers().getContentType(), expectedHeaders.getContentType());
-            assertEquals(response.headers().getConnection(), expectedHeaders.getConnection());
-        };
-
-        subscribeAndVerify(createResponseMono(request, mediaType), consumer);
+        StepVerifier.create(createResponseMono(request, mediaType))
+                .assertNext(response -> {
+                    assertEquals(200,
+                            response.statusCode().value());
+                    assertEquals(expectedHeaders.getContentType(),
+                            response.headers().getContentType());
+                    assertEquals(expectedHeaders.getConnection(),
+                            response.headers().getConnection());
+                    assertEquals(expectedHeaders.get("Content-Security-Policy"),
+                            response.headers().get("Content-Security-Policy"));
+                    assertEquals(expectedHeaders.get("X-Content-Type-Options"),
+                            response.headers().get("X-Content-Type-Options"));
+                })
+                .verifyComplete();
     }
 
     private void verifyErrorResponse(HttpStatus status) {
         final MockServerRequest request = MockServerRequest.builder().build();
-        final Consumer<Signal<ServerResponse>> consumer =
-                signal -> assertEquals(status.value(), signal.get().statusCode().value());
 
-        subscribeAndVerify(createErrorMono(request, status), consumer);
+        StepVerifier.create(createErrorMono(request, status))
+                .assertNext(response -> assertEquals(status.value(), response.statusCode().value()))
+                .verifyComplete();
     }
 
     private Mono<ServerResponse> createErrorMono(final ServerRequest request, final HttpStatus status) {
@@ -129,13 +138,32 @@ class PrebidServerResponseBuilderTests extends PayloadWrapperResponseTests {
     }
 
     @Test
-    void verifyNotFound() { verifyErrorResponse(HttpStatus.NOT_FOUND); }
+    void verifySandboxedXmlServerResponse() {
+        given(apiConfig.isSandboxXmlResponses()).willReturn(true);
+
+        final HttpHeaders requestHeaders = new HttpHeaders();
+
+        final HttpHeaders responseHeaders = new HttpHeaders();
+        responseHeaders.add(HttpHeaders.CONTENT_TYPE, APPLICATION_XML.toString());
+        responseHeaders.add("Content-Security-Policy", "sandbox; default-src 'none'");
+        responseHeaders.add("X-Content-Type-Options", "nosniff");
+        verifyServerResponse(APPLICATION_XML, requestHeaders, responseHeaders);
+    }
 
     @Test
-    void verifyBadRequest() { verifyErrorResponse(HttpStatus.BAD_REQUEST); }
+    void verifyNotFound() {
+        verifyErrorResponse(HttpStatus.NOT_FOUND);
+    }
 
     @Test
-    void verifyRepoError() { verifyErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR); }
+    void verifyBadRequest() {
+        verifyErrorResponse(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void verifyRepoError() {
+        verifyErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     @SpringBootTest
     public abstract static class PayloadTests {
